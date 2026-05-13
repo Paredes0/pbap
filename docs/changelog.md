@@ -9,6 +9,16 @@ last_updated: 2026-05-13
 
 ## 2026-05
 
+- 2026-05-13 — **`wrappers/README.md` añadido**. La carpeta `wrappers/`
+  contenía solo un archivo (`bert_ampep60_cli.py`) sin contexto, lo
+  cual disparó la pregunta legítima "¿es código del autor upstream?".
+  Auditado: 100% código del PBAP maintainer (lee `predict.py` upstream
+  en runtime con `re.sub`, no copia/redistribuye ninguna línea
+  literal). El nuevo README documenta: cuándo usar `wrappers/` vs
+  `patches/`, los 4 modos del runner (`flagged|positional|script|wrapper`),
+  el estado DEFERRED_USER de bert_ampep60, y la regla para añadir
+  wrappers nuevos. Cierra la ambigüedad y explica por qué hay solo
+  un wrapper.
 - 2026-05-13 — **Postura legal explícita para los patches**. El
   `patches/README.md` añade una sección "Legal posture" que documenta
   por escrito (a) que los patches son adaptadores de interoperabilidad,

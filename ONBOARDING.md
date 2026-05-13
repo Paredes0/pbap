@@ -106,6 +106,7 @@ are often the ones that leave the worst paper trail.
 | Public demo backend (`demo/api/`) | `demo/api/README.md` (endpoints, deployment, mitigation shield) |
 | Public demo frontend (`demo/frontend/`) | `demo/frontend/README.md` (Space deployment) |
 | `patches/<tool>.patch` (added, removed, or refreshed) | `patches/README.md` (per-patch rationale) + `docs/SETUP_FROM_SCRATCH.md` if step changes |
+| `wrappers/<tool>_cli.py` (added or significantly changed) | `wrappers/README.md` (purpose, when wrapper vs patch) + `docs/orchestrator_design.md` §3 if a new runner dimension is introduced |
 | `envs/<env>.yaml` (re-exported envs) | `docs/deployment.md` §4 + `docs/SETUP_FROM_SCRATCH.md` if env count or names change |
 | `scripts/bootstrap_*.sh` | `docs/SETUP_FROM_SCRATCH.md` (the walkthrough is the contract for these scripts) |
 | `AGENTS.md` / this file / `docs/INDEX.md` | nothing else — these are the meta-layer |
