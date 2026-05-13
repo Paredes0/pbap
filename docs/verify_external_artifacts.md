@@ -1,145 +1,223 @@
-# Regla — Verificar artefactos externos ANTES de construir infraestructura
+# Rule — Verify external artifacts BEFORE building infrastructure
 
-**Tipo**: regla obligatoria de planificación.
-**Establecida**: 2026-04-22.
-**Última revisión**: 2026-04-26 (clarificación de la frontera patch/wrapper).
-**Aplica a**: cualquier tarea que dependa de N artefactos externos (repos de terceros, modelos publicados, datasets descargables, APIs).
-
----
-
-## Regla
-
-**Antes de construir infraestructura que dependa de artefactos externos, verifica uno por uno que cada artefacto existe, es utilizable en modo inferencia, y tiene los pesos / datos necesarios cargables.**
-
-No asumas que porque una repo tiene un `README`, un `environment.yml` o un paper publicado, el código es plug-and-play. En bioinformática open-source eso es la excepción, no la norma.
+**Type**: mandatory planning rule.
+**Established**: 2026-04-22.
+**Last revised**: 2026-04-26 (clarification of the patch/wrapper boundary).
+**Applies to**: any task that depends on N external artifacts (third-party
+repositories, published models, downloadable datasets, APIs).
 
 ---
 
-## Por qué (incidente de referencia 2026-04-22)
+## Rule
 
-Tras construir 8 entornos conda (~2h de trabajo), clonar 22 repos y editar 24 entradas YAML, el smoke bulk reveló que **11 de 22 tools (50%) no tenían script de inferencia utilizable**: solo código de entrenamiento, notebooks, rutas hardcoded, o pesos no incluidos. Este gasto de trabajo y tokens era evitable con una auditoría de viabilidad de 15-30 min al inicio.
+**Before building infrastructure that depends on external artifacts,
+verify one by one that each artifact exists, is usable in inference
+mode, and has loadable weights / data.**
 
-Tras una segunda iteración (BLOQUE B-D del plan posterior) la cifra inicial quedó en 6/26 tools viables E2E. La revisión 2026-04-26 amplió el criterio a 11-13/26 al definir mejor la frontera patch/wrapper (ver §"Frontera adaptación / ingeniería").
+Do not assume that just because a repo has a `README`, an
+`environment.yml` or a published paper, the code is plug-and-play. In
+open-source bioinformatics that is the exception, not the norm.
 
 ---
 
-## Cómo aplicar
+## Why (reference incident 2026-04-22)
 
-### Antes de tocar envs, clones o YAML
+After building 8 conda environments (~2 h of work), cloning 22 repos
+and editing 24 YAML entries, the bulk smoke test revealed that **11 of
+22 tools (50%) had no usable inference script**: only training code,
+notebooks, hardcoded paths, or weights not included. This wasted work
+and tokens was avoidable with a 15–30 min viability audit upfront.
 
-Por cada repo externo previsto, verifica:
+After a second iteration (BLOCK B–D of the later plan) the initial
+figure settled at 6/26 tools E2E-viable. The 2026-04-26 review extended
+the criterion to 11–13/26 by clarifying the patch/wrapper boundary (see
+§"Adaptation / engineering boundary").
 
-1. ¿Existe un script de inferencia (`predict.py`, `infer.py`, `main.py` con flag `--predict`) **O una clase con un método de predicción que acepte FASTA/secuencias y devuelva resultados**?
-2. ¿El `__main__` o el método admite input peptídico (FASTA/CSV/TSV) y produce output parseable?
-3. ¿Los pesos/modelos están incluidos en el repo, o documentados para descarga? ¿La URL funciona?
-4. ¿Hay rutas hardcoded (`./Model/`, `/home/<autor>/...`) que rompan fuera del contexto original?
-5. ¿La licencia/acceso permite uso?
+---
 
-### Registro
+## How to apply
 
-Graba el resultado en una tabla `docs/<tarea>_viability.md` con columnas:
+### Before touching envs, clones or YAML
+
+For each planned external repo, verify:
+
+1. Is there an inference script (`predict.py`, `infer.py`, `main.py`
+   with `--predict`) **OR a class with a prediction method that accepts
+   FASTA/sequences and returns results**?
+2. Does the `__main__` or the method accept peptide input (FASTA / CSV
+   / TSV) and produce parseable output?
+3. Are the weights/models included in the repo, or documented for
+   download? Does the URL still work?
+4. Are there hardcoded paths (`./Model/`, `/home/<author>/...`) that
+   break outside the original context?
+5. Does the license / access permit use?
+
+### Recording
+
+Record the result in a table `docs/<task>_viability.md` with columns:
 
 ```
 tool | has_inference | weights_available | hardcoded_paths | verdict (OK / FIXABLE / BLOCKED) | reason
 ```
 
-### Decisión
+### Decision
 
-- Solo entonces diseña la infraestructura (envs, runner, config) para el subconjunto `OK + FIXABLE`.
-- Los `BLOCKED` van a lista de exclusión con razón documentada.
-- Si la auditoría pre-viabilidad revela >30% de tools `BLOCKED`, **detente y consúltalo con el usuario** antes de seguir — probablemente la estrategia necesita ajuste (standby, reemplazos, renegociar scope).
-
----
-
-## 🔧 Frontera adaptación ligera (PERMITIDA) / ingeniería de inferencia (PROHIBIDA)
-
-**Esta es la sección clave para clasificar correctamente como FIXABLE vs BLOCKED.** Se añadió 2026-04-26 tras detectar que la regla "no wrappers" se había aplicado de forma inconsistente — se aceptaron patches a `hemodl`, `deepb3p`, `deepbp` mientras se rechazaron adaptaciones equivalentes en `apex`, `hypeptox_fuse`, `bert_ampep60`.
-
-### Principio
-
-**La lógica de inferencia del autor debe existir en el repo, completa y ejecutable. Solo la conectamos al pipeline. Si tendríamos que reescribir la inferencia, queda fuera de scope.**
-
-### ✅ Adaptaciones PERMITIDAS (cuentan como FIXABLE)
-
-Cualquiera de estas modificaciones es válida si la lógica de predicción del autor ya está completa:
-
-1. **Patches a scripts existentes**: arreglar paths (script-relative en vez de cwd-relative), migración de API (p. ej. `tokenizer.batch_encode_plus()` → `tokenizer()`), cambiar índices GPU hardcoded (`cuda:2 → cuda:0`), añadir `map_location` a `torch.load`, normalizar case sensitivity (`Model → model`).
-2. **Adaptación de formato I/O**: convertir FASTA → formato esperado por el tool (txt una secuencia por línea, CSV con columna específica, etc.) y mapear el output de vuelta.
-3. **Añadir argparse al `__main__`**: cuando la función `predict()` ya está parametrizada pero el `__main__` hardcodea paths.
-4. **Class wiring**: cuando la lógica completa de inferencia está en una clase con método tipo `predict_fasta_file()`. Instanciar + llamar = ~20-30 líneas de glue.
-5. **Reemplazar input interactivo**: `input()` → argparse cuando la lógica subyacente es completa.
-6. **Añadir `__main__` a un módulo**: si todas las funciones de inferencia existen pero el módulo no es ejecutable directamente.
-7. **Configurar `cwd` para scripts cwd-bound**: ejecutar el script desde su propio directorio cuando hardcodea `./relative_path`.
-8. **`git lfs pull`**: hidratar archivos LFS si el usuario autoriza.
-9. **Auto-descarga de pesos**: si el script ya implementa la descarga (URLs en código), confiar en eso.
-
-**Coste típico**: 10-50 líneas por tool. Mismo nivel que los patches ya aplicados a `hemodl`/`deepb3p`/`deepbp`.
-
-### ❌ Trabajo PROHIBIDO (clasificar como BLOCKED)
-
-Cualquiera de estas situaciones = repo no es viable bajo nuestras reglas:
-
-1. **Implementar inferencia desde cero**: solo existe `train.py`, no hay flujo de predicción reusable. El modelo está pero la lógica de cargarlo + extraer features + predecir no está escrita.
-2. **Re-engineering de pipelines de features multi-paso**: tool requiere 6+ embeddings pre-computados (ProtT5, ESM-1b/2/1v, etc.) sin orquestador, y no existe un `extract_all_features.py` o equivalente.
-3. **Entrenar nuevos modelos**: pesos pre-entrenados no existen y no se pueden descargar.
-4. **Replicar lógica de notebook línea a línea**: el código vive solo en `.ipynb` con paths Colab (`/content/drive/...`).
-5. **Servicios externos no disponibles**: requiere ESMAtlas, NetSurfP, BLAST contra bases privadas, sin alternativa local.
-6. **Dependencias incompatibles destructivas**: instalar la librería requerida rompe otros tools del mismo env y no hay env aislado viable.
-7. **Pesos detrás de login institucional sin acceso**: SharePoint con login, Baidu Netdisk, FTPs privados.
-
-**Coste típico**: horas a días de ingeniería. Fuera del scope de un audit pipeline.
-
-### Heurística de decisión rápida
-
-> "Si después del cambio, el código que predice sigue siendo del autor y solo cambia cómo lo invoco o qué le paso por entrada/salida → FIXABLE.
-> Si tendría que escribir yo la lógica que carga el modelo y produce predicciones → BLOCKED."
-
-### Casos límite
-
-- **Repo solo tiene notebook pero la lógica es lineal y trivial de extraer**: caso por caso. Si convertir el notebook a script es <30 líneas Y los paths Colab se reemplazan trivialmente, FIXABLE. Si el notebook depende de magic commands o estado de Colab, BLOCKED.
-- **Pesos descargables pero la URL es inestable** (Google Drive con captcha, Dropbox temporal): documentar en YAML como `manual_download_required` con la URL y dejar instrucciones; clasificar FIXABLE solo si el usuario confirma que descargará.
+- Only then design the infrastructure (envs, runner, config) for the
+  `OK + FIXABLE` subset.
+- `BLOCKED` items go into an exclusion list with a documented reason.
+- If the pre-viability audit reveals >30% of tools as `BLOCKED`,
+  **stop and discuss with the user** before continuing — the strategy
+  probably needs adjustment (standby, replacement, renegotiate scope).
 
 ---
 
-## Red flags que disparan esta regla
+## 🔧 Boundary: lightweight adaptation (ALLOWED) vs. inference engineering (FORBIDDEN)
 
-Cualquiera de estas señales en una repo externa = NO asumir que funciona:
+**This is the key section to correctly classify FIXABLE vs. BLOCKED.**
+It was added 2026-04-26 after we detected that the "no wrappers" rule
+had been applied inconsistently — patches were accepted for `hemodl`,
+`deepb3p`, `deepbp` while equivalent adaptations were rejected on
+`apex`, `hypeptox_fuse`, `bert_ampep60`.
 
-- Repo solo tiene notebooks (`.ipynb`) sin `.py` ejecutable.
-- `README` solo describe training, no inference.
-- Modelos referenciados como `model.pkl` / `checkpoint.pt` pero el archivo no está en el repo ni hay enlace de descarga.
-- Rutas absolutas tipo `/home/<autor>/...` o relativas tipo `./Model/` (case-sensitive en Linux).
-- Dependencias pinned a versiones antiguas sin `environment.yml` reproducible.
-- Último commit >3 años sin mantenimiento.
-- Imports a paquetes privados, internos, o no publicados en PyPI.
-- Paper citado pero no hay tag/release que coincida con la versión del paper.
+### Principle
+
+**The author's inference logic must exist in the repo, complete and
+executable. We only wire it into the pipeline. If we would have to
+rewrite the inference, it is out of scope.**
+
+### ✅ ALLOWED adaptations (count as FIXABLE)
+
+Any of the following modifications are valid if the author's prediction
+logic is already complete:
+
+1. **Patches to existing scripts**: fix paths (script-relative instead
+   of cwd-relative), API migration (e.g.
+   `tokenizer.batch_encode_plus()` → `tokenizer()`), change hardcoded
+   GPU index (`cuda:2 → cuda:0`), add `map_location` to `torch.load`,
+   normalize case sensitivity (`Model → model`).
+2. **I/O format adaptation**: convert FASTA → the format expected by
+   the tool (txt with one sequence per line, CSV with a specific
+   column, etc.) and map the output back.
+3. **Add argparse to `__main__`**: when the `predict()` function is
+   already parametrized but `__main__` hardcodes paths.
+4. **Class wiring**: when the full inference logic is in a class with
+   a method like `predict_fasta_file()`. Instantiate + call =
+   ~20–30 lines of glue.
+5. **Replace interactive input**: `input()` → argparse when the
+   underlying logic is complete.
+6. **Add `__main__` to a module**: if all inference functions exist
+   but the module is not directly executable.
+7. **Set `cwd` for cwd-bound scripts**: run the script from its own
+   directory when it hardcodes `./relative_path`.
+8. **`git lfs pull`**: hydrate LFS files if the user authorizes.
+9. **Auto-download of weights**: if the script already implements the
+   download (URLs in code), trust it.
+
+**Typical cost**: 10–50 lines per tool. Same level as the patches
+already applied to `hemodl` / `deepb3p` / `deepbp`.
+
+### ❌ FORBIDDEN work (classify as BLOCKED)
+
+Any of the following situations = the repo is not viable under our
+rules:
+
+1. **Implementing inference from scratch**: only `train.py` exists,
+   no reusable prediction flow. The model is there but the logic to
+   load it + extract features + predict is not written.
+2. **Re-engineering of multi-step feature pipelines**: the tool
+   requires 6+ precomputed embeddings (ProtT5, ESM-1b/2/1v, etc.)
+   with no orchestrator, and there is no `extract_all_features.py`
+   or equivalent.
+3. **Training new models**: pretrained weights do not exist and
+   cannot be downloaded.
+4. **Replicating notebook logic line by line**: code lives only in
+   `.ipynb` with Colab paths (`/content/drive/...`).
+5. **External services unavailable**: requires ESMAtlas, NetSurfP,
+   BLAST against private databases, with no local alternative.
+6. **Destructive incompatible dependencies**: installing the required
+   library breaks other tools in the same env and no isolated env is
+   viable.
+7. **Weights behind institutional login with no access**: SharePoint
+   with login, Baidu Netdisk, private FTPs.
+
+**Typical cost**: hours to days of engineering. Out of scope for an
+audit pipeline.
+
+### Quick decision heuristic
+
+> "If after the change the code that predicts is still the author's and
+> only the way I call it or the I/O changed → FIXABLE.
+> If I would have to write the logic that loads the model and produces
+> predictions → BLOCKED."
+
+### Edge cases
+
+- **Repo has only a notebook but the logic is linear and trivial to
+  extract**: case by case. If converting the notebook to a script is
+  <30 lines AND the Colab paths replace trivially, FIXABLE. If the
+  notebook depends on magic commands or Colab state, BLOCKED.
+- **Weights downloadable but the URL is unstable** (Google Drive with
+  captcha, temporary Dropbox): document in YAML as
+  `manual_download_required` with the URL and instructions; classify
+  as FIXABLE only if the user confirms they will download.
 
 ---
 
-## Anti-patrón a evitar
+## Red flags that trigger this rule
 
-**MAL**: "Voy a construir los 8 envs conda, clonar las 22 repos, normalizar el YAML, y luego smoke-test todos a la vez." → Descubres los problemas después de invertir 2h y cientos de llamadas a tool.
+Any of these signals in an external repo = do NOT assume it works:
 
-**BIEN**: "Voy a gastar 15 min verificando una por una que las 22 repos tienen script de inferencia y pesos cargables. Solo construyo infra para las que pasen el filtro." → Descubres los problemas antes de invertir.
+- The repo only has notebooks (`.ipynb`) with no executable `.py`.
+- The `README` only describes training, not inference.
+- Models referenced as `model.pkl` / `checkpoint.pt` but the file is
+  not in the repo and there is no download link.
+- Absolute paths like `/home/<author>/...` or relative paths like
+  `./Model/` (case-sensitive on Linux).
+- Dependencies pinned to old versions without a reproducible
+  `environment.yml`.
+- Last commit >3 years old with no maintenance.
+- Imports from private, internal, or non-PyPI packages.
+- Paper cited but no tag/release matches the paper's version.
+
+---
+
+## Anti-pattern to avoid
+
+**BAD**: "I'll build the 8 conda envs, clone the 22 repos, normalize
+the YAML, and then smoke-test them all at once." → You discover the
+problems after 2 h of investment and hundreds of tool calls.
+
+**GOOD**: "I'll spend 15 min verifying one by one that the 22 repos
+have an inference script and loadable weights. I only build infra for
+the ones that pass the filter." → You discover the problems before
+investing.
 
 ---
 
-## Cuándo NO aplica
+## When this rule does NOT apply
 
-- Un solo artefacto externo bien conocido (ej: `pip install biopython`) — la verificación es trivial.
-- Repos internos del equipo cuyo estado ya conoces.
-- Tareas puramente locales sin dependencias externas.
-
----
-
-## Estado actual de aplicación
-
-- Tabla viva: `docs/pipeline_viability.md`.
-- Tools viables tras auditoría inicial (2026-04-22 → 2026-04-25): toxinpred3, antibp3, hemopi2, hemodl, deepb3p, deepbp, eippred (7/26).
-- Reclasificación 2026-04-26: candidatos adicionales FIXABLE bajo nueva frontera — apex, hypeptox_fuse, bert_ampep60 (alta confianza); perseucpp, aapl, if_aip, acp_dpe (necesitan inspección directa).
-- Diferidos por bloqueo manual (esperando acción del usuario): antifungipept (`git lfs pull`), plm4alg (login KSU), avppred_bwr (Baidu Netdisk).
-- Sin clonar (necesita verificación local): mfe_acvp.
-- Genuinamente BLOCKED: multimodal_aop, afp_mvfl, antiaging_fl, aip_tranlac, deepforest_htp, stackthp, cpppred_en, macppred2.
+- A single well-known external artifact (e.g. `pip install biopython`)
+  — verification is trivial.
+- Internal team repos whose state you already know.
+- Purely local tasks with no external dependencies.
 
 ---
-[? Volver al �ndice](INDEX.md)
+
+## Current application status
+
+- Live table: `docs/pipeline_viability.md`.
+- Tools viable after the initial audit (2026-04-22 → 2026-04-25):
+  toxinpred3, antibp3, hemopi2, hemodl, deepb3p, deepbp, eippred
+  (7/26).
+- 2026-04-26 reclassification: additional FIXABLE candidates under the
+  new boundary — apex, hypeptox_fuse, bert_ampep60 (high confidence);
+  perseucpp, aapl, if_aip, acp_dpe (need direct inspection).
+- Deferred by manual blocking (waiting on user action):
+  antifungipept (`git lfs pull`), plm4alg (KSU login), avppred_bwr
+  (Baidu Netdisk).
+- Not yet cloned (needs local verification): mfe_acvp.
+- Genuinely BLOCKED: multimodal_aop, afp_mvfl, antiaging_fl,
+  aip_tranlac, deepforest_htp, stackthp, cpppred_en, macppred2.
+
+---
+[← Back to Index](INDEX.md)

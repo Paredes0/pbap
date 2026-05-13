@@ -1,35 +1,54 @@
-# Contexto y Objetivo del Proyecto
+# Project Context and Objective
 
-> ⚠️ **Nota de alcance**: este documento describe los **objetivos**
-> del proyecto completo. Algunos de ellos (notablemente el sistema
-> de graduación Gold / Silver / Bronze / Red) están implementados
-> solo en el **flujo de auditoría científica (Fase 2)**, no en el
-> flujo de **inferencia de usuario (Fase 1)** que ejecuta
-> `scripts/run_audit.py`. Ver `docs/architecture.md` para la
-> separación de fases y `docs/leakage_analysis.md` para el detalle.
+> ⚠️ **Scope note**: this document describes the **full project goals**.
+> Some of them (notably the Gold / Silver / Bronze / Red grading system)
+> are only implemented in the **scientific audit flow (Phase 2)**, not
+> in the **user inference flow (Phase 1)** that runs
+> `scripts/run_audit.py`. See `docs/architecture.md` for the phase
+> separation and `docs/leakage_analysis.md` for the detail.
 
-## Motivación
-En el campo de la bioinformática de péptidos, muchas herramientas de predicción publicadas en la literatura científica reportan métricas de rendimiento (Exactitud, MCC, AUC) extremadamente altas. Sin embargo, estas métricas a menudo están infladas debido a:
+## Motivation
 
-1.  **Data Leakage (Fuga de datos)**: Los benchmarks utilizados para validar la herramienta contienen secuencias que son idénticas o muy similares a las usadas durante el entrenamiento.
-2.  **Sesgo Taxonómico**: La herramienta puede funcionar muy bien para péptidos de ciertos taxones (ej. bacterias) pero fallar en otros, lo que limita su utilidad clínica o biotecnológica general.
-3.  **Sobreajuste a Longitudes**: Las herramientas pueden estar optimizadas para un rango de longitud muy estrecho.
+In peptide bioinformatics, many published prediction tools report
+extremely high performance metrics (Accuracy, MCC, AUC). However, these
+metrics are often inflated due to:
 
-## Objetivos
-El objetivo principal de este pipeline es realizar un **auditoría externa independiente** de estas herramientas para:
+1.  **Data leakage**: the benchmarks used to validate the tool contain
+    sequences that are identical or very similar to those used during
+    training.
+2.  **Taxonomic bias**: a tool may work very well on peptides from
+    certain taxa (e.g. bacteria) but fail on others, limiting its
+    general clinical or biotechnological utility.
+3.  **Length overfitting**: tools may be optimized for a very narrow
+    length range.
 
-- **Cuantificar el Leakage**: Usar CD-HIT-2D para ver cuántas secuencias del "mundo real" ya han sido vistas por el modelo.
-- **Evaluar Robustez**: Determinar si la predicción es consistente a través de diferentes grupos taxonómicos.
-- **Establecer Niveles de Confianza**: Etiquetar los resultados de predicción según su cercanía a los datos de entrenamiento (Sistema Gold/Silver/Bronze/Red).
-- **Proveer un Dataset Independiente**: Construir un pool de péptidos positivos y negativos que no haya sido influenciado por los sesgos de los autores originales.
+## Objectives
 
-## Tipos de Sesgos Analizados
+The main objective of this pipeline is to perform an **independent
+external audit** of these tools in order to:
 
-### 1. Sesgo por Similitud de Secuencia
-Se analiza mediante `cd-hit-2d`, comparando nuestro dataset independiente contra el dataset de entrenamiento extraído de los repositorios de las herramientas.
+- **Quantify leakage**: use CD-HIT-2D to see how many "real-world"
+  sequences have already been seen by each model.
+- **Evaluate robustness**: determine whether predictions are consistent
+  across different taxonomic groups.
+- **Establish confidence levels**: tag prediction results according to
+  their proximity to the training data (Gold / Silver / Bronze / Red
+  system).
+- **Provide an independent dataset**: build a pool of positive and
+  negative peptides not influenced by the biases of the original
+  authors.
 
-### 2. Sesgo Taxonómico
-Se analiza comparando las métricas de predicción (Sensibilidad, Falsos Positivos) entre diferentes orígenes taxonómicos (Animalia, Plantae, Fungi, Bacteria, etc.) para asegurar que la herramienta no dependa de una firma taxonómica específica.
+## Types of bias analyzed
+
+### 1. Sequence-similarity bias
+Analyzed via `cd-hit-2d`, comparing our independent dataset against the
+training dataset extracted from each tool's repository.
+
+### 2. Taxonomic bias
+Analyzed by comparing prediction metrics (Sensitivity, False Positives)
+across different taxonomic origins (Animalia, Plantae, Fungi, Bacteria,
+etc.) to ensure that the tool does not depend on a specific taxonomic
+signature.
 
 ---
-[? Volver al �ndice](INDEX.md)
+[← Back to Index](INDEX.md)

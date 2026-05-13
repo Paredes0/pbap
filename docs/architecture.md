@@ -1,113 +1,138 @@
 ---
-description: System architecture - components, dependencies, data flow.
+description: System architecture — components, dependencies, data flow.
 related: [decisions.md, api.md]
-last_updated: 2026-05-08T13:55:00Z
+last_updated: 2026-05-13
 ---
 
-# Arquitectura del Sistema
+# System Architecture
 
-## Descripcion General
+## Overview
 
-El sistema es un ecosistema de auditoria y prediccion de bioactividad de peptidos que opera mediante una orquestacion en Python. Su arquitectura se basa en un **modelo de ejecucion local distribuido por entornos**, donde un orquestador central gestiona sub-procesos aislados.
+The system is an ecosystem for peptide-bioactivity auditing and
+prediction, orchestrated in Python. The architecture is based on a
+**local execution model distributed across environments**, where a
+central orchestrator manages isolated sub-processes.
 
 ---
 
-## 1. Estructura de Directorios
+## 1. Directory structure
 
 ```text
 .
-|-- bin/                            # Orquestadores de alto nivel
-|   `-- audit_pipeline.sh          # Script maestro de auditoria cientifica (Fase 2)
-|-- config/                         # Configuraciones YAML
-|   |-- pipeline_config.yaml       # Configuracion de 26 herramientas, SSH y entornos
-|   |-- categories_config.yaml     # Bioactividades, queries UniProt, polaridades
-|   `-- apex_strain_classification.yaml  # Clasificacion de cepas APEX (pathogen/commensal)
-|-- scripts/                        # Logica core del pipeline (Python)
-|   |-- run_audit.py               # Orquestador E2E Fase 1 (Inferencia de Usuario)
-|   |-- run_tool_prediction.py     # Ejecutor de benchmarking individual por tool
+|-- bin/                            # High-level orchestrators
+|   `-- audit_pipeline.sh          # Master script for scientific audit (Phase 2)
+|-- config/                         # YAML configuration
+|   |-- pipeline_config.yaml       # 26-tool catalog, SSH, environments
+|   |-- categories_config.yaml     # Bioactivities, UniProt queries, polarities
+|   `-- apex_strain_classification.yaml  # APEX strain classification (pathogen/commensal)
+|-- scripts/                        # Pipeline core logic (Python)
+|   |-- run_audit.py               # E2E Phase 1 orchestrator (user inference)
+|   |-- run_tool_prediction.py     # Per-tool benchmark runner
 |   |-- cdhit_leakage_analysis.py  # Leakage analysis via CD-HIT-2D
-|   |-- extract_training_data.py   # Extraccion de datos de entrenamiento desde repos
-|   |-- mine_positives_per_bioactivity.py  # Mineria de positivos por categoria (UniProt + DBs)
-|   |-- generate_category_negatives.py     # Generacion de negativos por tool
-|   |-- auditoria_validation.py    # QC per-tool (stats, distribuciones, AA composition)
-|   |-- taxonomic_bias_analysis.py # Sesgo taxonomico (Fisher, Wilson CI, BH-FDR)
-|   `-- final_audit_report.py      # Reporte global cross-tool (JSON, TXT, XLSX)
-|-- wrappers/                       # Adaptadores robustos para herramientas no estandar
-|   `-- bert_ampep60_cli.py        # Wrapper CLI para BERT-AMPep60
-|-- audit_lib/                      # Biblioteca compartida (12 modulos — ver api.md)
-|   |-- config.py                  # Carga de YAML
-|   |-- tool_runner.py             # Motor de ejecucion (micromamba run)
-|   |-- tool_length_range.py       # Rangos de longitud por herramienta
-|   |-- downloader.py              # Descarga de pesos (Zenodo, HuggingFace, manual)
-|   |-- cdhit_utils.py             # CD-HIT con SSH dispatch
-|   |-- uniprot_client.py          # Cliente UniProt REST
-|   |-- sequence_utils.py          # Validacion y normalizacion de secuencias
-|   |-- db_parsers.py              # Parsers para DBAASP, APD3, ConoServer, etc.
-|   |-- length_sampling.py         # Muestreo estratificado por longitud
-|   |-- state_manager.py           # Estado incremental de auditoria
-|   |-- provenance.py              # Metadatos de trazabilidad JSON
-|   `-- logging_setup.py           # Configuracion estandar de logging
-|-- Inputs/                         # Archivos FASTA de entrada para usuarios
-|-- Outputs/                        # Resultados de predicciones (HTML, XLSX, CSV, JSON)
-`-- Dataset_Bioactividad/           # Salidas del pipeline Fase 2 (Pools, Audits, Reports)
+|   |-- extract_training_data.py   # Extract training data from repos
+|   |-- mine_positives_per_bioactivity.py  # Positive mining per category (UniProt + DBs)
+|   |-- generate_category_negatives.py     # Per-tool negative generation
+|   |-- auditoria_validation.py    # Per-tool QC (stats, distributions, AA composition)
+|   |-- taxonomic_bias_analysis.py # Taxonomic bias (Fisher, Wilson CI, BH-FDR)
+|   `-- final_audit_report.py      # Global cross-tool report (JSON, TXT, XLSX)
+|-- wrappers/                       # Robust adapters for non-standard tools
+|   `-- bert_ampep60_cli.py        # CLI wrapper for BERT-AMPep60
+|-- audit_lib/                      # Shared library (12 modules — see api.md)
+|   |-- config.py                  # YAML loading
+|   |-- tool_runner.py             # Execution engine (micromamba run)
+|   |-- tool_length_range.py       # Per-tool length ranges
+|   |-- downloader.py              # Weights download (Zenodo, HuggingFace, manual)
+|   |-- cdhit_utils.py             # CD-HIT with SSH dispatch
+|   |-- uniprot_client.py          # UniProt REST client
+|   |-- sequence_utils.py          # Sequence validation and normalization
+|   |-- db_parsers.py              # Parsers for DBAASP, APD3, ConoServer, etc.
+|   |-- length_sampling.py         # Length-stratified sampling
+|   |-- state_manager.py           # Incremental audit state
+|   |-- provenance.py              # JSON provenance metadata
+|   `-- logging_setup.py           # Standard logging setup
+|-- Inputs/                         # User input FASTA files
+|-- Outputs/                        # Prediction results (HTML, XLSX, CSV, JSON)
+`-- Dataset_Bioactividad/           # Phase 2 pipeline outputs (Pools, Audits, Reports)
 ```
 
 ---
 
-## 2. Componentes Principales
+## 2. Main components
 
-### 1. Orquestador E2E — Fase 1 (`scripts/run_audit.py`)
-Punto de entrada principal para el usuario. Gestiona el ciclo de vida completo de una prediccion:
-- **Batching**: Fragmenta el FASTA de entrada para evitar errores de memoria.
-- **Normalizacion**: Consolida resultados de herramientas heterogeneas en un esquema comun.
-- **Ranking**: Calcula `structural_score` + `holistic_score` para priorizar peptidos.
-- **Reportes**: Genera HTML interactivo, XLSX con formatting, CSV, JSON y Markdown.
+### 1. E2E orchestrator — Phase 1 (`scripts/run_audit.py`)
+Main entry point for the user. Manages the full lifecycle of a
+prediction run:
+- **Batching**: splits the input FASTA to avoid memory errors.
+- **Normalization**: consolidates heterogeneous tool outputs into a
+  common schema.
+- **Ranking**: computes `structural_score` + `holistic_score` to
+  prioritize peptides.
+- **Reports**: generates interactive HTML, formatted XLSX, CSV, JSON
+  and Markdown.
 
-### 2. Orquestador de Auditoria — Fase 2 (`bin/audit_pipeline.sh`)
-Script maestro Bash que ejecuta la auditoria cientifica completa por herramienta:
-1. **Mining de positivos** (`mine_positives_per_bioactivity.py`)
-2. **Extraccion de training** (`extract_training_data.py`)
+### 2. Audit orchestrator — Phase 2 (`bin/audit_pipeline.sh`)
+Master Bash script that runs the full scientific audit per tool:
+1. **Positive mining** (`mine_positives_per_bioactivity.py`)
+2. **Training extraction** (`extract_training_data.py`)
 3. **Leakage analysis** (`cdhit_leakage_analysis.py`)
-4. **Generacion de negativos** (`generate_category_negatives.py`)
-5. **Prediccion y benchmarking** (`run_tool_prediction.py`)
-6. **Sesgo taxonomico** (`taxonomic_bias_analysis.py`)
-7. **QC per-tool** (`auditoria_validation.py`)
-8. **Reporte global** (`final_audit_report.py`)
+4. **Negative generation** (`generate_category_negatives.py`)
+5. **Prediction and benchmarking** (`run_tool_prediction.py`)
+6. **Taxonomic bias** (`taxonomic_bias_analysis.py`)
+7. **Per-tool QC** (`auditoria_validation.py`)
+8. **Global report** (`final_audit_report.py`)
 
-### 3. Motor de Ejecucion (`audit_lib/tool_runner.py`)
-Abstrae la invocacion de herramientas externas:
-- **Micromamba Run**: Ejecuta los scripts de las herramientas dentro de sus entornos especificos (`torch`, `ml`, `pipeline_bertaip`, etc.) de forma local.
-- **Captura de Salida**: Traduce logs y archivos CSV/txt de las herramientas al formato interno.
-- **Retorno**: Objeto `ToolResult` con `tool_id`, `output_path`, `exit_code`, `runtime`, `diagnosis`.
+### 3. Execution engine (`audit_lib/tool_runner.py`)
+Abstracts external-tool invocation:
+- **Micromamba run**: executes each tool's scripts inside its specific
+  environment (`torch`, `ml`, `pipeline_bertaip`, etc.) locally.
+- **Output capture**: translates tool logs and CSV/txt files into the
+  internal format.
+- **Return value**: a `ToolResult` object with `tool_id`, `output_path`,
+  `exit_code`, `runtime`, `diagnosis`.
 
-### 4. Utilidades de Bioinformatica (`audit_lib/`)
-- **`cdhit_utils.py`**: Gestiona el analisis de redundancia. Es el **unico componente con capacidad de despacho SSH**. Permite ejecutar CD-HIT en un servidor Linux remoto si el orquestador principal corre en Windows.
-- **`uniprot_client.py`**: Cliente para mineria de datos en UniProt con paginacion, reintentos y checkpointing.
-- **`db_parsers.py`**: 9 parsers para bases de datos externas (DBAASP, APD3, ConoServer, ArachnoServer, Hemolytik, CancerPPD, CPPsite, BIOPEP, AVPdb).
-- **`downloader.py`**: Gestion de descarga de pesos de modelos desde Zenodo, HuggingFace o plataformas con descarga manual.
-- **`tool_length_range.py`**: Inferencia de rangos de longitud optimos por herramienta a partir de datos de entrenamiento.
+### 4. Bioinformatics utilities (`audit_lib/`)
+- **`cdhit_utils.py`**: handles redundancy analysis. **Only component
+  with SSH dispatch capability**. Allows CD-HIT to run on a remote
+  Linux server when the main orchestrator runs on Windows.
+- **`uniprot_client.py`**: UniProt mining with pagination, retries and
+  checkpointing.
+- **`db_parsers.py`**: 9 parsers for external databases (DBAASP, APD3,
+  ConoServer, ArachnoServer, Hemolytik, CancerPPD, CPPsite, BIOPEP,
+  AVPdb).
+- **`downloader.py`**: weights download from Zenodo, HuggingFace or
+  platforms requiring manual download.
+- **`tool_length_range.py`**: inference of optimal length ranges per
+  tool from training data.
 
-> Referencia de API completa con firmas: ver [`api.md`](api.md).
-
----
-
-## 3. Flujo de Datos y Ejecucion
-
-### Modelo de Ejecucion Local
-A diferencia de versiones preliminares, el sistema actual **no realiza despacho generalizado** de procesos. Todas las herramientas de prediccion se ejecutan en la misma maquina donde reside el orquestador. El aislamiento se logra mediante **Conda/Micromamba**, no mediante hardware separado.
-
-### Excepcion: Satelite SSH (CD-HIT)
-Debido a la intensidad computacional del filtrado de redundancia y la dependencia de binarios Linux nativos, el modulo de CD-HIT puede configurarse para:
-1.  **Ejecucion Local**: Si el host es Linux y tiene `cd-hit` instalado.
-2.  **Despacho SSH**: Si el host es Windows, el orquestador sube los archivos temporalmente a un servidor Linux via SSH, ejecuta el comando y descarga los resultados.
+> Full API reference with signatures: see [`api.md`](api.md).
 
 ---
 
-## 4. Dependencias Criticas
+## 3. Data flow and execution
 
-- **Micromamba**: Gestor de entornos ultra-rapido para el aislamiento de herramientas.
-- **Python Stack**: pandas, numpy, scipy, pyyaml, openpyxl, requests.
-- **CD-HIT**: Binario externo para analisis de leakage y redundancia.
+### Local execution model
+Unlike preliminary versions, the current system performs **no general
+process dispatch**. All prediction tools run on the same machine as the
+orchestrator. Isolation is achieved via **Conda/Micromamba**, not
+hardware separation.
+
+### Exception: SSH satellite (CD-HIT)
+Because of the computational cost of redundancy filtering and the
+dependency on native Linux binaries, the CD-HIT module can be
+configured to:
+1.  **Local execution**: if the host is Linux and has `cd-hit`
+    installed.
+2.  **SSH dispatch**: if the host is Windows, the orchestrator uploads
+    files temporarily to a Linux server via SSH, runs the command and
+    downloads the results.
 
 ---
-[<- Volver al Indice](INDEX.md)
+
+## 4. Critical dependencies
+
+- **Micromamba**: ultra-fast environment manager used to isolate tools.
+- **Python stack**: pandas, numpy, scipy, pyyaml, openpyxl, requests.
+- **CD-HIT**: external binary for leakage and redundancy analysis.
+
+---
+[← Back to Index](INDEX.md)

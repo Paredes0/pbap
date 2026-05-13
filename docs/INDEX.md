@@ -1,59 +1,54 @@
-# 📚 Índice de Documentación - Pipeline de Bioactividad
+# 📚 Documentation Index — Peptide Bioactivity Pipeline
 
-> 🚦 **Estado actual del proyecto (Mayo 2026)**
+> 🚦 **Current project status (May 2026)**
 >
-> **Fase 1 — Inferencia de usuario** (`scripts/run_audit.py`): operativa.
-> 10 herramientas integradas, 7 categorías, schema dual, agreement,
-> APEX selectivity, ranking jerárquico (structural + holistic),
-> reportes en HTML/MD/CSV/JSON/XLSX. Es lo que se ejecuta cuando un
-> usuario corre `python scripts/run_audit.py --input mi.fasta`.
+> **Phase 1 — User inference** (`scripts/run_audit.py`): operational.
+> 10 integrated tools, 7 categories, dual schema, agreement, APEX
+> selectivity, hierarchical ranking (structural + holistic), reports in
+> HTML/MD/CSV/JSON/XLSX. This is what runs when a user invokes
+> `python scripts/run_audit.py --input my.fasta`.
 >
-> **Fase 2 — Auditoría científica** (`bin/audit_pipeline.sh`):
-> herramientas de análisis implementadas (mineria de positivos,
-> extracción de training, leakage analysis CD-HIT-2D con grados
-> Gold/Silver/Bronze/Red, sesgo taxonómico, QC, reporte global).
-> **No integrada en el output de Fase 1** — sus resultados son
-> artefactos offline de validación, no etiquetas por péptido en
-> el reporte del usuario. La integración en producción es trabajo
-> futuro (ver `roadmap.md`).
+> **Phase 2 — Scientific audit** (`bin/audit_pipeline.sh`): analysis
+> tools implemented (positive-mining, training-set extraction, CD-HIT-2D
+> leakage analysis with Gold/Silver/Bronze/Red grading, taxonomic bias,
+> QC, global report). **Not integrated into Phase 1 output** — its
+> results are offline validation artifacts, not per-peptide labels in
+> the user report. Production integration is future work (see
+> `roadmap.md`).
 >
-> Si una herramienta o documento describe el sistema Gold/Silver/
-> Bronze/Red, asume **Fase 2** salvo declaración explícita en
-> contrario.
+> If a tool or document describes the Gold/Silver/Bronze/Red system,
+> assume **Phase 2** unless stated otherwise.
 
-Este documento centraliza el acceso a toda la documentación técnica, metodológica y operativa del proyecto.
+This document centralizes access to all technical, methodological and
+operational documentation of the project.
 
-## 🏗️ Arquitectura y Fundamentos
-- [Arquitectura del Sistema](architecture.md): Visión general de los componentes y su interacción.
-- [Referencia de API](api.md): Detalles técnicos de los módulos, clases y funciones.
-- [Estructura de Datos](data.md): Manejo de archivos FASTA, bases de datos y formatos de entrada/salida.
-- [Convenciones y Estándares](conventions.md): Guías de estilo de código, nomenclatura y mejores prácticas.
-- [Glosario de Términos](glossary.md): Definiciones de conceptos clave en bioinformática y el flujo de trabajo.
+## 🏗️ Architecture and foundations
+- [System architecture](architecture.md): overview of components and their interaction.
+- [API reference](api.md): module, class and function reference for `audit_lib`.
+- [Data structures](data.md): FASTA handling, databases and I/O formats.
+- [Conventions and standards](conventions.md): code style, naming, best practices.
+- [Glossary](glossary.md): definitions of key bioinformatics and workflow terms.
 
-## 🧪 Metodología y Análisis
-- [Objetivo y Contexto](context_objective.md): Justificación científica, objetivos y alcance del pipeline.
-- [Análisis de Leakage](leakage_analysis.md) **[Fase 2]**: Investigación y mitigación de contaminación de datos entre conjuntos. Sistema de graduación Gold/Silver/Bronze/Red, aplicado solo en el flujo de auditoría científica.
-- [Análisis Taxonómico](taxonomic_analysis.md): Evaluación de sesgos y diversidad en el origen de las secuencias.
-- [Viabilidad del Pipeline](pipeline_viability.md): Análisis de factibilidad técnica, operativa y científica.
-- [Diseño del Orquestador](orchestrator_design.md): Lógica de ejecución, gestión de procesos y flujo de herramientas.
-- [Auditoría de Licencias](licenses_audit.md): Revisión legal de permisos y restricciones de uso de software y datos de terceros.
-- [Verificación de Artefactos Externos](verify_external_artifacts.md): Protocolos de validación para pesos de modelos y recursos descargados.
+## 🧪 Methodology and analysis
+- [Context and objective](context_objective.md): scientific justification, goals, scope.
+- [Leakage analysis](leakage_analysis.md) **[Phase 2]**: data leakage investigation and mitigation. Gold/Silver/Bronze/Red grading, applied only in the scientific audit flow.
+- [Taxonomic bias analysis](taxonomic_analysis.md): biases and diversity in sequence origin.
+- [Pipeline viability](pipeline_viability.md): technical, operational and scientific feasibility analysis (26-tool audit history).
+- [Orchestrator design](orchestrator_design.md): execution logic, process management, tool flow.
+- [License audit](licenses_audit.md): legal review of third-party software and data permissions.
+- [External-artifact verification](verify_external_artifacts.md): mandatory pre-infra rule.
 
-## 📅 Estado y Planificación
-- [Hoja de Ruta (Roadmap)](roadmap.md): Hitos principales y cronograma de desarrollo.
-- [Lista de Tareas (TODO)](todo.md): Seguimiento de actividades pendientes y errores conocidos.
-- [Registro de Cambios (Changelog)](changelog.md): Historial detallado de versiones y actualizaciones.
-- [Registro de Decisiones (ADR)](decisions.md): Documentación de decisiones arquitectónicas significativas y su justificación.
+## 📅 Status and planning
+- [Roadmap](roadmap.md): main milestones and development timeline.
+- [TODO](todo.md): pending work and known issues.
+- [Changelog](changelog.md): version history.
+- [Decisions (ADR)](decisions.md): architectural decisions and their justification.
 
-## 🚀 Despliegue y Colaboración
-- [Guía de Despliegue](deployment.md): Instrucciones para la instalación y puesta en marcha en diferentes entornos.
-- [Guía de Contribución](contributors.md): Información sobre el equipo, roles y cómo colaborar en el proyecto.
+## 🚀 Deployment
+- [Deployment guide](deployment.md): installation and bring-up across environments.
 
-## 📂 Archivo
-Documentación de referencia histórica o versiones obsoletas:
-- [Registro de Compilación de Entornos (2026-05)](_archive/2026-05/envs_build_log.md)
-- [Índice Legado](_archive/2026-05/legacy_index.md)
-- [Listado de Archivos Obsoletos](_archive/2026-05/obsolete_files.md)
+## 🧭 Quick navigation for code
+- [Function/script lookup table](INDEX_LOOKUP.md): jump table to canonical functions in `audit_lib/` and scripts in `scripts/`.
 
 ---
-*Última actualización: Mayo 2026*
+*Last updated: May 2026*

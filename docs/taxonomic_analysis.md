@@ -1,35 +1,51 @@
-# Análisis de Sesgo Taxonómico
+# Taxonomic Bias Analysis
 
-El pipeline evalúa si el rendimiento de las herramientas varía significativamente según el origen biológico, lo cual es crítico para la generalización en organismos no representados en el entrenamiento (ej. pulpo).
+The pipeline evaluates whether tool performance varies significantly
+with biological origin. This is critical for generalization to
+organisms underrepresented in training (e.g. octopus).
 
-## Procesamiento y Estratificación
+## Processing and stratification
 
-1.  **Minería y Linajes**: Los péptidos positivos mantienen su metadata taxonómica completa.
-2.  **Grupos Amplios (BroadGroups)**: Clasificación cruzada en 4 categorías:
-    - `Vert_Terrestre` / `Vert_Marino`
-    - `Invert_Terrestre` / `Invert_Marino` (Crucial para péptidos de cefalópodos).
-3.  **Filtrado Gold-Standard**: El análisis por defecto solo usa péptidos **Gold**. Esto evita que el rendimiento inflado por secuencias ya "vistas" oculte fallos en taxones específicos.
+1.  **Mining and lineage**: positive peptides preserve their full
+    taxonomic metadata.
+2.  **Broad groups**: cross-classification into 4 categories:
+    - `Vert_Terrestrial` / `Vert_Marine`
+    - `Invert_Terrestrial` / `Invert_Marine` (crucial for cephalopod
+      peptides).
+3.  **Gold-standard filtering**: the default analysis only uses
+    **Gold** peptides. This prevents inflated performance (from
+    already-seen sequences) from hiding failures in specific taxa.
 
-## Rigor Estadístico
+## Statistical rigor
 
-El script `taxonomic_bias_analysis.py` implementa pruebas robustas para validar los hallazgos:
+`scripts/taxonomic_bias_analysis.py` implements robust tests:
 
-- **Test Exacto de Fisher**: Compara cada grupo contra el resto para detectar desviaciones en la sensibilidad.
-- **Correcciones Múltiples**: Implementa **Benjamini-Hochberg (FDR)** y Bonferroni para evitar falsos positivos al testear muchos taxones.
-- **Wilson Score Interval**: Intervalos de confianza al 95% para la sensibilidad que son precisos incluso con tamaños de muestra (N) pequeños.
-- **Heterogeneidad (Chi-cuadrado)**: Una prueba global de χ² para determinar si existe una diferencia significativa en la distribución de predicciones correctas a través de todos los grupos.
+- **Fisher exact test**: compares each group against the rest to detect
+  sensitivity deviations.
+- **Multiple corrections**: Benjamini-Hochberg (FDR) and Bonferroni to
+  avoid false positives when testing many taxa.
+- **Wilson score interval**: 95% confidence intervals for sensitivity
+  that remain accurate at small sample size (N).
+- **Heterogeneity (chi-squared)**: a global χ² test to determine
+  whether the distribution of correct predictions differs significantly
+  across groups.
 
-## Detección de Sesgo (Interpretación)
-- **LOW_POWER**: Grupos con **n < 10** se marcan como bajo poder estadístico.
-- **Interpretación para Pulpo**: Se analiza específicamente el grupo `Invert_Marino`. Si su sensibilidad es significativamente inferior a la media de otros grupos (p-adj < 0.05), se documenta como un fallo de generalización de la herramienta.
+## Bias detection (interpretation)
 
-## Uso del Script
+- **LOW_POWER**: groups with **n < 10** are flagged as underpowered.
+- **Interpretation for octopus**: the `Invert_Marine` group is analyzed
+  specifically. If its sensitivity is significantly lower than other
+  groups (p-adj < 0.05), it is documented as a generalization failure
+  of the tool.
+
+## Script usage
 
 ```bash
 python taxonomic_bias_analysis.py --tool <ID> --grades Gold --output-dir <DIR>
 ```
 
-El reporte final incluye gráficos de barras comparativos por taxón, permitiendo visualizar rápidamente flaquezas de la herramienta en nichos biológicos específicos.
+The final report includes comparative bar charts per taxon, allowing
+quick visualization of tool weaknesses in specific biological niches.
 
 ---
-[? Volver al �ndice](INDEX.md)
+[← Back to Index](INDEX.md)

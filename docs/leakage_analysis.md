@@ -1,55 +1,65 @@
-# Análisis de Leakage (CD-HIT-2D)
+# Leakage Analysis (CD-HIT-2D)
 
-> ⚠️ **Alcance: Fase 2 (auditoría científica) — NO integrado en Fase 1**
+> ⚠️ **Scope: Phase 2 (scientific audit) — NOT integrated in Phase 1**
 >
-> El sistema de graduación Gold / Silver / Bronze / Red descrito en este
-> documento se ejecuta como parte del **flujo de auditoría científica**
-> (`bin/audit_pipeline.sh` y los scripts asociados de `scripts/`), NO
-> como parte del **flujo de inferencia de usuario** (`scripts/run_audit.py`).
+> The Gold / Silver / Bronze / Red grading system described in this
+> document runs as part of the **scientific audit flow**
+> (`bin/audit_pipeline.sh` and associated scripts in `scripts/`), NOT
+> as part of the **user inference flow** (`scripts/run_audit.py`).
 >
-> Cuando un usuario corre `python scripts/run_audit.py --input mis.fasta`,
-> el output **no incluye** etiquetas de confianza por péptido. La
-> calibración del dominio de aplicabilidad y la asignación de etiquetas
-> en producción son **trabajo futuro** (ver `docs/roadmap.md` § "Leakage
-> analysis via CD-HIT-2D (Phase 2)").
+> When a user runs `python scripts/run_audit.py --input my.fasta`, the
+> output **does not include** per-peptide confidence labels.
+> Applicability-domain calibration and per-peptide labels in production
+> are **future work** (see `docs/roadmap.md` § "Leakage analysis via
+> CD-HIT-2D (Phase 2)").
 >
-> Lo que sí existe ya implementado: `scripts/cdhit_leakage_analysis.py`,
-> `scripts/auditoria_validation.py` y compañeros generan los grados
-> para análisis offline sobre pools de evaluación construidos
-> independientemente.
+> What already exists: `scripts/cdhit_leakage_analysis.py`,
+> `scripts/auditoria_validation.py` and companion scripts generate the
+> grades for offline analysis over evaluation pools built
+> independently.
 
-El corazón de la validación es el análisis de similitud entre el pool de prueba independiente y los datos de entrenamiento de cada herramienta.
+The core of validation is the similarity analysis between the
+independent test pool and each tool's training data.
 
-## Metodología
+## Methodology
 
-Utilizamos `cd-hit-2d` para comparar nuestro pool contra el dataset de entrenamiento en tres umbrales de identidad de secuencia decrecientes: **80%, 60% y 40%**.
+We use `cd-hit-2d` to compare our pool against the training dataset at
+three decreasing sequence-identity thresholds: **80%, 60% and 40%**.
 
-### Sistema de Graduación de Confianza
+### Confidence grading system
 
-Cada péptido de nuestro pool recibe una etiqueta según su "supervivencia" al filtro de CD-HIT:
+Each peptide in our pool receives a tag based on its "survival" through
+the CD-HIT filter:
 
-| Etiqueta | Condición de Supervivencia | Interpretación Científica |
+| Tag | Survival condition | Scientific interpretation |
 | :--- | :--- | :--- |
-| **Gold** | Sobrevive a 80%, 60% y 40% | **Confianza Máxima**: Secuencia totalmente nueva (<40% identidad). |
-| **Silver** | Sobrevive a 80% y 60%, muere a 40% | **Confianza Alta**: Similaridad remota (40-60%) con el entrenamiento. |
-| **Bronze** | Sobrevive a 80%, muere a 60% | **Confianza Media**: Similaridad moderada (60-80%). |
-| **Red** | Muere al 80% | **Leakage Probable**: Alta identidad (>80%) o duplicado. |
+| **Gold** | Survives 80%, 60% and 40% | **Highest confidence**: completely novel sequence (<40% identity). |
+| **Silver** | Survives 80% and 60%, dies at 40% | **High confidence**: remote similarity (40-60%) with training. |
+| **Bronze** | Survives 80%, dies at 60% | **Medium confidence**: moderate similarity (60-80%). |
+| **Red** | Dies at 80% | **Probable leakage**: high identity (>80%) or duplicate. |
 
-## Análisis de Longitud (Robust Mode)
+## Length analysis (Robust Mode)
 
-El script `cdhit_leakage_analysis.py` evalúa si los péptidos de prueba están dentro del rango operativo de la herramienta:
+`cdhit_leakage_analysis.py` evaluates whether test peptides fall within
+the tool's operational range:
 
-- **Robust Mode**: A diferencia de un rango simple min/max, el modo robusto calcula el rango basándose en la distribución real del entrenamiento para evitar que péptidos "outliers" contaminen la validez estadística.
-- **Tagueo**: Cada péptido se marca como `within_range`, `too_short` o `too_long`.
-- El análisis de benchmark posterior (FDR, Sensibilidad) se puede filtrar para considerar solo péptidos **Gold + within_range**, eliminando así el ruido por leakage y por longitudes no soportadas.
+- **Robust Mode**: unlike a simple min/max range, robust mode computes
+  the range from the actual training distribution to prevent "outlier"
+  peptides from contaminating statistical validity.
+- **Tagging**: each peptide is marked `within_range`, `too_short` or
+  `too_long`.
+- The downstream benchmark analysis (FDR, sensitivity) can be filtered
+  to consider only **Gold + within_range** peptides, removing both
+  leakage noise and unsupported lengths.
 
-## Ejecución Técnica
+## Technical execution
 
-El análisis se realiza mediante:
 ```bash
 python cdhit_leakage_analysis.py --tool <ID> --test-fasta <POOL> --training-fasta <TRAIN>
 ```
-Este script genera un archivo `leakage_<TOOL>_classifications.csv` que sirve de base para todos los cálculos estadísticos posteriores.
+
+This script generates a `leakage_<TOOL>_classifications.csv` file that
+serves as the basis for all downstream statistical computations.
 
 ---
-[? Volver al �ndice](INDEX.md)
+[← Back to Index](INDEX.md)

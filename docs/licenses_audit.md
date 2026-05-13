@@ -1,105 +1,141 @@
-# Auditoría de Licencias — Tools del Pipeline
+# License Audit — Pipeline Tools
 
-**Fecha**: 2026-04-27.
-**Propósito**: identificar qué tools del pipeline son compatibles con (a) despliegue como SaaS comercial y (b) publicación científica.
-**Cobertura**: 12 tools viables (los 11 OK + hypeptox_fuse en cuanto el usuario complete la descarga manual).
+**Date**: 2026-04-27.
+**Purpose**: identify which pipeline tools are compatible with (a)
+deployment as a commercial SaaS and (b) scientific publication.
+**Coverage**: 12 viable tools (the 11 OK ones + hypeptox_fuse once the
+user completes the manual download).
 
 ---
 
-## Resumen ejecutivo
+## Executive summary
 
-| Categoría | Count | Tools | Acción para SaaS |
+| Category | Count | Tools | Action for SaaS |
 |---|---|---|---|
-| **Permisiva (Apache 2.0)** | 1 | hypeptox_fuse | ✅ Libre, atribución obligatoria |
-| **Copyleft (GPL-3.0)** | 4 | toxinpred3, antibp3, hemopi2, eippred | ⚠️ OK vía subprocess (aggregation §5), atribución + GPL-3 notice en TOS |
-| **Académica restrictiva (Penn custom)** | 1 | apex | ❌ Requiere licencia comercial de Penn |
-| **Sin licencia explícita (= all rights reserved)** | 6 | hemodl, deepb3p, deepbp, perseucpp, acp_dpe, aip_tranlac | ❌ Requiere permiso explícito de cada autor |
+| **Permissive (Apache 2.0)** | 1 | hypeptox_fuse | ✅ Free, mandatory attribution |
+| **Copyleft (GPL-3.0)** | 4 | toxinpred3, antibp3, hemopi2, eippred | ⚠️ OK via subprocess (aggregation §5), attribution + GPL-3 notice in TOS |
+| **Restrictive academic (Penn custom)** | 1 | apex | ❌ Requires commercial license from Penn |
+| **No explicit license (= all rights reserved)** | 6 | hemodl, deepb3p, deepbp, perseucpp, acp_dpe, aip_tranlac | ❌ Requires explicit permission from each author |
 
-**Tools 100% libres para SaaS comercial sin gestión adicional: 5/12** (4 GPL-3 + 1 Apache).
-**Tools que requieren contacto con autores/instituciones: 7/12** (6 sin licencia + apex).
+**Tools 100% free for commercial SaaS with no extra paperwork: 5/12**
+(4 GPL-3 + 1 Apache).
+**Tools that require contacting authors/institutions: 7/12** (6 with no
+license + apex).
 
 ---
 
-## Matriz detallada
+## Detailed matrix
 
-| Tool | Licencia | Archivo | Categoría bioactividad | SaaS comercial | Publicación académica | Comentarios |
+| Tool | License | File | Bioactivity category | Commercial SaaS | Academic publication | Comments |
 |---|---|---|---|---|---|---|
-| **hypeptox_fuse** | Apache 2.0 | LICENSE | toxicity | ✅ Libre | ✅ Libre | Atribución obligatoria + NOTICE file. Ideal. |
-| **toxinpred3** | GPL-3.0 | LICENSE | toxicity | ⚠️ OK como subprocess | ✅ | Lab raghavagps. Aggregation argument: subprocess no cuenta como linking. |
-| **antibp3** | GPL-3.0 | LICENSE | antimicrobial | ⚠️ Igual | ✅ | Mismo lab. Mismo razonamiento. |
-| **hemopi2** | GPL-3.0 | LICENSE.txt | hemolytic | ⚠️ Igual | ✅ | Mismo lab. |
-| **eippred** | GPL-3.0 | LICENSE | ecoli_inhibitor | ⚠️ Igual | ✅ | Mismo lab. |
-| **apex** | Penn Software APEX (custom) | LICENSE | antimicrobial (34 strains) | ❌ NO sin licencia comercial Penn | ✅ Cita | "Non-profit research only". Cláusulas explícitas que prohíben distribución a terceros comerciales sin permiso escrito de Penn. Contactar Penn Center for Innovation: 215-898-9591. |
-| **hemodl** | NINGUNA | (ausente) | hemolytic | ❌ All rights reserved | ⚠️ Riesgo | GitHub user: `abcair`. README sin mención. Default copyright. |
-| **deepb3p** | NINGUNA | (ausente) | bbb | ❌ Igual | ⚠️ | Lab `GreatChenLab`. README sin mención. |
-| **deepbp** | NINGUNA | (ausente) | anticancer | ❌ Igual | ⚠️ | Autor Zhou-Jianren. README sin mención. |
-| **perseucpp** | NINGUNA | (ausente) | cpp | ❌ Igual | ⚠️ | Autor goalmeida05. README sin mención. |
-| **acp_dpe** | NINGUNA | (ausente) | anticancer | ❌ Igual | ⚠️ | Autor CYJ-sudo. README sin mención. |
-| **aip_tranlac** | NINGUNA | (ausente) | anti-inflammatory | ❌ Igual | ⚠️ | Autor desconocido (buscar paper). README sin mención. |
+| **hypeptox_fuse** | Apache 2.0 | LICENSE | toxicity | ✅ Free | ✅ Free | Mandatory attribution + NOTICE file. Ideal. |
+| **toxinpred3** | GPL-3.0 | LICENSE | toxicity | ⚠️ OK as subprocess | ✅ | raghavagps lab. Aggregation argument: subprocess does not count as linking. |
+| **antibp3** | GPL-3.0 | LICENSE | antimicrobial | ⚠️ Same | ✅ | Same lab. Same reasoning. |
+| **hemopi2** | GPL-3.0 | LICENSE.txt | hemolytic | ⚠️ Same | ✅ | Same lab. |
+| **eippred** | GPL-3.0 | LICENSE | ecoli_inhibitor | ⚠️ Same | ✅ | Same lab. |
+| **apex** | Penn Software APEX (custom) | LICENSE | antimicrobial (34 strains) | ❌ NO without Penn commercial license | ✅ Cite | "Non-profit research only". Explicit clauses prohibit distribution to commercial third parties without written permission from Penn. Contact: Penn Center for Innovation, 215-898-9591. |
+| **hemodl** | NONE | (absent) | hemolytic | ❌ All rights reserved | ⚠️ Risk | GitHub user `abcair`. README does not mention license. Default copyright. |
+| **deepb3p** | NONE | (absent) | bbb | ❌ Same | ⚠️ | `GreatChenLab` lab. README does not mention license. |
+| **deepbp** | NONE | (absent) | anticancer | ❌ Same | ⚠️ | Author Zhou-Jianren. README does not mention license. |
+| **perseucpp** | NONE | (absent) | cpp | ❌ Same | ⚠️ | Author goalmeida05. README does not mention license. |
+| **acp_dpe** | NONE | (absent) | anticancer | ❌ Same | ⚠️ | Author CYJ-sudo. README does not mention license. |
+| **aip_tranlac** | NONE | (absent) | anti-inflammatory | ❌ Same | ⚠️ | Author unknown (look up the paper). README does not mention license. |
 
 ---
 
-## Análisis legal sintético (no es asesoramiento, consultar abogado)
+## Brief legal analysis (not legal advice; consult a lawyer)
 
 ### Apache 2.0 (hypeptox_fuse)
-- Permite uso comercial, modificación, distribución, uso privado.
-- Requiere: incluir copia de la licencia, atribución a los autores, marcar cambios si modificas el código.
-- Compatible con SaaS sin restricciones.
+- Allows commercial use, modification, distribution, private use.
+- Requires: include a copy of the license, attribution to the authors,
+  mark changes if you modify the code.
+- Compatible with SaaS without restriction.
 
-### GPL-3.0 (4 tools de raghavagps)
-- Es **copyleft fuerte**: si "linkeas" código GPL-3 con el tuyo, tu código entero también debe ser GPL-3.
-- **Loophole "agregación" §5**: si tu programa **lanza el tool como subprocess** y solo se comunica vía archivos/stdin/stdout, eso es agregación (aggregate), NO linking. Tu código mantiene su propia licencia.
-- Nuestro `audit_lib/tool_runner.py` usa `micromamba run` + subprocess → cae en aggregation → safe para SaaS.
-- **Obligaciones**:
-  - Atribuir a los autores en docs y TOS.
-  - Si redistribuyes los binarios/repos GPL-3 a tus usuarios, debes ofrecerles también el código fuente y la licencia.
-  - Si modificas un tool GPL-3 (como hicimos con patches a hemopi2/hemodl/deepb3p/etc.), las modificaciones también son GPL-3 — pero esto solo importa si redistribuyes.
-- **GPL-3 §13 menciona AGPL**: AGPL cierra el "SaaS loophole" obligando a publicar fuente cuando ofreces el software por red. **GPL-3 NO tiene esta cláusula** — el SaaS-loophole sigue abierto para GPL-3 puro.
+### GPL-3.0 (4 tools from raghavagps)
+- **Strong copyleft**: if you "link" GPL-3 code with yours, your entire
+  code must also be GPL-3.
+- **"Aggregation" loophole §5**: if your program **launches the tool
+  as a subprocess** and only communicates via files/stdin/stdout,
+  that is aggregation (aggregate), NOT linking. Your code keeps its
+  own license.
+- Our `audit_lib/tool_runner.py` uses `micromamba run` + subprocess →
+  falls under aggregation → safe for SaaS.
+- **Obligations**:
+  - Attribute the authors in docs and TOS.
+  - If you redistribute GPL-3 binaries/repos to your users, you must
+    also offer them the source code and the license.
+  - If you modify a GPL-3 tool (as we did with patches to hemopi2,
+    hemodl, deepb3p, etc.), the modifications are also GPL-3 — but
+    that only matters if you redistribute.
+- **GPL-3 §13 mentions AGPL**: AGPL closes the "SaaS loophole" by
+  requiring source publication when the software is offered over a
+  network. **GPL-3 has no such clause** — the SaaS loophole stays
+  open for pure GPL-3.
 
-### Licencia académica Penn (apex)
-- Cita textual del LICENSE: *"non-profit research, non-commercial, or academic purposes only"*, *"shall not distribute Software or Modifications to any commercial third parties without the prior written approval of Penn"*.
-- **Bloquea SaaS comercial directamente**. Para uso comercial: contactar Penn Center for Innovation (215-898-9591).
-- Si el SaaS es solo para clientes académicos sin cobrar comercialmente, sigue siendo gris — la licencia restringe distribución a "comerciales" aunque el uso sea académico. Mejor pedir clarificación a Penn.
+### Penn academic license (apex)
+- Verbatim from the LICENSE: *"non-profit research, non-commercial, or
+  academic purposes only"*, *"shall not distribute Software or
+  Modifications to any commercial third parties without the prior
+  written approval of Penn"*.
+- **Directly blocks commercial SaaS**. For commercial use: contact
+  Penn Center for Innovation (215-898-9591).
+- If the SaaS is only for academic clients without charging
+  commercially, it is still grey — the license restricts distribution
+  to "commercial third parties" even when the use is academic. Better
+  to seek clarification from Penn.
 
-### Sin licencia (6 tools)
-- En ausencia de LICENSE, el código está **bajo copyright por defecto** (Berne Convention, leyes nacionales).
-- Que esté en GitHub público NO implica licencia abierta. GitHub TOS permite a otros **ver** y **forkear**, pero NO ejecutar comercialmente sin permiso del titular.
-- Para SaaS: **necesitas un email del autor concediendo permiso** (mejor licencia formal tipo MIT/Apache/GPL).
-- Para publicación académica: el riesgo es bajo si solo CITAS y no redistribuyes su código, pero sigue siendo recomendable solicitar permiso.
+### No license (6 tools)
+- In the absence of a LICENSE, the code is **under default copyright**
+  (Berne Convention, national laws).
+- Being on public GitHub does NOT imply an open license. The GitHub
+  TOS lets others **view** and **fork**, but NOT execute commercially
+  without the rights holder's permission.
+- For SaaS: **you need an email from the author granting permission**
+  (better: a formal license like MIT / Apache / GPL).
+- For academic publication: risk is low if you only CITE and do not
+  redistribute the code, but requesting permission is still
+  advisable.
 
 ---
 
-## Tres escenarios de despliegue SaaS
+## Three SaaS deployment scenarios
 
-### Escenario A — Conservador (solo Apache + GPL-3 subprocess)
-- **Tools**: hypeptox_fuse, toxinpred3, antibp3, hemopi2, eippred (5 tools).
-- **Categorías**: toxicity (×2), antimicrobial, hemolytic, ecoli_inhibitor → 4 categorías únicas.
-- **Acciones requeridas**: añadir atribución + texto GPL-3 a TOS y documentación. Cero gestión externa.
-- **Listo para producción**: ahora.
+### Scenario A — Conservative (only Apache + GPL-3 subprocess)
+- **Tools**: hypeptox_fuse, toxinpred3, antibp3, hemopi2, eippred
+  (5 tools).
+- **Categories**: toxicity (×2), antimicrobial, hemolytic,
+  ecoli_inhibitor → 4 unique categories.
+- **Required actions**: add attribution + GPL-3 text to TOS and
+  documentation. Zero external follow-up.
+- **Production-ready**: now.
 
-### Escenario B — Académico restringido (A + apex con TOS limitado)
+### Scenario B — Restricted academic (A + apex with limited TOS)
 - **Tools**: A + apex (6 tools).
-- **Categorías**: + antimicrobial multi-strain (34 cepas).
-- **Acciones requeridas**: TOS que restrinja uso a investigación no comercial. Notificar a Penn opcionalmente.
-- **Riesgo**: si un usuario comercial accede sin restricción, infringes la licencia Penn.
+- **Categories**: + antimicrobial multi-strain (34 strains).
+- **Required actions**: TOS that restricts use to non-commercial
+  research. Optionally notify Penn.
+- **Risk**: if a commercial user accesses without restriction, you
+  infringe the Penn license.
 
-### Escenario C — Pleno (todas las tools, requiere gestión)
+### Scenario C — Full (all tools, requires follow-up)
 - **Tools**: 12.
-- **Categorías**: 8 (toxicity, antimicrobial, hemolytic, ecoli_inhibitor, anticancer, bbb, cpp, anti_inflammatory).
-- **Acciones requeridas**:
-  - Email a 6 autores de tools sin licencia (template abajo).
-  - Contacto con Penn Center for Innovation para apex.
-  - Esperar respuestas (~2-6 semanas).
-  - Documentar cada respuesta como evidencia.
-- **Disponibilidad**: incierta (depende de respuestas).
+- **Categories**: 8 (toxicity, antimicrobial, hemolytic,
+  ecoli_inhibitor, anticancer, bbb, cpp, anti_inflammatory).
+- **Required actions**:
+  - Email to 6 authors of license-less tools (template below).
+  - Contact Penn Center for Innovation for apex.
+  - Wait for responses (~2–6 weeks).
+  - Document each response as evidence.
+- **Availability**: uncertain (depends on responses).
 
-**Recomendación**: empezar con Escenario A para lanzamiento; en paralelo gestionar emails para escalar a B y C cuando lleguen respuestas.
+**Recommendation**: start with Scenario A for launch; in parallel
+manage emails to escalate to B and C as responses arrive.
 
 ---
 
-## Plantilla email para autores sin licencia
+## Email template for license-less authors
 
-Personalizar `<toolname>`, `<github_url>` y datos finales:
+Customize `<toolname>`, `<github_url>` and final details:
 
 ```
 Subject: License clarification request for <toolname> (commercial / SaaS use)
@@ -129,50 +165,69 @@ clarify usage for the broader community.
 Thank you for your time and for sharing <toolname> with the field.
 
 Best regards,
-<tu nombre>
-<tu institución / proyecto>
+<your name>
+<your institution / project>
 ```
 
-### Direcciones de contacto
+### Contact addresses
 
-| Tool | GitHub user / autor | Estrategia para encontrar email |
+| Tool | GitHub user / author | Strategy to find email |
 |---|---|---|
-| hemodl | `abcair` | Buscar paper en Google Scholar; perfil GitHub puede tener email |
-| deepb3p | `GreatChenLab` | Lab account; buscar líder del lab y email institucional |
-| deepbp | `Zhou-Jianren` | Repo `bioactive-peptides`. Buscar paper. |
-| perseucpp | `goalmeida05` | Tesis/paper PERSEU. |
-| acp_dpe | `CYJ-sudo` | Buscar paper "ACP-DPE". |
-| aip_tranlac | (autor en repo no obvio) | Buscar paper "AIP-TranLAC" |
-| apex | Fangping Wan / Penn | Penn Center for Innovation: 215-898-9591. Email del autor: artículo Nature Biomed Eng 2024. |
+| hemodl | `abcair` | Search the paper on Google Scholar; GitHub profile may have an email |
+| deepb3p | `GreatChenLab` | Lab account; find the lab leader and an institutional email |
+| deepbp | `Zhou-Jianren` | Repo `bioactive-peptides`. Look up the paper. |
+| perseucpp | `goalmeida05` | PERSEU thesis/paper. |
+| acp_dpe | `CYJ-sudo` | Look up the paper "ACP-DPE". |
+| aip_tranlac | (author unclear in repo) | Look up the paper "AIP-TranLAC" |
+| apex | Fangping Wan / Penn | Penn Center for Innovation: 215-898-9591. Author email: Nature Biomed Eng 2024 article. |
 
 ---
 
-## Para la publicación científica
+## For scientific publication
 
-- **Citación**: cita el paper original de cada tool en el manuscrito. Esto es estándar y no requiere licencia.
-- **Redistribución de pesos/binarios**: NO redistribuyas pesos ni binarios de los tools sin licencia explícita.
-- **Reproducibilidad**: el manuscrito puede describir cómo invocar cada tool en su repo original; los lectores los descargan ellos mismos.
-- **Código del pipeline propio**: puedes liberar el orchestrator (`scripts/run_audit.py`, `audit_lib/`) bajo la licencia que elijas (MIT/Apache/GPL). Es código tuyo + agregación de subprocess calls — no incorpora código de otros.
-- **Patches a tools GPL-3**: tus patches son derivados de GPL-3 → si los redistribuyes (p. ej. en supplementary material), van bajo GPL-3.
-
----
-
-## Acciones inmediatas
-
-1. **Añadir LICENSE a tu pipeline**: decide MIT / Apache 2.0 / GPL-3 y crea `LICENSE` en raíz del repo. Recomendado: Apache 2.0 (compatible con todo lo que uses).
-2. **Crear `NOTICE` y `THIRD_PARTY_LICENSES.md`**: lista cada tool integrado con su licencia y atribución.
-3. **Borrador TOS** del SaaS con sección "Software components and licenses" listando los 5 del Escenario A.
-4. **Emails** a los 6 autores sin licencia (escenario C). Si respuestas son rápidas, escalar a SaaS pleno.
-5. **Contacto Penn** para apex si quieres incluir esa categoría en SaaS comercial.
-6. **Revisión legal**: cuando tengas el TOS borrador, una hora con un abogado especializado en open source / SaaS confirma que los argumentos de aggregation son sólidos en tu jurisdicción.
+- **Citation**: cite each tool's original paper in the manuscript.
+  Standard practice and does not require a license.
+- **Redistribution of weights/binaries**: do NOT redistribute weights
+  or binaries of license-less tools without explicit permission.
+- **Reproducibility**: the manuscript can describe how to invoke each
+  tool in its original repo; readers download them themselves.
+- **Pipeline code**: you can release the orchestrator
+  (`scripts/run_audit.py`, `audit_lib/`) under whichever license you
+  choose (MIT / Apache / GPL). It is your code + subprocess aggregation
+  — it does not incorporate code from others.
+- **Patches to GPL-3 tools**: your patches are GPL-3 derivatives → if
+  you redistribute them (e.g. in supplementary material), they are
+  GPL-3.
 
 ---
 
-## Cuándo actualizar este doc
+## Immediate actions
 
-- Cuando llegue respuesta de algún autor (registrar fecha, términos, email completo guardado aparte como evidencia).
-- Cuando un tool nuevo se integre al pipeline (auditar su licencia antes de añadirlo a la matriz).
-- Si un tool actualiza su LICENSE en el repo (revisar al hacer `git pull`).
+1. **Add LICENSE to your pipeline**: decide MIT / Apache 2.0 / GPL-3 /
+   PolyForm Noncommercial and create `LICENSE` at the repo root. As of
+   v0.1.0 the public release uses PolyForm Noncommercial 1.0.0.
+2. **Create `NOTICE` and `THIRD_PARTY_LICENSES.md`**: list each
+   integrated tool with its license and attribution.
+3. **SaaS TOS draft** with a "Software components and licenses"
+   section listing the 5 tools of Scenario A.
+4. **Emails** to the 6 license-less authors (Scenario C). If responses
+   are fast, escalate to full SaaS.
+5. **Penn contact** for apex if you want that category in commercial
+   SaaS.
+6. **Legal review**: once you have a TOS draft, one hour with a lawyer
+   specialized in open source / SaaS will confirm whether the
+   aggregation argument is solid in your jurisdiction.
 
 ---
-[? Volver al �ndice](INDEX.md)
+
+## When to update this document
+
+- When a response arrives from any author (record date, terms, full
+  email saved separately as evidence).
+- When a new tool is integrated into the pipeline (audit its license
+  before adding to the matrix).
+- If a tool updates its LICENSE in the repo (re-check on
+  `git pull`).
+
+---
+[← Back to Index](INDEX.md)

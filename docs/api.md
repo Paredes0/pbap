@@ -1,181 +1,190 @@
 ---
-description: Referencia técnica de módulos, clases y funciones de audit_lib.
+description: Technical reference for modules, classes and functions of audit_lib.
 related: [architecture.md, conventions.md]
-last_updated: 2026-05-08T13:55:00Z
+last_updated: 2026-05-13
 ---
 
-# Referencia de API (`audit_lib`)
+# API Reference (`audit_lib`)
 
-Documentación completa de los 12 módulos que componen la biblioteca compartida del pipeline.
+Full documentation of the 12 modules that compose the pipeline's shared
+library.
 
 > [!NOTE]
-> Solo se documentan funciones **públicas** (sin prefijo `_`). Las funciones internas (`_build_command`, `_ssh_dispatch`, etc.) son detalles de implementación y pueden cambiar sin aviso.
+> Only **public** functions (no `_` prefix) are documented here. Internal
+> functions (`_build_command`, `_ssh_dispatch`, etc.) are implementation
+> details and may change without notice.
 
 ---
 
 ## 🔧 `audit_lib/config.py`
 
-Gestión de configuraciones YAML para el pipeline y herramientas.
+YAML configuration management for the pipeline and tools.
 
-| Función | Firma | Descripción |
+| Function | Signature | Description |
 |---|---|---|
-| `load_pipeline_config` | `(config_path="pipeline_config.yaml")` | Carga la configuración global del pipeline (tools, environments, paths). |
-| `load_category_config` | `(config_path="categories_config.yaml")` | Carga el mapeo de bioactividades y categorías. |
-| `get_tool_config` | `(tool_id, pipeline_config)` | Extrae el bloque de configuración específico para una herramienta. |
-| `get_tools_for_category` | `(category, pipeline_config)` | Devuelve la lista de tool_ids que pertenecen a una categoría dada. |
-| `get_all_categories` | `(pipeline_config)` | Devuelve el set de todas las categorías únicas definidas en el config. |
-| `get_base_output_dir` | `(pipeline_config)` | Obtiene el directorio base de outputs desde la configuración global. |
+| `load_pipeline_config` | `(config_path="pipeline_config.yaml")` | Loads the global pipeline configuration (tools, environments, paths). |
+| `load_category_config` | `(config_path="categories_config.yaml")` | Loads the bioactivity-to-category mapping. |
+| `get_tool_config` | `(tool_id, pipeline_config)` | Extracts the configuration block for a specific tool. |
+| `get_tools_for_category` | `(category, pipeline_config)` | Returns the list of `tool_id`s belonging to a given category. |
+| `get_all_categories` | `(pipeline_config)` | Returns the set of all unique categories defined in the config. |
+| `get_base_output_dir` | `(pipeline_config)` | Reads the base output directory from the global config. |
 
 ---
 
 ## 🚀 `audit_lib/tool_runner.py`
 
-Motor de ejecución de herramientas mediante `micromamba run`.
+Tool-execution engine using `micromamba run`.
 
-| Símbolo | Tipo | Firma / Descripción |
+| Symbol | Type | Signature / Description |
 |---|---|---|
-| `ToolResult` | `class` | Encapsula el resultado de ejecución: `tool_id`, `output_path`, `exit_code`, `runtime`, `diagnosis`. |
-| `run_tool` | `def` | `(tool_id, peptides_fasta, output_dir, pipeline_config_path=DEFAULT_CONFIG_PATH, timeout_seconds=None)` — Ejecuta un predictor en su entorno dedicado. Maneja `timeout` y captura de logs. |
+| `ToolResult` | `class` | Wraps the execution result: `tool_id`, `output_path`, `exit_code`, `runtime`, `diagnosis`. |
+| `run_tool` | `def` | `(tool_id, peptides_fasta, output_dir, pipeline_config_path=DEFAULT_CONFIG_PATH, timeout_seconds=None)` — runs a predictor in its dedicated environment. Handles timeouts and log capture. |
 
 ---
 
 ## 📏 `audit_lib/tool_length_range.py`
 
-Inferencia de rangos de longitud óptimos por herramienta a partir de datos de entrenamiento.
+Inference of optimal length ranges per tool from training data.
 
-| Función | Firma | Descripción |
+| Function | Signature | Description |
 |---|---|---|
-| `collect_training_lengths` | `(training_dir, sequence_column_hints=None)` | Recorre los archivos de training de un tool y extrae las longitudes de las secuencias. |
-| `compute_tool_length_range` | `(tool_id, tool_cfg, training_dir=None, mode="robust", hard_min=5, hard_max=100)` | Calcula el rango min/max de longitudes aceptables para un tool. El modo `robust` usa percentiles para ignorar outliers. |
-| `filter_pool_by_length` | `(pool_df, min_len, max_len, seq_col="Sequence", len_col="Length")` | Filtra un DataFrame de pool eliminando secuencias fuera del rango del tool. |
+| `collect_training_lengths` | `(training_dir, sequence_column_hints=None)` | Walks the training files of a tool and extracts sequence lengths. |
+| `compute_tool_length_range` | `(tool_id, tool_cfg, training_dir=None, mode="robust", hard_min=5, hard_max=100)` | Computes the acceptable length range for a tool. The `robust` mode uses percentiles to ignore outliers. |
+| `filter_pool_by_length` | `(pool_df, min_len, max_len, seq_col="Sequence", len_col="Length")` | Filters a pool DataFrame by length range. |
 
 ---
 
 ## 📥 `audit_lib/downloader.py`
 
-Gestión de descarga y verificación de pesos de modelos desde repositorios externos.
+Download and verification of model weights from external repositories.
 
-| Función | Firma | Descripción |
+| Function | Signature | Description |
 |---|---|---|
-| `ensure_weights` | `(tool_id, tool_cfg, repo_dir)` | Punto de entrada principal. Verifica si los pesos del modelo existen; si no, los descarga desde la plataforma configurada (Zenodo, HuggingFace, o manual). Valida integridad via MD5 cuando está disponible. |
+| `ensure_weights` | `(tool_id, tool_cfg, repo_dir)` | Main entry point. Checks whether the model weights exist; if not, downloads them from the configured platform (Zenodo, HuggingFace, or manual). Validates integrity via MD5 when available. |
 
 > [!TIP]
-> Las funciones internas `_download_zenodo`, `_download_huggingface`, `_check_manual_download`, `_download_file`, `_md5`, `_unzip` gestionan la descarga por plataforma. No están expuestas públicamente.
+> The internal helpers `_download_zenodo`, `_download_huggingface`,
+> `_check_manual_download`, `_download_file`, `_md5`, `_unzip` handle
+> per-platform downloads. They are not exposed publicly.
 
 ---
 
 ## 🧬 `audit_lib/sequence_utils.py`
 
-Utilidades biológicas para validación y normalización de secuencias peptídicas.
+Biological utilities for sequence validation and normalization.
 
-| Función | Firma | Descripción |
+| Function | Signature | Description |
 |---|---|---|
-| `validate_sequence` | `(seq, min_length=5, max_length=100)` | Verifica que la secuencia solo contenga aminoácidos estándar y cumpla el rango de longitud. |
-| `classify_habitat` | `(organism_name, lineage_str, fallback="desconocido")` | Mapeo heurístico de linaje taxonómico a categorías de hábitat (suelo, marino, etc.). |
-| `get_length_bin` | `(length, bins=None)` | Asigna una secuencia a un bin de longitud. |
-| `remove_subfragments` | `(df, seq_col="Sequence", id_col="ID")` | Elimina secuencias que son sub-strings exactos de otras en el mismo set. |
-| `find_column` | `(df)` | Heurística para detectar la columna de secuencia en un DataFrame con nombres heterogéneos. |
-| `is_signaling_related` | `(text)` | Detecta si un texto de anotación indica péptido señal o propéptido (para excluirlo). |
-| `cap_per_species` | `(df, max_per_species, organism_col="Organism", seed=42)` | Limita el número máximo de secuencias por especie para evitar sesgos taxonómicos. |
+| `validate_sequence` | `(seq, min_length=5, max_length=100)` | Checks that the sequence contains only standard amino acids and fits the length range. |
+| `classify_habitat` | `(organism_name, lineage_str, fallback="unknown")` | Heuristic mapping from taxonomic lineage to habitat categories (soil, marine, etc.). |
+| `get_length_bin` | `(length, bins=None)` | Assigns a sequence to a length bin. |
+| `remove_subfragments` | `(df, seq_col="Sequence", id_col="ID")` | Removes sequences that are exact substrings of others in the same set. |
+| `find_column` | `(df)` | Heuristic to detect the sequence column in a DataFrame with heterogeneous names. |
+| `is_signaling_related` | `(text)` | Detects whether an annotation text indicates a signal peptide or propeptide (to exclude it). |
+| `cap_per_species` | `(df, max_per_species, organism_col="Organism", seed=42)` | Caps the number of sequences per species to avoid taxonomic bias. |
 
 ---
 
 ## 🔬 `audit_lib/cdhit_utils.py`
 
-Integración con CD-HIT para análisis de redundancia y leakage. **Único módulo con capacidad de despacho SSH**.
+CD-HIT integration for redundancy and leakage analysis. **The only
+module with SSH dispatch capability**.
 
-| Función | Firma | Descripción |
+| Function | Signature | Description |
 |---|---|---|
-| `get_word_size` | `(identity)` | Calcula el word size óptimo de CD-HIT para un umbral de identidad dado. |
-| `find_cdhit_binary` | `(name="cd-hit")` | Localiza el binario de CD-HIT en el PATH del sistema. |
-| `write_fasta` | `(df, fasta_path, id_col="ID", seq_col="Sequence")` | Exporta un DataFrame a formato FASTA. |
-| `parse_fasta_ids` | `(fasta_path)` | Extrae los IDs de un archivo FASTA. |
-| `run_cdhit_intraset` | `(df, identity=0.9, output_dir=None, id_col="ID", seq_col="Sequence", ssh_host=None)` | Elimina redundancia interna en un set al umbral de identidad dado. |
-| `run_cdhit2d` | `(training_fasta, test_fasta, output_path, identity=0.8, ssh_host=None, ssh_user=None, cdhit_binary=None, sshfs_mount=None, linux_base=None)` | Compara un pool de test contra training para detectar leakage. Soporta despacho SSH para ejecución en servidor Linux. |
-| `classify_leakage_grades` | `(test_ids, results_by_threshold)` | Clasifica secuencias en grados Gold/Silver/Bronze/Red según resultados de CD-HIT-2D a múltiples umbrales. |
+| `get_word_size` | `(identity)` | Computes the optimal CD-HIT word size for a given identity threshold. |
+| `find_cdhit_binary` | `(name="cd-hit")` | Locates the CD-HIT binary on the system PATH. |
+| `write_fasta` | `(df, fasta_path, id_col="ID", seq_col="Sequence")` | Exports a DataFrame to FASTA. |
+| `parse_fasta_ids` | `(fasta_path)` | Extracts IDs from a FASTA file. |
+| `run_cdhit_intraset` | `(df, identity=0.9, output_dir=None, id_col="ID", seq_col="Sequence", ssh_host=None)` | Removes intra-set redundancy at the given identity threshold. |
+| `run_cdhit2d` | `(training_fasta, test_fasta, output_path, identity=0.8, ssh_host=None, ssh_user=None, cdhit_binary=None, sshfs_mount=None, linux_base=None)` | Compares a test pool against training data to detect leakage. Supports SSH dispatch to run on a Linux server. |
+| `classify_leakage_grades` | `(test_ids, results_by_threshold)` | Classifies sequences into Gold/Silver/Bronze/Red grades based on CD-HIT-2D results at multiple thresholds. |
 
 ---
 
 ## 🌐 `audit_lib/uniprot_client.py`
 
-Cliente para descarga y procesamiento de datos de UniProt/Swiss-Prot con paginación, reintentos y checkpointing.
+Client for downloading and processing UniProt/Swiss-Prot data with
+pagination, retries and checkpointing.
 
-| Función | Firma | Descripción |
+| Function | Signature | Description |
 |---|---|---|
-| `download_uniprot` | `(query, fields=None, checkpoint_dir=None, group_name="", max_retries=MAX_RETRIES, retry_delays=RETRY_DELAYS)` | Descarga resultados de búsqueda UniProt en formato TSV con reintentos automáticos. |
-| `parse_mature_features` | `(feature_str)` | Extrae coordenadas de `CHAIN` y `PEPTIDE` del campo `Features` de UniProt. |
-| `extract_mature_subsequences` | `(full_seq, features, min_length=5, max_length=100)` | Genera las subsecuencias maduras a partir de las coordenadas de features. |
-| `process_uniprot_dataframe` | `(df, group_name, habitat, bioactivity, min_length=5, max_length=100, strict_mature=True)` | Pipeline completo: extrae, filtra y estandariza un DataFrame de UniProt al esquema interno del pipeline. |
+| `download_uniprot` | `(query, fields=None, checkpoint_dir=None, group_name="", max_retries=MAX_RETRIES, retry_delays=RETRY_DELAYS)` | Downloads UniProt search results in TSV format with automatic retries. |
+| `parse_mature_features` | `(feature_str)` | Extracts `CHAIN` and `PEPTIDE` coordinates from the UniProt `Features` field. |
+| `extract_mature_subsequences` | `(full_seq, features, min_length=5, max_length=100)` | Generates mature subsequences from feature coordinates. |
+| `process_uniprot_dataframe` | `(df, group_name, habitat, bioactivity, min_length=5, max_length=100, strict_mature=True)` | Full pipeline: extracts, filters and standardizes a UniProt DataFrame to the internal schema. |
 
 ---
 
 ## 📊 `audit_lib/length_sampling.py`
 
-Muestreo de secuencias respetando distribuciones naturales de longitud.
+Sequence sampling that respects natural length distributions.
 
-| Función | Firma | Descripción |
+| Function | Signature | Description |
 |---|---|---|
-| `compute_length_distribution` | `(df, length_col="Length", bins=None)` | Calcula la distribución de longitudes de un DataFrame en bins. |
-| `sample_with_diversity` | `(df, target_size, length_col="Length", bins=None, min_bin_pct=0.03, seed=42)` | Muestreo estratificado por longitud con garantía de representación mínima por bin. |
-| `match_length_distribution` | `(source_df, target_df, target_size, length_col="Length", bins=None, seed=42)` | Muestrea de `source_df` para que la distribución de longitudes replique la de `target_df`. |
+| `compute_length_distribution` | `(df, length_col="Length", bins=None)` | Computes the length distribution of a DataFrame in bins. |
+| `sample_with_diversity` | `(df, target_size, length_col="Length", bins=None, min_bin_pct=0.03, seed=42)` | Length-stratified sampling with a minimum-representation guarantee per bin. |
+| `match_length_distribution` | `(source_df, target_df, target_size, length_col="Length", bins=None, seed=42)` | Samples from `source_df` so that the length distribution matches `target_df`. |
 
 ---
 
 ## 💾 `audit_lib/state_manager.py`
 
-Gestión de estado incremental para evitar re-auditorías innecesarias.
+Incremental state management to avoid unnecessary re-audits.
 
-| Símbolo | Tipo | Firma / Descripción |
+| Symbol | Type | Signature / Description |
 |---|---|---|
-| `AuditStateManager` | `class` | Persiste en `.audit_state.json`. Constructor: `AuditStateManager(state_file)`. |
-| `.save` | método | `()` — Escribe el estado actual a disco. |
-| `.compute_tool_hash` | método | `(tool_id, tool_config)` — Genera un hash determinista de la configuración de un tool. |
-| `.needs_audit` | método | `(tool_id, current_hash)` — Retorna `True` si el tool necesita re-auditoría. |
-| `.mark_step_complete` | método | `(tool_id, hash_val, step)` — Marca un paso intermedio como completado. |
-| `.mark_complete` | método | `(tool_id, hash_val)` — Marca la auditoría completa para un tool. |
-| `.get_completed_steps` | método | `(tool_id)` — Retorna los pasos completados para un tool. |
-| `.mark_category_pool` | método | `(category, n_sequences, pool_hash=None)` — Registra un pool de categoría generado. |
-| `.has_category_pool` | método | `(category)` — Verifica si un pool ya existe para una categoría. |
-| `.reset_tool` | método | `(tool_id)` — Resetea el estado de un tool (fuerza re-auditoría). |
+| `AuditStateManager` | `class` | Persists to `.audit_state.json`. Constructor: `AuditStateManager(state_file)`. |
+| `.save` | method | `()` — Writes the current state to disk. |
+| `.compute_tool_hash` | method | `(tool_id, tool_config)` — Produces a deterministic hash of a tool's configuration. |
+| `.needs_audit` | method | `(tool_id, current_hash)` — Returns `True` if the tool needs re-auditing. |
+| `.mark_step_complete` | method | `(tool_id, hash_val, step)` — Marks an intermediate step as complete. |
+| `.mark_complete` | method | `(tool_id, hash_val)` — Marks the audit as complete for a tool. |
+| `.get_completed_steps` | method | `(tool_id)` — Returns the steps already completed for a tool. |
+| `.mark_category_pool` | method | `(category, n_sequences, pool_hash=None)` — Records a generated category pool. |
+| `.has_category_pool` | method | `(category)` — Verifies whether a pool already exists for a category. |
+| `.reset_tool` | method | `(tool_id)` — Resets a tool's state (forces re-audit). |
 
 ---
 
 ## 📜 `audit_lib/provenance.py`
 
-Generación de metadatos de trazabilidad en formato JSON.
+Generation of traceability metadata in JSON format.
 
-| Función | Firma | Descripción |
+| Function | Signature | Description |
 |---|---|---|
-| `generate_provenance` | `(output_dir, script_name, category=None, tool_id=None, parameters=None, queries=None, counts=None, output_stats=None, errors=None, extra=None)` | Crea un archivo `PROVENANCE_<script>_<timestamp>.json` con información completa del origen de los datos, parámetros de ejecución y estadísticas de output. |
+| `generate_provenance` | `(output_dir, script_name, category=None, tool_id=None, parameters=None, queries=None, counts=None, output_stats=None, errors=None, extra=None)` | Creates a `PROVENANCE_<script>_<timestamp>.json` file with full information about data origin, execution parameters and output statistics. |
 
 ---
 
 ## 🗄️ `audit_lib/db_parsers.py`
 
-Parsers para bases de datos externas de péptidos bioactivos. Cada parser devuelve un DataFrame estandarizado con columnas `[ID, Sequence, Length, Source_DB, Bioactivity, ...]`.
+Parsers for external databases of bioactive peptides. Each parser
+returns a standardized DataFrame with columns
+`[ID, Sequence, Length, Source_DB, Bioactivity, ...]`.
 
-| Función | Firma | Descripción |
+| Function | Signature | Description |
 |---|---|---|
-| `parse_dbaasp` | `(data_path=None, bioactivity="antimicrobial")` | Parser para DBAASP (antimicrobianos con MICs). |
-| `parse_apd3` | `(data_path=None, bioactivity="antimicrobial")` | Parser para APD3 (Antimicrobial Peptide Database). |
-| `parse_conoserver` | `(data_path=None, bioactivity="toxicity", min_length=5, max_length=100, exclude_precursors=True)` | Parser para ConoServer (toxinas de caracoles cono). |
-| `parse_arachnoserver` | `(data_path=None, bioactivity="toxicity", min_length=5, max_length=100)` | Parser para ArachnoServer (toxinas de arañas). |
-| `parse_hemolytik` | `(data_path=None, bioactivity="hemolytic")` | Parser para Hemolytik (péptidos hemolíticos). |
-| `parse_cancerppd` | `(data_path=None, bioactivity="anticancer")` | Parser para CancerPPD (péptidos anticancerígenos). |
-| `parse_cppsite` | `(data_path=None, bioactivity="cpp")` | Parser para CPPsite (cell-penetrating peptides). |
-| `parse_biopep` | `(data_path=None, bioactivity="antioxidant")` | Parser para BIOPEP (péptidos antioxidantes). |
-| `parse_avpdb` | `(data_path=None, bioactivity="antiviral")` | Parser para AVPdb (péptidos antivirales). |
-| `get_parser` | `(db_name)` | Factory: devuelve la función parser para un nombre de base de datos. |
+| `parse_dbaasp` | `(data_path=None, bioactivity="antimicrobial")` | DBAASP parser (antimicrobials with MICs). |
+| `parse_apd3` | `(data_path=None, bioactivity="antimicrobial")` | APD3 parser (Antimicrobial Peptide Database). |
+| `parse_conoserver` | `(data_path=None, bioactivity="toxicity", min_length=5, max_length=100, exclude_precursors=True)` | ConoServer parser (cone-snail toxins). |
+| `parse_arachnoserver` | `(data_path=None, bioactivity="toxicity", min_length=5, max_length=100)` | ArachnoServer parser (spider toxins). |
+| `parse_hemolytik` | `(data_path=None, bioactivity="hemolytic")` | Hemolytik parser (hemolytic peptides). |
+| `parse_cancerppd` | `(data_path=None, bioactivity="anticancer")` | CancerPPD parser (anticancer peptides). |
+| `parse_cppsite` | `(data_path=None, bioactivity="cpp")` | CPPsite parser (cell-penetrating peptides). |
+| `parse_biopep` | `(data_path=None, bioactivity="antioxidant")` | BIOPEP parser (antioxidant peptides). |
+| `parse_avpdb` | `(data_path=None, bioactivity="antiviral")` | AVPdb parser (antiviral peptides). |
+| `get_parser` | `(db_name)` | Factory: returns the parser function for a given DB name. |
 
 ---
 
 ## 📝 `audit_lib/logging_setup.py`
 
-Configuración estándar de logging para todos los scripts del pipeline.
+Standard logging configuration for all pipeline scripts.
 
-| Función | Firma | Descripción |
+| Function | Signature | Description |
 |---|---|---|
-| `configure_logging` | `(log_dir=None, script_name="audit", level=logging.INFO)` | Configura el logger raíz con formato estándar, rotación de archivos (si `log_dir` es proporcionado) y salida a consola. |
+| `configure_logging` | `(log_dir=None, script_name="audit", level=logging.INFO)` | Configures the root logger with the standard format, file rotation (if `log_dir` is provided) and console output. |
 
 ---
-[← Volver al Índice](INDEX.md)
+[← Back to Index](INDEX.md)

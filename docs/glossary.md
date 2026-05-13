@@ -1,34 +1,50 @@
-# Glossary — Términos del Proyecto
+# Glossary — Project terms
 
-Este glosario define los términos científicos, técnicos y operativos utilizados en el Pipeline de Auditoría de Bioactividad.
+This glossary defines the scientific, technical and operational terms
+used in the Peptide Bioactivity Audit Pipeline.
 
-## 🧬 Términos Científicos
+## Scientific terms
 
-- **Bioactividad**: Capacidad de un péptido para interactuar con un sistema biológico y producir un efecto (ej. matar una bacteria, inhibir una enzima).
-- **MIC (Minimum Inhibitory Concentration)**: La concentración más baja de un péptido que previene el crecimiento visible de un microorganismo. Se mide típicamente en µM o µg/mL.
-- **Leakage (Fuga de datos)**: Problema en el que secuencias utilizadas para evaluar un modelo ya estaban presentes en su conjunto de entrenamiento, inflando artificialmente los resultados de precisión.
-- **Grados de Leakage**:
-    - **Gold**: Novedad alta (<40% identidad con training).
-    - **Silver**: Novedad media (40-60%).
-    - **Bronze**: Novedad baja (60-80%).
-    - **Red**: Leakage probable (>80% identidad).
-- **Péptido**: Cadena corta de aminoácidos (típicamente <50-100 AA en este proyecto).
+- **Bioactivity**: capacity of a peptide to interact with a biological
+  system and produce an effect (e.g. kill a bacterium, inhibit an
+  enzyme).
+- **MIC (Minimum Inhibitory Concentration)**: the lowest concentration
+  of a peptide that prevents visible microbial growth. Typically
+  measured in µM or µg/mL.
+- **Leakage**: the problem where sequences used to evaluate a model
+  were already present in its training set, artificially inflating
+  accuracy.
+- **Leakage grades**:
+    - **Gold**: high novelty (<40% identity vs. training).
+    - **Silver**: medium novelty (40-60%).
+    - **Bronze**: low novelty (60-80%).
+    - **Red**: probable leakage (>80% identity).
+- **Peptide**: short amino-acid chain (typically <50-100 AA in this
+  project).
 
-## 💻 Términos Técnicos (Arquitectura)
+## Technical terms (architecture)
 
-- **Orquestador (Orchestrator)**: Script maestro (`run_audit.py`) que gestiona la ejecución secuencial o paralela de múltiples herramientas.
-- **SSH Dispatch**: Técnica para ejecutar tareas pesadas (como CD-HIT) en un servidor Linux remoto mediante SSH, permitiendo que el orquestador principal corra en Windows.
-- **Capa 2 (Consenso)**: Lógica que compara los resultados de varias herramientas de la misma categoría para emitir un veredicto de acuerdo (`consensus_positive`) o desacuerdo (`split`).
-- **Tool Health**: Estado operativo de una herramienta durante un run (`OK` o `PROBLEMATIC`).
-- **Normalización**: Proceso de convertir los diversos formatos de salida de las herramientas a un esquema común (`class_norm`, `score`).
+- **Orchestrator**: master script (`run_audit.py`) that manages the
+  sequential or parallel execution of multiple tools.
+- **SSH dispatch**: technique to run heavy tasks (e.g. CD-HIT) on a
+  remote Linux server via SSH, allowing the main orchestrator to run
+  on Windows.
+- **Layer 2 (Consensus)**: logic that compares the results of several
+  tools in the same category to emit an agreement verdict
+  (`consensus_positive`) or disagreement (`split`).
+- **Tool health**: operational state of a tool during a run (`OK` or
+  `PROBLEMATIC`).
+- **Normalization**: process of converting the various tool output
+  formats to a common schema (`class_norm`, `score`).
 
-## 🤖 Términos Operativos (Swarm)
+## Operational terms
 
-- **Swarm**: El ecosistema de agentes IA (Antigravity, Gemini, Claude, etc.) y humanos que colaboran en el desarrollo del proyecto.
-- **Memoria del Proyecto**: El conjunto de documentos en `docs/` que sirven como "fuente de verdad" para todos los agentes.
-- **Index-First**: Estrategia de los agentes de consultar primero los índices (`INDEX.md`, `INDEX_LOOKUP.md`) antes de leer código masivo.
-- **ADR (Architecture Decision Record)**: Registro formal de por qué se tomó una decisión técnica (en `docs/decisions.md`).
-- **Roster**: Lista de contribuyentes (humanos e IAs) en `docs/contributors.md`.
+- **Project memory**: the set of documents in `docs/` that serve as the
+  "source of truth" for the project.
+- **Index-first**: strategy of consulting indexes (`INDEX.md`,
+  `INDEX_LOOKUP.md`) before reading large code files.
+- **ADR (Architecture Decision Record)**: formal record of why a
+  technical decision was made (in `docs/decisions.md`).
 
 ---
-[? Volver al �ndice](INDEX.md)
+[← Back to Index](INDEX.md)

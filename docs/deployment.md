@@ -1,29 +1,41 @@
-﻿# Despliegue y Configuracion del Pipeline
+# Pipeline Deployment and Configuration
 
-Este documento detalla la configuracion del sistema, el inventario de dependencias y el estado actual de los entornos de ejecucion para el pipeline de bioactividad.
+This document describes system configuration, the dependency inventory
+and the current state of the execution environments for the bioactivity
+pipeline.
 
-## 1. Configuracion del Sistema
+## 1. System configuration
 
-El sistema opera bajo un modelo de **ejecucion local**. El orquestador gestiona la activacion de entornos Micromamba especificos para cada herramienta, garantizando que cada una se ejecute en su stack tecnologico verificado.
+The system operates under a **local execution** model. The orchestrator
+activates a specific Micromamba environment for each tool, ensuring
+that each one runs in its verified technology stack.
 
-### Archivos de Configuracion
+### Configuration files
 
 #### 1. `config/pipeline_config.yaml`
-Define los parametros globales y el catalogo de herramientas.
-- `global`: Semillas, rangos de longitud por defecto, umbrales de CD-HIT.
-- `ssh`: Configuracion de acceso al servidor Linux. **Importante**: En la arquitectura actual, la ejecucion via SSH se reserva **exclusivamente para el proceso de CD-HIT** (eliminacion de redundancia). Todas las herramientas de prediccion se ejecutan localmente en la maquina host.
-- `tools`: Catalogo de herramientas. Cada herramienta tiene asignado un `conda_env` que el orquestador activa antes de la ejecucion.
+Defines global parameters and the tool catalog.
+- `global`: seeds, default length ranges, CD-HIT thresholds.
+- `ssh`: configuration for the Linux server. **Important**: in the
+  current architecture, SSH execution is reserved **exclusively for the
+  CD-HIT process** (redundancy filtering). All prediction tools run
+  locally on the host machine.
+- `tools`: catalog of tools. Each tool has an assigned `conda_env` that
+  the orchestrator activates before execution.
 
 #### 2. `config/categories_config.yaml`
-Define las bioactividades auditadas y las consultas UniProt para la construccion de pools positivos.
+Defines the audited bioactivities and the UniProt queries used to build
+positive pools.
 
 ---
 
-## 2. Inventario de Dependencias (Technical Mapping)
+## 2. Dependency inventory (technical mapping)
 
-Este inventario mapea los requisitos tecnicos identificados para cada herramienta. Debido a las incompatibilidades severas entre librerias (ej. numpy 2.0 vs versiones antiguas de tensorflow), el sistema utiliza una estrategia de aislamiento por entornos.
+This inventory maps the technical requirements identified for each
+tool. Because of severe inter-library incompatibilities (e.g. numpy
+2.0 vs. legacy TensorFlow versions), the system uses an
+environment-based isolation strategy.
 
-| # | tool_id | Env / Stack | Python | Principales Librerías |
+| # | tool_id | Env / Stack | Python | Main libraries |
 |---|---|---|---|---|
 | 1 | **toxinpred3** | `ml` | 3.10+ | sklearn 1.0.2, blastp |
 | 2 | **hemodl** | `ml` | 3.8 | tensorflow 2.13, lightgbm 4.0.0 |
@@ -34,94 +46,104 @@ Este inventario mapea los requisitos tecnicos identificados para cada herramient
 | 7 | **antibp3** | `ml` | 3.10+ | sklearn, blastp (Linux) |
 | 8 | **deepbp** | `torch_legacy`| 3.7/3.8 | keras, tensorflow (legacy) |
 | 9 | **acp_dpe** | `torch_legacy`| 3.7/3.8 | torch 1.x, keras |
-| 10 | **avppred_bwr** | `torch` | -- | (Standby) No inference script |
+| 10 | **avppred_bwr** | `torch` | -- | (Standby) no inference script |
 | 11 | **bertaip** | `pipeline_bertaip`| 3.10+ | simpletransformers, transformers |
-| 12 | **antifungipept**| `ml_legacy_py38` | 3.8 | sklearn, numpy old |
+| 12 | **antifungipept**| `ml_legacy_py38` | 3.8 | sklearn, legacy numpy |
 | 13 | **deepb3p** | `deepb3p_legacy` | 3.7 | tensorflow 1.14.0, rdkit |
 | 14 | **perseucpp** | `torch` | 3.10+ | torch 2.x, sklearn |
 
 ---
 
-## 3. Estado de Herramientas Auditadas
+## 3. Audited-tool status
 
-| Tool ID | Categoria | Estado | Notas |
+| Tool ID | Category | Status | Notes |
 | :--- | :--- | :--- | :--- |
-| `toxinpred3` | Toxicity | Active | Ejecucion local en env `ml`. |
-| `hemodl` | Hemolytic | Active | Modelo basado en ESM-2 + ProtT5. |
-| `hemopi2` | Hemolytic | Active | Modo `-m 3` (ESM2 solo). |
-| `bert_ampep60` | Antimicrobial | Active | Regresión multi-target (E. coli, S. aureus). |
-| `apex` | Antimicrobial | Active | 34 cepas. Ejecucion local en env `qsar`. |
-| `antibp3` | Antimicrobial | Active | Modelos sklearn + blastp. Solo Linux. |
-| `deepbp` | Anticancer | Active | Basado en ESM-2 (Meta). |
-| `acp_dpe` | Anticancer | Active | Ensemble CNN/GRU (Patched). |
-| `bertaip` | Anti-inflammatory | Active | Sustituye a aip_tranlac. BERT-based. |
-| `antifungipept` | Antifungal | Active | Ejecución en `ml_legacy_py38`. |
-| `deepb3p` | BBB | Active | Python 3.7 + TF 1.14 (Legacy). |
-| `perseucpp` | CPP | Active | Clasificación 2-stage (CPP + Eficiencia). |
-| `plm4alg` | Allergenicity | Standby | Basado en Jupyter/Colab. Requiere refactorización. |
-| `avppred_bwr` | Antiviral | Standby | Falta script de inferencia y pesos accesibles. |
+| `toxinpred3` | Toxicity | Active | Local execution in env `ml`. |
+| `hemodl` | Hemolytic | Active | Model based on ESM-2 + ProtT5. |
+| `hemopi2` | Hemolytic | Active | Mode `-m 3` (ESM2 only). |
+| `bert_ampep60` | Antimicrobial | Active | Multi-target regression (E. coli, S. aureus). |
+| `apex` | Antimicrobial | Active | 34 strains. Local execution in env `qsar`. |
+| `antibp3` | Antimicrobial | Active | sklearn models + blastp. Linux only. |
+| `deepbp` | Anticancer | Active | Based on ESM-2 (Meta). |
+| `acp_dpe` | Anticancer | Active | CNN/GRU ensemble (patched). |
+| `bertaip` | Anti-inflammatory | Active | Replaces aip_tranlac. BERT-based. |
+| `antifungipept` | Antifungal | Active | Runs in `ml_legacy_py38`. |
+| `deepb3p` | BBB | Active | Python 3.7 + TF 1.14 (legacy). |
+| `perseucpp` | CPP | Active | 2-stage classification (CPP + Efficiency). |
+| `plm4alg` | Allergenicity | Standby | Jupyter/Colab-based. Requires refactor. |
+| `avppred_bwr` | Antiviral | Standby | Missing inference script and accessible weights. |
 
-### 3.1 Herramientas Bloqueadas e Inactivas (`config/pipeline_config_blocked.yaml`)
+### 3.1 Blocked and inactive tools (`config/pipeline_config_blocked.yaml`)
 
-Estas herramientas han sido descartadas o movidas a un estado inactivo tras la auditoría de viabilidad (`docs/pipeline_viability.md`).
+These tools have been discarded or moved to an inactive state after
+the viability audit (`docs/pipeline_viability.md`).
 
-| Tool ID | Categoria | Estado | Razón del Bloqueo / Inactividad |
+| Tool ID | Category | Status | Reason |
 | :--- | :--- | :--- | :--- |
-| `aapl` | Anti-angiogenic | **Blocked** | Fallos estructurales o dependencia externa. |
-| `if_aip` | Anti-inflammatory | **Blocked** | Fallos estructurales o dependencia externa. |
-| `mfe_acvp` | Antiviral | **Blocked** | Requiere servicios web externos (ESMAtlas, NetSurfP-3.0). |
-| `multimodal_aop` | Antioxidant | **Blocked** | Fallos estructurales o dependencia externa. |
-| `afp_mvfl` | Antifungal | **Blocked** | Fallos estructurales o dependencia externa. |
-| `antiaging_fl` | Anti-aging | **Blocked** | Fallos estructurales o dependencia externa. |
-| `deepforest_htp` | Hypotensive | **Blocked** | Fallos estructurales o dependencia externa. |
-| `stackthp` | Tumor-homing | **Blocked** | Fallos estructurales o dependencia externa. |
-| `cpppred_en` | CPP | **Blocked** | Fallos estructurales o dependencia externa. |
-| `macppred2` | Anticancer | **Blocked** | Fallos estructurales o dependencia externa. |
-| `_aip_tranlac_backup` | Anti-inflammatory | **Inactive** | Reemplazado por `bertaip`. |
-| `hypeptox_fuse` | Toxicity | **Inactive** | Consumo excesivo de RAM (>= 32GB). |
+| `aapl` | Anti-angiogenic | **Blocked** | Structural failure or external dependency. |
+| `if_aip` | Anti-inflammatory | **Blocked** | Structural failure or external dependency. |
+| `mfe_acvp` | Antiviral | **Blocked** | Requires external web services (ESMAtlas, NetSurfP-3.0). |
+| `multimodal_aop` | Antioxidant | **Blocked** | Structural failure or external dependency. |
+| `afp_mvfl` | Antifungal | **Blocked** | Structural failure or external dependency. |
+| `antiaging_fl` | Anti-aging | **Blocked** | Structural failure or external dependency. |
+| `deepforest_htp` | Hypotensive | **Blocked** | Structural failure or external dependency. |
+| `stackthp` | Tumor-homing | **Blocked** | Structural failure or external dependency. |
+| `cpppred_en` | CPP | **Blocked** | Structural failure or external dependency. |
+| `macppred2` | Anticancer | **Blocked** | Structural failure or external dependency. |
+| `_aip_tranlac_backup` | Anti-inflammatory | **Inactive** | Replaced by `bertaip`. |
+| `hypeptox_fuse` | Toxicity | **Inactive** | Excessive RAM consumption (≥ 32 GB). |
 
 ---
 
-## 4. Inventario Real de Entornos Micromamba
+## 4. Real Micromamba environment inventory
 
-Para garantizar la reproducibilidad y evitar conflictos de dependencias, se mantienen los siguientes entornos reales en el sistema:
+To guarantee reproducibility and avoid dependency conflicts, the
+following environments are maintained on the system:
 
-- **deepb3p_legacy**: Especifico para DeepB3P (Python 3.7, TensorFlow 1.14).
-- **ml**: Entorno general para herramientas basadas en Machine Learning clasico (sklearn, xgboost, etc.).
-- **ml_deepforest**: Entorno para DeepForest-HTP (especifico para librerias CascadeForest).
-- **ml_legacy_py38**: Para herramientas que requieren Python 3.8 y versiones antiguas.
-- **ml_pycaret**: Entorno dedicado a herramientas que dependen de la API de PyCaret.
-- **pipeline_bertaip**: Entorno especifico para BertAIP para evitar conflictos con otras implementaciones de Transformers.
-- **qsar**: Entorno con RDKit y herramientas de quimioinformatica/descriptores.
-- **torch**: Entorno principal con PyTorch y Transformers modernos.
-- **torch_legacy**: Para herramientas PyTorch con dependencias heredadas (ej. CUDA antiguo).
+- **deepb3p_legacy**: DeepB3P-specific (Python 3.7, TensorFlow 1.14).
+- **ml**: general environment for classic ML tools (sklearn, xgboost,
+  etc.).
+- **ml_deepforest**: dedicated to DeepForest-HTP (CascadeForest
+  libraries).
+- **ml_legacy_py38**: for tools that require Python 3.8 and old
+  package versions.
+- **ml_pycaret**: dedicated to tools depending on the PyCaret API.
+- **pipeline_bertaip**: BertAIP-specific environment to avoid conflicts
+  with other Transformers implementations.
+- **qsar**: RDKit and cheminformatics descriptors.
+- **torch**: main environment with modern PyTorch and Transformers.
+- **torch_legacy**: PyTorch tools with legacy dependencies (e.g. older
+  CUDA).
 
-**Aislamiento de Conflictos**: Se mantienen entornos especificos (como `pipeline_bertaip`) de forma independiente para prevenir colisiones de versiones.
-
----
-
-## 5. Limitaciones y Operacion
-
-### Ejecucion
-- **Local vs SSH**: El 100% de la logica de prediccion de las herramientas es **local**. No se utiliza despacho a otros PCs.
-- **CD-HIT**: Es el unico componente que utiliza **SSH** para realizar el filtrado de redundancia en un nodo Linux.
-
-### Memoria y Recursos
-- El orquestador usa `--batch-size` para gestionar el consumo de RAM/VRAM.
+**Conflict isolation**: dedicated environments (e.g.
+`pipeline_bertaip`) are kept independent to prevent version collisions.
 
 ---
 
-## 6. Guia de Ejecucion Rapida
+## 5. Limitations and operation
 
-### Prediccion de Usuario
+### Execution
+- **Local vs. SSH**: 100% of the tool prediction logic is **local**.
+  No process dispatch to other PCs.
+- **CD-HIT**: the only component that uses **SSH** to run redundancy
+  filtering on a Linux node.
+
+### Memory and resources
+- The orchestrator uses `--batch-size` to manage RAM/VRAM consumption.
+
+---
+
+## 6. Quick execution guide
+
+### User prediction
 ```bash
-python scripts/run_audit.py --input Inputs/mis_peptidos.fasta --name experimento_1
+python scripts/run_audit.py --input Inputs/my_peptides.fasta --name experiment_1
 ```
 
-### Auditoria Cientifica
+### Scientific audit
 ```bash
 ./bin/audit_pipeline.sh --tool toxinpred3
 ```
 
 ---
-[<- Volver al Indice](INDEX.md)
+[← Back to Index](INDEX.md)
