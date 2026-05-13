@@ -1,13 +1,14 @@
 # 🧬 Peptide Bioactivity Audit Pipeline (PBAP)
 
+> 🚀 **Try it online (no install)** → **[huggingface.co/spaces/Paredes-0/pbap-demo](https://huggingface.co/spaces/Paredes-0/pbap-demo)**
+> Free, non-commercial public demo. Paste up to 50 peptides and download
+> the same `REPORT.html` the CLI produces locally. The operator-side
+> scaffold (`FastAPI` + `Gradio` + `Cloudflare Tunnel`) lives under [`demo/`](demo/).
+>
 > 🌐 **Architecture overview** → **[paredes0.github.io/pbap](https://paredes0.github.io/pbap/)**
 > Visual walkthrough of how the pipeline works (Phase 1 flow, integrated tools, agreement layer, hierarchical ranking, APEX selectivity, applicability-domain grading).
->
-> 🧪 **Try it online (no install)** → see [`demo/`](demo/) for the
-> reference scaffold of a free, non-commercial public demo. The
-> operator-side `FastAPI + Gradio` setup lets anyone submit up to 50
-> peptides and download the same `REPORT.html` the CLI produces locally.
 
+[![Open in HF Spaces](https://img.shields.io/badge/🤗%20Open_in-HF_Space-FFD21E)](https://huggingface.co/spaces/Paredes-0/pbap-demo)
 ![Status](https://img.shields.io/badge/status-Phase_1_operational-success)
 ![License](https://img.shields.io/badge/license-PolyForm_Noncommercial_1.0.0-blue)
 ![Tools](https://img.shields.io/badge/integrated_tools-10_of_26-orange)

@@ -9,6 +9,12 @@ last_updated: 2026-05-13
 
 ## 2026-05
 
+- 2026-05-13 — **Public demo live**. Banner del README enlaza directo
+  al Space en `huggingface.co/spaces/Paredes-0/pbap-demo` (antes
+  apuntaba solo al scaffold `demo/`). Añadido badge "Open in HF
+  Space" arriba del bloque de shields. Backend
+  (`pbap-api.service`) y túnel (`cloudflared.service`) corriendo
+  bajo systemd en el host del operador.
 - 2026-05-13 — **Public demo scaffold** under `demo/`. Two halves:
   (a) `demo/api/` — FastAPI backend (`server.py`, `jobs.py`,
   `limits.py`, `runner.py`) intended to run on the operator's Linux
