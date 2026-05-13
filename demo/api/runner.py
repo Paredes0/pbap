@@ -38,6 +38,12 @@ RUN_ENV = _env("PBAP_RUN_ENV", "ml")
 RUN_TIMEOUT = int(_env("PBAP_RUN_TIMEOUT", "600"))
 JOBS_DIR = Path(_env("PBAP_JOBS_DIR", str(REPO_ROOT / "demo" / "api" / "jobs_data"))).resolve()
 
+# Path to the micromamba binary. systemd and `uvicorn` started via a
+# non-interactive shell do NOT inherit the user's PATH, so a bare
+# "micromamba" lookup fails. Override this when micromamba lives under
+# ~/bin or any other non-standard location.
+MICROMAMBA_BIN = _env("PBAP_MICROMAMBA_BIN", "micromamba")
+
 
 @dataclass
 class RunResult:
@@ -77,7 +83,7 @@ def run_pipeline(job_id: str, fasta_path: Path, tools: list[str]) -> RunResult:
     log_path = job_dir / "run.log"
 
     cmd = [
-        "micromamba", "run", "-n", RUN_ENV,
+        MICROMAMBA_BIN, "run", "-n", RUN_ENV,
         "python", str(REPO_ROOT / "scripts" / "run_audit.py"),
         "--input", str(fasta_path),
         "--output", str(output_dir),

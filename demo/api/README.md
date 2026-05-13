@@ -234,6 +234,7 @@ imports (rare).
 | `/submit` returns `429` | You hit a rate limit. Check `/health.rate.jobs_last_24h`. |
 | `/submit` returns `400` | Validation. Common: too many peptides, non-standard residues, length out of range. |
 | Job sits in `PENDING` forever | Worker thread dead — check `journalctl -u pbap-api` for tracebacks. |
-| Job ends in `FAILED` immediately | Usually `micromamba run -n <env>` failing because `PBAP_RUN_ENV` is wrong or that env isn't installed. |
+| Job ends in `FAILED` with `Launcher missing: 'micromamba'` | The uvicorn process can't find micromamba on PATH. systemd and SSH non-interactive shells do NOT load `~/.bashrc`. Two fixes (do both for robustness): (1) set `PBAP_MICROMAMBA_BIN=/absolute/path/to/micromamba` in `.env`; (2) add `PATH=${HOME}/bin:${PATH}` (or wherever micromamba lives) to `.env` so the subprocess chain inherits it — `audit_lib/tool_runner.py` also spawns `micromamba run` internally and depends on PATH. |
+| `tool_health` shows `error_batch_failed` with `numpy.AxisError: axis 1 is out of bounds` | Several upstream tools assume ≥2 peptides per batch (their feature-concatenation step uses `np.concatenate(..., axis=1)` which is invalid on 1-D arrays). Workaround: submit at least 2 sequences. This is a tool-side bug, not a demo bug. |
 | Job ends in `TIMEOUT` | Bump `PBAP_RUN_TIMEOUT` or reduce the tool list / peptide count. |
 | `404` from public URL but works on `127.0.0.1` | Cloudflare Tunnel not running. `systemctl status cloudflared`. |
