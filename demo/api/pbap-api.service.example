@@ -1,5 +1,6 @@
 # systemd unit — example. Copy to /etc/systemd/system/pbap-api.service,
-# fill in the placeholders, then:
+# replace every <USER> placeholder with your Linux username (systemd does
+# NOT expand $HOME or ~ in unit file paths), then:
 #
 #   sudo systemctl daemon-reload
 #   sudo systemctl enable --now pbap-api
@@ -15,17 +16,17 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-User=noe
-Group=noe
-WorkingDirectory=/home/noe/work/pipeline_Work/pbap_public/demo/api
-EnvironmentFile=/home/noe/work/pipeline_Work/pbap_public/demo/api/.env
+User=<USER>
+Group=<USER>
+WorkingDirectory=/home/<USER>/pbap/demo/api
+EnvironmentFile=/home/<USER>/pbap/demo/api/.env
 
 # Activate the env that has fastapi + uvicorn installed. This env is OWN to
 # the demo backend, NOT one of the per-tool envs. Create it once with:
 #   micromamba create -n pbap_demo_api python=3.11 pip
 #   micromamba activate pbap_demo_api
 #   pip install -r requirements.txt
-ExecStart=/home/noe/micromamba/envs/pbap_demo_api/bin/uvicorn server:app \
+ExecStart=/home/<USER>/micromamba/envs/pbap_demo_api/bin/uvicorn server:app \
     --host 127.0.0.1 --port 8000 \
     --workers 1 \
     --proxy-headers --forwarded-allow-ips="*"
@@ -38,7 +39,7 @@ NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=full
 ProtectHome=read-only
-ReadWritePaths=/home/noe/pbap_demo_jobs
+ReadWritePaths=/home/<USER>/pbap_demo_jobs
 
 [Install]
 WantedBy=multi-user.target

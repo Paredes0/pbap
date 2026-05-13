@@ -27,7 +27,9 @@
 #   - https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/install-and-setup/tunnel-guide/
 
 tunnel: <TUNNEL_ID_GOES_HERE>
-credentials-file: /home/noe/.cloudflared/<TUNNEL_ID>.json
+# Path printed by `cloudflared tunnel create`. Replace <USER> with your Linux
+# username; cloudflared also accepts the ~/.cloudflared/<TUNNEL_ID>.json form.
+credentials-file: /home/<USER>/.cloudflared/<TUNNEL_ID>.json
 
 ingress:
   - hostname: pbap-demo.<your-domain>.com
