@@ -30,7 +30,6 @@ Jump table to the actual functions and scripts in `audit_lib/` and
 | Extra DB parsers | `audit_lib/db_parsers.py` | `parse_dbaasp`, `parse_apd3`, `parse_conoserver`, `parse_arachnoserver`, … |
 | Incremental audit state | `audit_lib/state_manager.py` | `class AuditStateManager` |
 | Provenance JSON | `audit_lib/provenance.py` | `generate_provenance(...)` |
-| Logging setup | `audit_lib/logging_setup.py` | `configure_logging(...)` |
 
 ---
 

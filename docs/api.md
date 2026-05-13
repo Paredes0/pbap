@@ -54,21 +54,6 @@ Inference of optimal length ranges per tool from training data.
 
 ---
 
-## 📥 `audit_lib/downloader.py`
-
-Download and verification of model weights from external repositories.
-
-| Function | Signature | Description |
-|---|---|---|
-| `ensure_weights` | `(tool_id, tool_cfg, repo_dir)` | Main entry point. Checks whether the model weights exist; if not, downloads them from the configured platform (Zenodo, HuggingFace, or manual). Validates integrity via MD5 when available. |
-
-> [!TIP]
-> The internal helpers `_download_zenodo`, `_download_huggingface`,
-> `_check_manual_download`, `_download_file`, `_md5`, `_unzip` handle
-> per-platform downloads. They are not exposed publicly.
-
----
-
 ## 🧬 `audit_lib/sequence_utils.py`
 
 Biological utilities for sequence validation and normalization.
@@ -175,16 +160,6 @@ returns a standardized DataFrame with columns
 | `parse_biopep` | `(data_path=None, bioactivity="antioxidant")` | BIOPEP parser (antioxidant peptides). |
 | `parse_avpdb` | `(data_path=None, bioactivity="antiviral")` | AVPdb parser (antiviral peptides). |
 | `get_parser` | `(db_name)` | Factory: returns the parser function for a given DB name. |
-
----
-
-## 📝 `audit_lib/logging_setup.py`
-
-Standard logging configuration for all pipeline scripts.
-
-| Function | Signature | Description |
-|---|---|---|
-| `configure_logging` | `(log_dir=None, script_name="audit", level=logging.INFO)` | Configures the root logger with the standard format, file rotation (if `log_dir` is provided) and console output. |
 
 ---
 [← Back to Index](INDEX.md)

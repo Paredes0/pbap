@@ -37,19 +37,17 @@ central orchestrator manages isolated sub-processes.
 |   `-- final_audit_report.py      # Global cross-tool report (JSON, TXT, XLSX)
 |-- wrappers/                       # Robust adapters for non-standard tools
 |   `-- bert_ampep60_cli.py        # CLI wrapper for BERT-AMPep60
-|-- audit_lib/                      # Shared library (12 modules — see api.md)
+|-- audit_lib/                      # Shared library (10 modules — see api.md)
 |   |-- config.py                  # YAML loading
 |   |-- tool_runner.py             # Execution engine (micromamba run)
 |   |-- tool_length_range.py       # Per-tool length ranges
-|   |-- downloader.py              # Weights download (Zenodo, HuggingFace, manual)
 |   |-- cdhit_utils.py             # CD-HIT with SSH dispatch
 |   |-- uniprot_client.py          # UniProt REST client
 |   |-- sequence_utils.py          # Sequence validation and normalization
 |   |-- db_parsers.py              # Parsers for DBAASP, APD3, ConoServer, etc.
 |   |-- length_sampling.py         # Length-stratified sampling
 |   |-- state_manager.py           # Incremental audit state
-|   |-- provenance.py              # JSON provenance metadata
-|   `-- logging_setup.py           # Standard logging setup
+|   `-- provenance.py              # JSON provenance metadata
 |-- Inputs/                         # User input FASTA files
 |-- Outputs/                        # Prediction results (HTML, XLSX, CSV, JSON)
 |-- Dataset_Bioactividad/           # Phase 2 pipeline outputs (Pools, Audits, Reports)
@@ -103,8 +101,6 @@ Abstracts external-tool invocation:
 - **`db_parsers.py`**: 9 parsers for external databases (DBAASP, APD3,
   ConoServer, ArachnoServer, Hemolytik, CancerPPD, CPPsite, BIOPEP,
   AVPdb).
-- **`downloader.py`**: weights download from Zenodo, HuggingFace or
-  platforms requiring manual download.
 - **`tool_length_range.py`**: inference of optimal length ranges per
   tool from training data.
 
