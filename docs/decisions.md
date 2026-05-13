@@ -45,6 +45,12 @@ Se adoptó un esquema de 3 modos gestionado por el orquestador:
 ## Decisiones Estadísticas y Heurísticas
 
 ### 1. Graduación de Leakage (CD-HIT-2D)
+> ⚠️ Solo se aplica en el flujo de **auditoría científica (Fase 2)**
+> — `bin/audit_pipeline.sh` y scripts asociados. **No** se aplica en
+> el flujo de inferencia de usuario (`scripts/run_audit.py`), que
+> no devuelve esta etiqueta. La integración en producción es trabajo
+> futuro (ver `docs/roadmap.md`).
+
 Se definen los siguientes grados basados en la similitud máxima con el training set:
 - **Gold**: Sobrevive a CD-HIT-2D al 40% (novedad real).
 - **Silver / Bronze**: Grados intermedios de similitud (60% / 80%).

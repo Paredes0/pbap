@@ -1,5 +1,23 @@
 # Análisis de Leakage (CD-HIT-2D)
 
+> ⚠️ **Alcance: Fase 2 (auditoría científica) — NO integrado en Fase 1**
+>
+> El sistema de graduación Gold / Silver / Bronze / Red descrito en este
+> documento se ejecuta como parte del **flujo de auditoría científica**
+> (`bin/audit_pipeline.sh` y los scripts asociados de `scripts/`), NO
+> como parte del **flujo de inferencia de usuario** (`scripts/run_audit.py`).
+>
+> Cuando un usuario corre `python scripts/run_audit.py --input mis.fasta`,
+> el output **no incluye** etiquetas de confianza por péptido. La
+> calibración del dominio de aplicabilidad y la asignación de etiquetas
+> en producción son **trabajo futuro** (ver `docs/roadmap.md` § "Leakage
+> analysis via CD-HIT-2D (Phase 2)").
+>
+> Lo que sí existe ya implementado: `scripts/cdhit_leakage_analysis.py`,
+> `scripts/auditoria_validation.py` y compañeros generan los grados
+> para análisis offline sobre pools de evaluación construidos
+> independientemente.
+
 El corazón de la validación es el análisis de similitud entre el pool de prueba independiente y los datos de entrenamiento de cada herramienta.
 
 ## Metodología

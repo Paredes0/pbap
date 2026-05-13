@@ -1,5 +1,13 @@
 # Contexto y Objetivo del Proyecto
 
+> ⚠️ **Nota de alcance**: este documento describe los **objetivos**
+> del proyecto completo. Algunos de ellos (notablemente el sistema
+> de graduación Gold / Silver / Bronze / Red) están implementados
+> solo en el **flujo de auditoría científica (Fase 2)**, no en el
+> flujo de **inferencia de usuario (Fase 1)** que ejecuta
+> `scripts/run_audit.py`. Ver `docs/architecture.md` para la
+> separación de fases y `docs/leakage_analysis.md` para el detalle.
+
 ## Motivación
 En el campo de la bioinformática de péptidos, muchas herramientas de predicción publicadas en la literatura científica reportan métricas de rendimiento (Exactitud, MCC, AUC) extremadamente altas. Sin embargo, estas métricas a menudo están infladas debido a:
 
