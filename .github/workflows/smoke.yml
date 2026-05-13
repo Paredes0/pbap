@@ -90,7 +90,6 @@ jobs:
               "audit_lib.cdhit_utils",
               "audit_lib.sequence_utils",
               "audit_lib.db_parsers",
-              "audit_lib.logging_setup",
           ]
           failed = []
           for m in modules:
