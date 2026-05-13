@@ -9,6 +9,17 @@ last_updated: 2026-05-13
 
 ## 2026-05
 
+- 2026-05-13 — **site/index.html: actualizar "9 envs" → "6 envs"**.
+  Dos lugares quedaban con la cifra histórica (9, contando los 3
+  legacy ml_deepforest/ml_legacy_py38/ml_pycaret que no se
+  redistribuyen): el stat box del hero (línea 1232) y la lista de pasos
+  de Phase 1 (línea 1262). Ambos actualizados a 6, consistente con el
+  badge del README (`conda_envs-6_active`) y con lo que crea
+  bootstrap_envs.sh. Etiqueta del paso de Phase 1 ahora dice "6
+  isolated tool envs" para distinguir explícitamente que son los envs
+  de las 10 tools activas, no incluidos los auxiliares
+  (pbap_orchestrator, pbap_demo_api). Disparará redeploy de Pages
+  (.github/workflows/pages.yml).
 - 2026-05-13 — **Corrección de apellido del autor y declaración de uso
   de IA**. (a) En CITATION.cff, LICENSE, NOTICE y docs/decisions.md el
   apellido del autor se corrige de "Paredes Alfaro" a la forma correcta

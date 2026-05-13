@@ -1229,7 +1229,7 @@
     <div class="stat"><div class="stat-num">26</div><div class="stat-label">Tools evaluated</div></div>
     <div class="stat"><div class="stat-num">10</div><div class="stat-label">Operational (38%)</div></div>
     <div class="stat"><div class="stat-num">7</div><div class="stat-label">Bioactivity categories</div></div>
-    <div class="stat"><div class="stat-num">9</div><div class="stat-label">Conda environments</div></div>
+    <div class="stat"><div class="stat-num">6</div><div class="stat-label">Conda environments</div></div>
     <div class="stat"><div class="stat-num">34</div><div class="stat-label">APEX strains</div></div>
     <div class="stat"><div class="stat-num">5</div><div class="stat-label">Output formats</div></div>
   </div>
@@ -1259,7 +1259,7 @@
         <p class="phase-target">FASTA → consolidated predictions + ranking. What the end user actually runs.</p>
         <ol class="phase-steps">
           <li>FASTA batching<span class="lab">anti-OOM, default 100 peptides / batch</span></li>
-          <li>Per-tool execution in sub-processes<span class="lab">micromamba run · 9 isolated envs</span></li>
+          <li>Per-tool execution in sub-processes<span class="lab">micromamba run · 6 isolated tool envs</span></li>
           <li>Normalisation to the dual schema<span class="lab">class_norm + score + extra_metrics</span></li>
           <li>Intra-category agreement<span class="lab">consensus_positive · split · single_tool</span></li>
           <li>APEX selectivity (pathogen vs commensal)<span class="lab">post-processing of the 34 MICs</span></li>
