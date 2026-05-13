@@ -12,6 +12,70 @@ last_updated: 2026-05-13
 > **Decision**: <what was decided>
 > **Consequences**: <implications, trade-offs>
 
+### 2026-05-13 — Public demo as a separate layer with mitigation shield
+
+**Context**: after the public release (see entry below) we wanted any
+visitor to be able to run the pipeline on a small batch of peptides
+without installing anything. Two cross-cutting decisions had to be
+made before writing any code:
+
+1. **Architectural placement.** Should the demo be a thin web layer
+   over the existing `scripts/run_audit.py` (one HTTP route inside the
+   orchestrator), or a separate component with its own deployment
+   surface, queue and limits?
+2. **Licensing posture.** The pipeline aggregates 10 third-party tools
+   under heterogeneous licenses (GPL-3, Apache 2.0, Penn non-commercial,
+   unlicensed). Hosting them on the operator's hardware as a free public
+   demo is allowed in principle by every one of those licenses (see
+   `docs/licenses_audit.md`), but a strict reading would have us
+   contact every upstream author for explicit written permission before
+   going live, which would push the demo back 6+ weeks.
+
+**Decision**:
+
+1. **Build the demo as a separate `demo/` area**, not as endpoints
+   added to the orchestrator. `demo/api/` is a FastAPI backend
+   (`server.py` + `jobs.py` + `limits.py` + `runner.py`) that
+   subprocesses the existing `scripts/run_audit.py` unchanged.
+   `demo/frontend/` is a Gradio app for Hugging Face Spaces that
+   talks to the backend over HTTPS via a Cloudflare Quick Tunnel.
+   The two halves are independent (no shared state).
+2. **Launch without prior license requests, with an explicit
+   mitigation shield** that lives in the deployed artifact itself:
+   per-tool attribution surfaces in every result, a takedown contact
+   (`noeparedesalf@gmail.com`) is visible on every page, the
+   operator commits to acting on takedown requests within 24 h, no
+   model weights are exposed for download, and there is no login /
+   tracking / per-user storage. `ALLOWED_TOOLS` in `demo/api/.env`
+   is the single place to disable a tool on demand without
+   redeploying anything else.
+
+**Consequences**:
+
+- The main pipeline (`audit_lib/`, `scripts/`, `config/`) is
+  **untouched** by demo concerns: rate limits, queues, public-facing
+  disclaimers all live under `demo/`. A maintainer fixing a tool
+  cannot accidentally break the demo's surface, and vice-versa.
+- The demo can be torn down or redeployed independently of the
+  pipeline. Operators who want to host their own instance follow
+  `demo/api/README.md` and `demo/frontend/README.md` without
+  touching the orchestrator.
+- Compute envelope (`WORKER_COUNT=1`, 50 peptides/job, 3 jobs/IP/h,
+  200 jobs/day, 10-min timeout) protects the operator's hardware
+  without requiring a queue migration if traffic stays low; these are
+  env-tunable knobs, not code.
+- The mitigation shield doctrine is documented in
+  `demo/api/README.md` §"Mitigation shield" and is **load-bearing** —
+  any change that weakens attribution, takedown contact visibility or
+  weight-serving policy should reopen this ADR.
+- Risk that remains: an upstream author who never sees this demo and
+  later objects. The mitigation is a 24-hour response window and the
+  `ALLOWED_TOOLS` allow-list as the kill switch. Not pursued: a
+  proactive permission round to all 10 authors, on the grounds that
+  the demo is non-commercial, attribution-preserving, and analogous
+  to dozens of Hugging Face Spaces hosting published research code
+  under the same posture.
+
 ### 2026-05-13 — Applicability-domain framing of CD-HIT-2D leakage grades
 
 **Context**: the original documentation framed the four CD-HIT-2D

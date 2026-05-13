@@ -114,9 +114,17 @@ following environments are maintained on the system:
 - **torch**: main environment with modern PyTorch and Transformers.
 - **torch_legacy**: PyTorch tools with legacy dependencies (e.g. older
   CUDA).
+- **pbap_demo_api** *(optional, demo only)*: backend env for the
+  public web demo under `demo/api/`. Contains only `fastapi`,
+  `uvicorn`, `pydantic` and `python-multipart` (see
+  `demo/api/requirements.txt`). **Not** required for CLI use of the
+  pipeline; only needed when an operator wants to host the public
+  Gradio + FastAPI demo themselves. Setup steps live in
+  `demo/api/README.md` §"Deployment".
 
 **Conflict isolation**: dedicated environments (e.g.
-`pipeline_bertaip`) are kept independent to prevent version collisions.
+`pipeline_bertaip`, `pbap_demo_api`) are kept independent to prevent
+version collisions.
 
 ---
 

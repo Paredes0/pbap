@@ -52,7 +52,11 @@ central orchestrator manages isolated sub-processes.
 |   `-- logging_setup.py           # Standard logging setup
 |-- Inputs/                         # User input FASTA files
 |-- Outputs/                        # Prediction results (HTML, XLSX, CSV, JSON)
-`-- Dataset_Bioactividad/           # Phase 2 pipeline outputs (Pools, Audits, Reports)
+|-- Dataset_Bioactividad/           # Phase 2 pipeline outputs (Pools, Audits, Reports)
+|-- demo/                           # Optional public web-demo layer (see §5)
+|   |-- api/                       # FastAPI backend (queue, rate limits, runner)
+|   `-- frontend/                  # Gradio app for Hugging Face Spaces
+`-- site/                           # GitHub Pages landing source
 ```
 
 ---
@@ -133,6 +137,54 @@ configured to:
 - **Micromamba**: ultra-fast environment manager used to isolate tools.
 - **Python stack**: pandas, numpy, scipy, pyyaml, openpyxl, requests.
 - **CD-HIT**: external binary for leakage and redundancy analysis.
+
+---
+
+## 5. Optional layer — public web demo (`demo/`)
+
+A **separate, optional** layer that exposes the pipeline as a public,
+non-commercial web demo. It is **not** part of the core orchestrator —
+the main pipeline runs the same way whether the demo is deployed or
+not. The split is deliberate: see
+[`decisions.md#2026-05-13-public-demo-as-a-separate-layer-with-mitigation-shield`](decisions.md).
+
+```
+User → HF Space (Gradio, demo/frontend/)
+         ↓ HTTPS
+       Cloudflare Quick Tunnel
+         ↓
+       FastAPI backend (demo/api/, operator's host)
+         ↓ subprocess (unchanged)
+       scripts/run_audit.py + the 10 prediction tools
+```
+
+- **Backend** (`demo/api/`): FastAPI app with an in-memory FIFO job
+  queue (`WORKER_COUNT=1` by default), per-IP rate limit (3 jobs/h),
+  global daily cap (200 jobs/day), 50-peptide submission cap, 10-min
+  per-job timeout, and a janitor that wipes finished jobs after 24 h
+  (no PII persists). Runs as `pbap-api.service` under systemd on the
+  operator's Linux host. Subprocesses the orchestrator with a fresh
+  job directory per submission — `scripts/run_audit.py` is invoked
+  exactly as the CLI invokes it.
+- **Frontend** (`demo/frontend/`): single-file Gradio app deployed as
+  a free Hugging Face Space (CPU basic — zero compute beyond HTTP).
+  Renders the returned `REPORT.html` inline and offers
+  `consolidated.csv` / `consolidated.json` / `tool_health_report.json`
+  as downloads. Ships the **mitigation-shield surfaces** as
+  non-removable accordions: per-tool attribution with paper citations,
+  takedown email, no-tracking / no-weight-download disclaimer.
+- **Public exposure**: a Cloudflare Quick Tunnel (`cloudflared.service`)
+  provides an HTTPS URL without opening router ports or requiring a
+  domain. URL changes on tunnel restart; the operator updates the
+  `PBAP_API_BASE` secret on the Space afterward.
+
+Removing the demo (or letting it sleep) does **not** affect the
+orchestrator: `audit_lib/`, `scripts/run_audit.py` and the per-tool
+envs continue to work via CLI exactly as before.
+
+Detailed deployment in [`demo/api/README.md`](../demo/api/README.md)
+(backend) and [`demo/frontend/README.md`](../demo/frontend/README.md)
+(Space).
 
 ---
 [← Back to Index](INDEX.md)

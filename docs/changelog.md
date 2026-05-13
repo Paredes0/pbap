@@ -9,6 +9,20 @@ last_updated: 2026-05-13
 
 ## 2026-05
 
+- 2026-05-13 — **Contract gaps del demo cerrados**. Cuando se añadió
+  el área `demo/` (commit `3985822`) el `ONBOARDING.md` §4 exigía
+  tres updates secundarios que omití entonces. Ahora aplicados:
+  (a) Nuevo ADR en `docs/decisions.md` "Public demo as a separate
+  layer with mitigation shield" — justifica la separación de
+  `demo/` del orquestador y la posición de lanzar sin permisos
+  previos a los autores upstream con un escudo de mitigación
+  explícito (atribución, takedown email, no-weights, no-tracking,
+  ALLOWED_TOOLS allow-list).
+  (b) `docs/deployment.md` §4 incorpora `pbap_demo_api` como env
+  opcional (solo para operadores del demo, no requerido para CLI).
+  (c) `docs/architecture.md` gana una sección §5 "Optional layer —
+  public web demo (`demo/`)" con el diagrama del flujo backend +
+  frontend + Cloudflare Tunnel y la mención del directorio en §1.
 - 2026-05-13 — **CTA del demo en la landing page**. `site/index.html`
   gana un bloque "hero-cta" después de los stats: botón primario
   amarillo HF "Try the live demo" → `huggingface.co/spaces/Paredes-0/pbap-demo`,
