@@ -1,5 +1,26 @@
 # 📚 Índice de Documentación - Pipeline de Bioactividad
 
+> 🚦 **Estado actual del proyecto (Mayo 2026)**
+>
+> **Fase 1 — Inferencia de usuario** (`scripts/run_audit.py`): operativa.
+> 10 herramientas integradas, 7 categorías, schema dual, agreement,
+> APEX selectivity, ranking jerárquico (structural + holistic),
+> reportes en HTML/MD/CSV/JSON/XLSX. Es lo que se ejecuta cuando un
+> usuario corre `python scripts/run_audit.py --input mi.fasta`.
+>
+> **Fase 2 — Auditoría científica** (`bin/audit_pipeline.sh`):
+> herramientas de análisis implementadas (mineria de positivos,
+> extracción de training, leakage analysis CD-HIT-2D con grados
+> Gold/Silver/Bronze/Red, sesgo taxonómico, QC, reporte global).
+> **No integrada en el output de Fase 1** — sus resultados son
+> artefactos offline de validación, no etiquetas por péptido en
+> el reporte del usuario. La integración en producción es trabajo
+> futuro (ver `roadmap.md`).
+>
+> Si una herramienta o documento describe el sistema Gold/Silver/
+> Bronze/Red, asume **Fase 2** salvo declaración explícita en
+> contrario.
+
 Este documento centraliza el acceso a toda la documentación técnica, metodológica y operativa del proyecto.
 
 ## 🏗️ Arquitectura y Fundamentos
