@@ -9,11 +9,10 @@
 > Visual walkthrough of how the pipeline works (Phase 1 flow, integrated tools, agreement layer, hierarchical ranking, APEX selectivity, applicability-domain grading).
 
 [![Open in HF Spaces](https://img.shields.io/badge/🤗%20Open_in-HF_Space-FFD21E)](https://huggingface.co/spaces/Paredes-0/pbap-demo)
+[![Architecture overview](https://img.shields.io/badge/🌐%20Architecture-paredes0.github.io%2Fpbap-2563eb)](https://paredes0.github.io/pbap/)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20170589.svg)](https://doi.org/10.5281/zenodo.20170589)
+[![License](https://img.shields.io/badge/license-PolyForm_Noncommercial_1.0.0-blue)](LICENSE)
 ![Status](https://img.shields.io/badge/status-Phase_1_operational-success)
-![License](https://img.shields.io/badge/license-PolyForm_Noncommercial_1.0.0-blue)
-![Tools](https://img.shields.io/badge/integrated_tools-10_of_26-orange)
-![Categories](https://img.shields.io/badge/bioactivity_categories-7-blueviolet)
-![Environments](https://img.shields.io/badge/conda_envs-6_active-yellow)
 
 **PBAP** is a modular orchestrator that audits the reusability of published
 peptide-bioactivity prediction tools and coordinates them under a **unified
