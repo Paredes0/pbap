@@ -1,0 +1,104 @@
+diff --git a/Test.py b/Test.py
+index 00b7d59..06d0156 100644
+--- a/Test.py
++++ b/Test.py
+@@ -65,8 +65,6 @@ def load_data_bicoding(file_path):
+         seq = str(seq.strip('\n'))
+         data_result.append(list(seq))
+ 
+-    data_result = np.array(data_result)
+-
+     return data_result, labels
+ 
+ def numerical_transform(file_path, length=50):
+@@ -210,48 +208,59 @@ class CNN_gru(nn.Module):
+ 
+         return output1, output2
+ 
+-if __name__ == '__main__':
++def _fasta_to_csv(fasta_path, csv_path):
++    seqs, ids = [], []
++    cur = None
++    for raw in open(fasta_path):
++        line = raw.strip()
++        if not line:
++            continue
++        if line.startswith('>'):
++            if cur is not None:
++                seqs.append(''.join(cur)); cur = []
++            ids.append(line[1:].split()[0]); cur = []
++        else:
++            cur.append(line)
++    if cur is not None:
++        seqs.append(''.join(cur))
++    pd.DataFrame({'ID': ids, 'Sequence': seqs, 'Label': [0]*len(seqs)}).to_csv(csv_path, index=False)
++    return ids, seqs
+ 
+-    test_path = 'dataset/ACP20mainTest.csv'
+ 
+-    x_test1, y_test1 = numerical_transform(test_path)
+-    x_test1 = np.array(x_test1)
++if __name__ == '__main__':
++    import argparse
++    ap = argparse.ArgumentParser()
++    ap.add_argument('--input', required=True)
++    ap.add_argument('--output', required=True)
++    args = ap.parse_args()
+ 
+-    x_test2, y_test2 = load_test_bicoding(test_path)
++    tmp_csv = args.output + '.input.csv'
++    ids, seqs = _fasta_to_csv(args.input, tmp_csv)
+ 
++    x_test1, y_test1 = numerical_transform(tmp_csv)
++    x_test1 = np.array(x_test1)
++    x_test2, _ = load_test_bicoding(tmp_csv)
+     test_dataset = MyDataset(x_test1, x_test2, y_test1)
+-
+-    test_loader = DataLoader(test_dataset, batch_size=128, shuffle=False, drop_last=True)
++    test_loader = DataLoader(test_dataset, batch_size=128, shuffle=False, drop_last=False)
+ 
+     model = CNN_gru()
+-    optimizer = torch.optim.Adam(model.parameters(), lr=0.001, weight_decay=9e-03)
+-    criterion = nn.BCELoss()
+-
+-    model.load_state_dict(torch.load('model/main_model.pt')) 
+-
++    model.load_state_dict(torch.load('model/main_model.pt', map_location='cpu'))
+     model.eval()
+ 
+-    predictions = []
+-    true_labels = []
+-    total_loss = 0
+-
++    probs = []
+     with torch.no_grad():
+-        for inputs1, inputs2, labels in test_loader:
++        for inputs1, inputs2, _ in test_loader:
+             inputs1 = inputs1.long()
+             inputs2 = inputs2.long()
+-            labels = labels.float()
+-
+             gru_out, cnn_out = model(inputs1, inputs2)
+-            outputs = 0.5 * gru_out.squeeze() + 0.5 * cnn_out.squeeze()
+-
+-            loss = criterion(outputs, labels)
+-            total_loss += loss.item()
+-
+-            predictions.extend(outputs.cpu().detach().numpy())
+-            true_labels.extend(labels.cpu().detach().numpy())
+-
+-    accuracy = cal_score(predictions, true_labels)
+-    # test_loss = total_loss / len(test_loader)
+-
+-    print('Accuracy on the independent test set: {:.2f}%'.format(accuracy * 100))
++            out = 0.5 * gru_out.squeeze(-1) + 0.5 * cnn_out.squeeze(-1)
++            probs.extend(out.cpu().detach().numpy().tolist())
++
++    pd.DataFrame({
++        'ID': ids,
++        'Sequence': seqs,
++        'prob_acp': probs,
++        'class_acp': [1 if p >= 0.5 else 0 for p in probs],
++    }).to_csv(args.output, index=False)
++    print('done')
+ 

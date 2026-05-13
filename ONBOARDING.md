@@ -63,10 +63,15 @@ docs/INDEX.md) imports or references it.
 │   ├── glossary.md
 │   ├── roadmap.md
 │   ├── todo.md
-│   └── changelog.md            ← append a line on every notable change
+│   ├── changelog.md            ← append a line on every notable change
+│   └── SETUP_FROM_SCRATCH.md   ← end-to-end install walkthrough for new operators
 ├── demo/                  ← reference scaffold for the public web demo
 │   ├── api/                    ← FastAPI backend (operator's Linux host)
 │   └── frontend/               ← Gradio app (Hugging Face Space)
+├── patches/               ← reproducibility patches applied to upstream tools
+├── envs/                  ← micromamba YAML manifests for the 6 tool envs
+├── scripts/bootstrap_tools.sh   ← clone + patch the 10 upstream tools
+├── scripts/bootstrap_envs.sh    ← create the 6 micromamba envs
 └── site/                  ← GitHub Pages landing source
 ```
 
@@ -100,6 +105,9 @@ are often the ones that leave the worst paper trail.
 | Landing page (`site/`) | `site/DEPLOY.md` if the build flow changed |
 | Public demo backend (`demo/api/`) | `demo/api/README.md` (endpoints, deployment, mitigation shield) |
 | Public demo frontend (`demo/frontend/`) | `demo/frontend/README.md` (Space deployment) |
+| `patches/<tool>.patch` (added, removed, or refreshed) | `patches/README.md` (per-patch rationale) + `docs/SETUP_FROM_SCRATCH.md` if step changes |
+| `envs/<env>.yaml` (re-exported envs) | `docs/deployment.md` §4 + `docs/SETUP_FROM_SCRATCH.md` if env count or names change |
+| `scripts/bootstrap_*.sh` | `docs/SETUP_FROM_SCRATCH.md` (the walkthrough is the contract for these scripts) |
 | `AGENTS.md` / this file / `docs/INDEX.md` | nothing else — these are the meta-layer |
 
 If your task does not change anything in the left column, you do not

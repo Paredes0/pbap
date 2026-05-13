@@ -1,0 +1,107 @@
+diff --git a/PERSEUcpp.py b/PERSEUcpp.py
+index ce28811..e9d094f 100644
+--- a/PERSEUcpp.py
++++ b/PERSEUcpp.py
+@@ -561,7 +561,7 @@ def calc_properties_test(file_path):
+     sequence_list = set()
+     unwanted_chars = {'(','*', '-', 'X', 'O', 'U', 'Z', 'B', 'J', 'u'}
+ 
+-    if file_path.split('.')[-1] == 'fasta':
++    if file_path.split('.')[-1].lower() in ('fasta', 'fa', 'faa', 'fna'):
+         for record in SeqIO.parse(file_path, 'fasta'):
+             if any(char in record.seq for char in unwanted_chars):
+                 continue
+@@ -659,7 +659,7 @@ def calc_properties_training(file_path, label:int):
+     unwanted_chars = {'(','*', '-', 'X', 'O', 'U', 'Z', 'B', 'J', 'u'}
+ 
+ 
+-    if file_path.split('.')[-1] == 'fasta':
++    if file_path.split('.')[-1].lower() in ('fasta', 'fa', 'faa', 'fna'):
+         for record in SeqIO.parse(file_path, 'fasta'):
+             if any(char in record.seq for char in unwanted_chars):
+                 continue
+@@ -862,11 +862,13 @@ def process_cpps(data):
+                 'prob': y_cpps_probs_eff,
+                 'Classification': y_cpps_pred_eff,
+             })
++    else:
++        df_cpp_eff = pd.DataFrame(columns=['seq', 'prob', 'Classification'])
+         
+ 
+-        df_result = df_cpp.merge(df_cpp_eff, on='seq', how='left', suffixes=('_cpp', '_eff'))
++    df_result = df_cpp.merge(df_cpp_eff, on='seq', how='left', suffixes=('_cpp', '_eff'))
+ 
+-        df_result['Classification_eff'] = df_result['Classification_eff'].fillna('-')
++    df_result['Classification_eff'] = df_result['Classification_eff'].fillna('-')
+     
+     df_result.to_csv(f'Results.csv', index=False)
+     print('Prediction results successfully generated!')
+@@ -955,37 +957,40 @@ and estimate their uptake efficiency for those classified as CPPs.
+ """.strip()
+ 
+ 
+-print("""
++if __name__ == "__main__":
++    import argparse, sys as _sys
++    if len(_sys.argv) > 1:
++        ap = argparse.ArgumentParser()
++        ap.add_argument("--input", required=True)
++        args = ap.parse_args()
++        process_cpps(args.input)
++    else:
++        print("""
+ 1) Train a new model using PERSEU's strategy
+ 2) Predict CPPs and their uptake efficiency
+ """)
+-
+-step = get_step()
+-if step is None:
+-    print("Exiting...")
+-
+-elif step == 1:
+-    positives_path = prompt_existing_path("Positives path: ")
+-    if positives_path is None:
+-        print("Exiting...")
+-    else:
+-        negatives_path = prompt_existing_path("Negatives path: ")
+-        if negatives_path is None:
++        step = get_step()
++        if step is None:
+             print("Exiting...")
++        elif step == 1:
++            positives_path = prompt_existing_path("Positives path: ")
++            if positives_path is None:
++                print("Exiting...")
++            else:
++                negatives_path = prompt_existing_path("Negatives path: ")
++                if negatives_path is None:
++                    print("Exiting...")
++                else:
++                    generated_trained_model(positives_path, negatives_path, top_features)
+         else:
+-            # top_features deve estar definido no seu escopo
+-            generated_trained_model(positives_path, negatives_path, top_features)
+-
+-else:
+-    print(help_text + "\n\n" + discover_files())
+-
+-    data = prompt_existing_path(
+-    "\n\nEnter the full path to the input file you want to classify (CSV or FASTA).\n"
+-    "Example: C:/data/cpps-test.fasta\n"
+-    "Path: "
+-    )
+-    if data is None:
+-        print("Exiting...")
+-    else:
+-        process_cpps(data)
++            print(help_text + "\n\n" + discover_files())
++            data = prompt_existing_path(
++            "\n\nEnter the full path to the input file you want to classify (CSV or FASTA).\n"
++            "Example: C:/data/cpps-test.fasta\n"
++            "Path: "
++            )
++            if data is None:
++                print("Exiting...")
++            else:
++                process_cpps(data)
+ 

@@ -1,0 +1,26 @@
+diff --git a/model/deepb3p.py b/model/deepb3p.py
+index d084f7f..a1d3e0c 100644
+--- a/model/deepb3p.py
++++ b/model/deepb3p.py
+@@ -64,7 +64,7 @@ class DeepB3P():
+             self.logger.warning('Checkpoint not found! Starting from scratch.')
+             return 0
+         self.logger.info(f'Loading model from {directory}')
+-        self.model.load_state_dict(torch.load(directory))
++        self.model.load_state_dict(torch.load(directory, map_location='cuda:0' if torch.cuda.is_available() else 'cpu'))
+ 
+     def train_epoch(self, data_loader, optimizer):
+         self.model.train()
+diff --git a/utils/config.py b/utils/config.py
+index e7de32c..3cceb38 100644
+--- a/utils/config.py
++++ b/utils/config.py
+@@ -23,7 +23,7 @@ class BaseConfig(object):
+         self.earlyStop = 5
+         self.reload = True
+         self.base_dir =  Path(__file__).resolve().parent.parent
+-        self.device = torch.device('cuda:2' if torch.cuda.is_available() else 'cpu')
++        self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+ 
+     def make_dir(self):
+         pass

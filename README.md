@@ -66,23 +66,28 @@ cd pbap
 # 2. Install micromamba (per-tool environment manager)
 # See https://mamba.readthedocs.io/en/latest/installation/micromamba-installation.html
 
-# 3. Create the orchestrator's own environment (Python ≥ 3.10)
+# 3. Clone the 10 prediction tools + apply patches (one command, idempotent)
+bash scripts/bootstrap_tools.sh
+
+# 4. Create the 6 micromamba environments the tools live in
+#    (~30–40 GB disk, 20–40 min on a decent connection)
+bash scripts/bootstrap_envs.sh
+
+# 5. Create the orchestrator's own env (Python ≥ 3.10, 5 tiny deps)
 micromamba create -n pbap_orchestrator python=3.11 pip
 micromamba activate pbap_orchestrator
 pip install -r requirements.txt
 
-# 4. (Optional but typical) Clone the prediction tools you want to use
-#    into Dataset_Bioactividad/Tool_Repos/<tool_name>/
-#    See docs/pipeline_viability.md for the upstream URLs and per-tool notes.
-
-# 5. Run the smoke test with the bundled example FASTA
+# 6. Run the smoke test with the bundled example FASTA
 python scripts/run_audit.py --input Inputs/example.fasta
-
-# 6. Open the interactive HTML report
 # Result: Outputs/example_<timestamp>/REPORT.html
 ```
 
-📖 Full setup: [`docs/deployment.md`](docs/deployment.md).
+⚠️ Step 3 of `docs/SETUP_FROM_SCRATCH.md` adds **one manual download**
+(HemoPI2's `Model.zip`, hosted off-repo by the upstream authors).
+Everything else is scripted.
+
+📖 **Full walkthrough**: [`docs/SETUP_FROM_SCRATCH.md`](docs/SETUP_FROM_SCRATCH.md).
 📖 Architecture: [`docs/architecture.md`](docs/architecture.md).
 📖 Doc index: [`docs/INDEX.md`](docs/INDEX.md).
 
@@ -202,10 +207,12 @@ quality bar as manual contributions.
 ├── demo/                         # Reference scaffold for the public web demo
 │   ├── api/                      #   FastAPI backend (operator's Linux host)
 │   └── frontend/                 #   Gradio app (Hugging Face Space)
+├── patches/                      # ~100 lines of mechanical adapters to 5 tools
+├── envs/                         # micromamba YAML manifests for the 6 envs
 ├── site/                         # GitHub Pages landing source
 ├── Inputs/                       # Drop your FASTA files here (gitignored)
 ├── Outputs/                      # Auto-created per run (gitignored)
-├── test_data/                    # Tiny FASTA samples for smoke tests
+├── test_data/                    # Canonical FASTA samples for smoke tests
 ├── AGENTS.md                     # AI agent operating manual
 ├── CLAUDE.md / GEMINI.md         # Agent-specific entrypoints (import AGENTS.md)
 ├── LICENSE                       # PolyForm Noncommercial 1.0.0

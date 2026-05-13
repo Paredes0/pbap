@@ -1,0 +1,43 @@
+diff --git a/source/predict.py b/source/predict.py
+index 857a107..601ec93 100644
+--- a/source/predict.py
++++ b/source/predict.py
+@@ -1,4 +1,5 @@
+ import sys
++import os
+ from features import fs_encode
+ import lightgbm as lgb
+ import numpy as np
+@@ -8,6 +9,8 @@ import re
+ from Bio import SeqIO
+ import argparse
+ 
++_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
++
+ model_esm, alphabet = torch.hub.load("facebookresearch/esm:main", "esm2_t33_650M_UR50D")
+ def esm_infer(seq):
+     batch_converter = alphabet.get_batch_converter()
+@@ -41,9 +44,9 @@ model_t5 = T5EncoderModel.from_pretrained("Rostlab/prot_t5_xl_uniref50")
+ def T5_infer(seq):
+     sequences_Example = [" ".join(list(seq))]
+     sequences_Example = [re.sub(r"[UZOB]", "X", sequence) for sequence in sequences_Example]
+-    ids = tokenizer.batch_encode_plus(sequences_Example,
+-                                      add_special_tokens=True,
+-                                      padding=False)
++    ids = tokenizer(sequences_Example,
++                    add_special_tokens=True,
++                    padding=False)
+ 
+     input_ids = torch.tensor(ids['input_ids'])
+     attention_mask = torch.tensor(ids['attention_mask'])
+@@ -62,8 +65,8 @@ def T5_infer(seq):
+     encoder_embedding = embedding.last_hidden_state[0,:-1].detach().cpu().numpy()
+     return encoder_embedding.sum(axis=0)
+ 
+-model_fs = lgb.Booster(model_file="./models/model.fs")
+-model_tr = lgb.Booster(model_file="./models/model.transformer")
++model_fs = lgb.Booster(model_file=os.path.join(_SCRIPT_DIR, "models", "model.fs"))
++model_tr = lgb.Booster(model_file=os.path.join(_SCRIPT_DIR, "models", "model.transformer"))
+ 
+ def get_data(path):
+     id_seq_dict = {}

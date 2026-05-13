@@ -9,6 +9,37 @@ last_updated: 2026-05-13
 
 ## 2026-05
 
+- 2026-05-13 — **Repro gaps cerrados — la repo es ahora reproducible
+  de cero para Phase 1**. Cinco piezas nuevas atan el setup desde
+  `git clone` a un smoke test en verde:
+  (a) `patches/<tool>.patch` × 5 (hemodl, deepb3p, apex, perseucpp,
+      acp_dpe) — diffs reales extraídos del árbol interno con
+      `git diff`, total ~100 líneas de adaptaciones mecánicas (CLI,
+      argparse, FASTA→CSV adapters). Cada patch lleva su rationale
+      en `patches/README.md`. HemoPI2 no es patch (su modelo se
+      descarga externamente, documentado en SETUP).
+  (b) `envs/<env>.yaml` × 6 — exports `micromamba env export
+      --no-builds` con `prefix:` retirado, versiones exactas
+      (ml/torch/qsar/pipeline_bertaip = Python 3.10, torch_legacy =
+      3.9, deepb3p_legacy = 3.7). 100% portables, sin paths locales.
+  (c) `scripts/bootstrap_tools.sh` — bash idempotente que lee
+      `github_url` del `pipeline_config.yaml`, clona cada tool y le
+      aplica su patch. Detección de "patch ya aplicado" con
+      `git apply --check --reverse`.
+  (d) `scripts/bootstrap_envs.sh` — bash idempotente que invoca
+      `micromamba create -y -n <env> -f envs/<env>.yaml` por env.
+      Skip si el env ya existe.
+  (e) `docs/SETUP_FROM_SCRATCH.md` — walkthrough end-to-end en 5
+      pasos con presupuesto de tiempo/disco real (~30-60 min /
+      ~35-45 GB) y troubleshooting cheatsheet. Es la referencia
+      canónica para cualquier operador nuevo.
+  También: `test_data/AMPs_canonical.fasta` (10 péptidos
+  históricos: magainin, melittin, LL37, etc.) y
+  `test_data/BAPs_canonical.fasta` (12 péptidos bioactivos:
+  ACE inhibitors, BPC-157, MSH, etc.) para smoke tests más
+  significativos que `Inputs/example.fasta`. Reach out: phase 2 no
+  está incluida (sus datos curados no son redistribuidos); el SETUP
+  doc lo declara explícitamente.
 - 2026-05-13 — **Fix de atribuciones erróneas en el frontend del demo**.
   El `demo/frontend/app.py` tenía dos clases de bugs heredados de la
   primera redacción:

@@ -47,6 +47,7 @@ operational documentation of the project.
 - [Decisions (ADR)](decisions.md): architectural decisions and their justification.
 
 ## 🚀 Deployment
+- [**Setup from scratch**](SETUP_FROM_SCRATCH.md) **(start here if you just cloned the repo)**: end-to-end walkthrough — clone, bootstrap tools, bootstrap envs, smoke test.
 - [Deployment guide](deployment.md): installation and bring-up across environments.
 
 ## 🧭 Quick navigation for code

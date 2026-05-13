@@ -62,6 +62,8 @@ Before declaring a task complete, run the contract checks defined in
 | Architectural change | `docs/architecture.md` + `docs/decisions.md` |
 | `demo/api/` (backend endpoints, queue, limits) | `demo/api/README.md` |
 | `demo/frontend/` (Gradio UI, attribution, disclaimer) | `demo/frontend/README.md` |
+| `patches/<tool>.patch` or `scripts/bootstrap_*.sh` | `patches/README.md` and `docs/SETUP_FROM_SCRATCH.md` |
+| `envs/<env>.yaml` | `docs/deployment.md` §4 + `docs/SETUP_FROM_SCRATCH.md` |
 | Any user-visible change | `docs/changelog.md` (one-line entry) |
 
 The CI workflow `.github/workflows/docs-sync.yml` will additionally
