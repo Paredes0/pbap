@@ -15,7 +15,6 @@ Mapeo área → doc(s):
 - **Patrones e idioms del código** → `docs/conventions.md`
 - **Términos del dominio** → `docs/glossary.md`
 - **Issues conocidos / deuda técnica / TODOs** → `docs/todo.md` (si existe)
-- [**Contributors**](docs/contributors.md): Créditos de la colaboración humano-IA (Swarm Roster).
 - **Cualquier otro doc opcional/custom** → ver tabla en `docs/INDEX.md`
 
 `docs/changelog.md` se actualiza automáticamente al cerrar cada tarea (lo hace `/log`). No lo edites a mano salvo emergencia.
