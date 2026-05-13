@@ -127,6 +127,59 @@ envs (the orchestrator spawns subprocesses with
 
 ---
 
+## What you have so far — expected tree
+
+After steps 1 and 2 your working tree should look like this:
+
+```
+pbap/                                             ← git clone github.com/Paredes0/pbap
+├── audit_lib/                                    ← orchestrator (in repo)
+├── scripts/                                      ← run_audit.py + bootstrap_*.sh (in repo)
+├── config/                                       ← pipeline_config.yaml + … (in repo)
+├── docs/                                         ← documentation (in repo)
+├── demo/                                         ← optional public-demo scaffold (in repo)
+├── patches/                                      ← reproducibility patches (in repo)
+├── envs/                                         ← env YAML manifests (in repo)
+├── wrappers/                                     ← CLI adapters (in repo)
+├── site/                                         ← GitHub Pages source (in repo)
+├── test_data/                                    ← canonical FASTAs (in repo)
+├── Inputs/example.fasta                          ← smoke-test FASTA (in repo)
+│
+└── Dataset_Bioactividad/Tool_Repos/              ← CREATED by bootstrap_tools.sh
+    ├── toxinpred3/        ← clone of raghavagps/toxinpred3
+    ├── antibp3/           ← clone of raghavagps/AntiBP3
+    ├── hemopi2/           ← clone of raghavagps/hemopi2     ⚠ waiting on Model.zip (step 3)
+    ├── hemodl/            ← clone of abcair/HemoDL          + hemodl.patch applied
+    ├── deepb3p/           ← clone of GreatChenLab/deepB3P   + deepb3p.patch applied
+    ├── deepbp/            ← clone of Zhou-Jianren/bioactive-peptides
+    ├── apex/              ← clone of machine-biology-group-public/apex   + apex.patch applied
+    ├── perseucpp/         ← clone of goalmeida05/PERSEU     + perseucpp.patch applied
+    ├── acp_dpe/           ← clone of CYJ-sudo/ACP-DPE       + acp_dpe.patch applied
+    └── bertaip/           ← clone of ying-jc/BertAIP
+```
+
+And in your micromamba envs folder (`~/micromamba/envs/` by default):
+
+```
+~/micromamba/envs/
+├── ml/                    ← bootstrap_envs.sh, used by toxinpred3, antibp3, hemodl
+├── torch/                 ← bootstrap_envs.sh, used by hemopi2, perseucpp
+├── qsar/                  ← bootstrap_envs.sh, used by apex
+├── torch_legacy/          ← bootstrap_envs.sh, used by deepbp, acp_dpe
+├── deepb3p_legacy/        ← bootstrap_envs.sh, used by deepb3p (legacy TF 1.14)
+└── pipeline_bertaip/      ← bootstrap_envs.sh, used by bertaip
+```
+
+A `pbap_orchestrator` env is created separately at the end of step 2
+above; it is the env you'll be **in** when you run
+`python scripts/run_audit.py`. It is independent of the six tool envs
+listed here.
+
+If your tree matches the structure above, only one thing is missing
+before the smoke test can run cleanly: HemoPI2's weights.
+
+---
+
 ## 3. One manual download — HemoPI2 weights
 
 `HemoPI2`'s authors host the trained model outside their git repo.

@@ -9,6 +9,17 @@ last_updated: 2026-05-13
 
 ## 2026-05
 
+- 2026-05-13 — **SETUP_FROM_SCRATCH.md: añadido bloque "expected tree"**.
+  Entre paso 2 (envs) y paso 3 (HemoPI2 manual download) se inserta
+  un árbol ASCII que muestra la estructura exacta que un tercero debe
+  ver tras los dos bootstrap scripts: el contenido del clone público,
+  los 10 subdirectorios bajo `Dataset_Bioactividad/Tool_Repos/<tool>/`
+  (con anotación de qué upstream se clonó y qué patch se aplicó), y
+  los 6 envs en `~/micromamba/envs/`. Sirve como checkpoint visual:
+  si tu árbol coincide, vas bien; si no, ya sabes qué paso revisar.
+  Punto disparador: pregunta del usuario "¿el bootstrap crea toda
+  la estructura ordenada en su sitio?". Sí, y ahora está
+  explícitamente documentado.
 - 2026-05-13 — **`wrappers/README.md` añadido**. La carpeta `wrappers/`
   contenía solo un archivo (`bert_ampep60_cli.py`) sin contexto, lo
   cual disparó la pregunta legítima "¿es código del autor upstream?".
