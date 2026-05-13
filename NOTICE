@@ -1,0 +1,67 @@
+================================================================================
+Peptide Bioactivity Audit Pipeline (PBAP)
+================================================================================
+
+Copyright (c) 2026 Noé Paredes Alfaro
+
+Licensed under the PolyForm Noncommercial License 1.0.0.
+See LICENSE for the full text.
+For commercial licensing, contact the copyright holder (see LICENSE).
+
+================================================================================
+WHAT IS DISTRIBUTED IN THIS REPOSITORY
+================================================================================
+
+This repository contains ONLY the orchestrator code, configuration files,
+documentation and infrastructure of the pipeline:
+
+    - scripts/        Python orchestrator and helper scripts
+    - audit_lib/      Shared library used by the orchestrator
+    - bin/            Bash entry points
+    - wrappers/       Lightweight CLI adapters for tools whose own CLI is
+                      missing or incompatible (small Python files, no model
+                      weights)
+    - config/         YAML configuration (pipeline_config.yaml,
+                      pipeline_config_blocked.yaml, categories_config.yaml,
+                      apex_strain_classification.yaml)
+    - docs/           Project documentation
+    - test_data/      Tiny FASTA samples for smoke testing
+
+================================================================================
+WHAT IS *NOT* DISTRIBUTED IN THIS REPOSITORY
+================================================================================
+
+The 26 third-party prediction tools that the pipeline can orchestrate are
+NOT included in this repository. Each tool has its own license, its own
+repository, and its own model weights. To run the full pipeline you must:
+
+  1. Clone the upstream repositories yourself (URLs in
+     docs/pipeline_viability.md and config/pipeline_config.yaml).
+  2. Comply with each tool's license — see THIRD_PARTY_LICENSES.md.
+  3. Place each tool under Dataset_Bioactividad/Tool_Repos/<tool_name>/.
+
+Likewise, this repository does NOT redistribute:
+
+  - Model weights or checkpoints (these belong to the original tool authors).
+  - External peptide databases (DBAASP, APD3, ConoServer, ArachnoServer,
+    Hemolytik, CancerPPD, CPPsite, BIOPEP, AVPdb). Download them yourself
+    from the official sources and place them under DATABASES_FASTA/.
+
+================================================================================
+ACKNOWLEDGEMENTS
+================================================================================
+
+This work would not have been possible without the open publication of
+prediction tools and curated databases by the wider community. We cite
+every tool we integrate (see docs/architecture.md and the academic
+manuscript accompanying this code). We also acknowledge:
+
+  - The Bioconda project (Grüning et al., Nat. Methods 2018), which makes
+    the per-tool environment isolation tractable.
+  - The CD-HIT authors (Li & Godzik 2006; Fu et al. 2012) for the redundancy
+    clustering tool used in leakage analysis.
+  - The peptide-database community (APD3, DBAASP, etc.) for the curated
+    activity data on which most integrated tools were trained.
+
+This software is released for non-commercial use to maximise its benefit to
+academic and public-research users.

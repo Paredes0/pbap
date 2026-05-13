@@ -1,0 +1,92 @@
+# ============================================================================
+# Peptide Bioactivity Audit Pipeline (PBAP) — .gitignore
+# ============================================================================
+
+# --- Scientific data (NEVER commit — too large or third-party-owned) -------
+Dataset_Bioactividad/
+DATABASES_FASTA/
+reference_data/
+
+# --- Run artifacts (keep folder structure committed via .gitkeep) ----------
+# Note: do NOT ignore the parent directory itself, only its contents,
+# otherwise the !-rules below would never be evaluated.
+Outputs/*
+!Outputs/.gitkeep
+!Outputs/README.md
+
+# --- User inputs (folder kept; only the committed examples remain) ---------
+Inputs/*
+!Inputs/.gitkeep
+!Inputs/README.md
+!Inputs/example.fasta
+
+# --- Private / internal docs (kept locally, not published) -----------------
+docs/_internal/
+docs/_archive/
+
+# --- Generated artifacts in docs/ (memoria/PDF rebuilt locally) ------------
+docs/*.pdf
+docs/*.docx
+
+# --- Python ----------------------------------------------------------------
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+*.egg-info/
+.venv/
+venv/
+build/
+dist/
+
+# --- IDEs / editors / OS ---------------------------------------------------
+*.swp
+*.swo
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Logs ------------------------------------------------------------------
+*.log
+
+# --- External refs (notes outside the project) -----------------------------
+_external_refs/
+
+# --- Local user settings (NEVER share between machines) --------------------
+.claude/settings.local.json
+skills-lock.json
+.swarm/
+.agents/
+
+# --- Secrets (defensive) ---------------------------------------------------
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.pfx
+*.p12
+secrets/
+secret/
+credentials*.json
+credentials*.yaml
+service-account*.json
+firebase-adminsdk*.json
+.aws/
+.ssh/
+.gnupg/
+.netrc
+
+# --- Backups ---------------------------------------------------------------
+*.bak
+*.backup
+*.orig
+
+# ============================================================================
+# Note: AGENTS.md, CLAUDE.md, GEMINI.md, docs/*, .github/*, .claude/skills/*
+# are tracked on purpose — they are the AI-agent operating manual and must
+# travel with the repository for reproducibility.
+# ============================================================================

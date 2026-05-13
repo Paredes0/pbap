@@ -1,0 +1,501 @@
+# pipeline_config_blocked.yaml
+# ============================================================
+# Herramientas BLOCKED / inactivas movidas desde pipeline_config.yaml
+# Fecha: 2026-05-08
+# Razon: Limpieza de config principal. Ver docs/pipeline_viability.md
+#   para el detalle de por que cada tool fue clasificado BLOCKED.
+# ============================================================
+#
+# BLOCKED estructurales (10): sin scripts de inferencia, sin pesos,
+#   o dependencia de servicios externos irreproducibles.
+# INACTIVOS (2): _aip_tranlac_backup (reemplazado por bertaip),
+#   hypeptox_fuse (problema de RAM >= 32GB, descartado por usuario).
+# ============================================================
+
+tools:
+
+  aapl:
+    display_name: AAPL
+    category: anti_angiogenic
+    stage: 2-Bioactividad
+    github_url: https://github.com/yunzheng2002/Anti-angiogenic.git
+    doi: 10.1038/s41598-024-65062-9
+    conda_env: ml_pycaret
+
+    length_range:
+    - 5
+    - 50
+    training_data:
+      search_patterns:
+      - '**/*.csv'
+      - '**/*.tsv'
+      - '**/*.fasta'
+      - '**/*.txt'
+      data_keywords:
+      - train
+      - anti-angiogenic
+      - AAP
+      - positive
+      - negative
+      sequence_column_hints:
+      - sequence
+      - seq
+      - peptide
+      label_column_hints:
+      - label
+      - class
+    run_command:
+      type: python_script
+      script: predict.py
+      input_format: csv
+      output_format: csv
+
+  if_aip:
+    display_name: IF-AIP
+    category: anti_inflammatory
+    stage: 2-Bioactividad
+    github_url: https://github.com/Mir-Saima/IF-AIP.git
+    doi: 10.1016/j.compbiomed.2023.107724
+    conda_env: ml
+
+    length_range:
+    - 5
+    - 50
+    training_data:
+      search_patterns:
+      - '**/*.csv'
+      - '**/*.tsv'
+      - '**/*.fasta'
+      - '**/*.txt'
+      data_keywords:
+      - train
+      - AIP
+      - anti-inflammatory
+      - positive
+      - negative
+      sequence_column_hints:
+      - sequence
+      - seq
+      - peptide
+      label_column_hints:
+      - label
+      - class
+    run_command:
+      type: python_script
+      script: predict.py
+      input_format: csv
+      output_format: csv
+
+  mfe_acvp:
+    display_name: MFE-ACVP
+    category: antiviral
+    stage: 2-Bioactividad
+    github_url: https://github.com/Kang-lq/MFE-ACVP.git
+    doi: 10.1093/bib/bbaf610
+    conda_env: qsar
+
+    length_range:
+    - 5
+    - 100
+    training_data:
+      search_patterns:
+      - '**/*.csv'
+      - '**/*.tsv'
+      - '**/*.fasta'
+      - '**/*.txt'
+      data_keywords:
+      - train
+      - antiviral
+      - positive
+      - negative
+      sequence_column_hints:
+      - sequence
+      - seq
+      - peptide
+      label_column_hints:
+      - label
+      - class
+    run_command:
+      type: python_script
+      script: predict.py
+      input_format: csv
+      output_format: csv
+    standby: true
+    standby_reason: No standalone predict script. 7-step feature extraction pipeline requires external web services (ESMAtlas
+      for 3D structure, NetSurfP-3.0 for secondary structure) that cannot be fully automated offline. No saved model weights
+      in repo. Ensemble.py __main__ uses dummy random data. Coronavirus-specific tool.
+
+  multimodal_aop:
+    display_name: Multimodal AOP
+    category: antioxidant
+    stage: 2-Bioactividad
+    github_url: https://github.com/taraponglab/multimodal_antioxidant_peptides.git
+    doi: 10.1186/s13321-025-01102-4
+    conda_env: qsar
+
+    length_range:
+    - 2
+    - 50
+    training_data:
+      search_patterns:
+      - '**/*.csv'
+      - '**/*.tsv'
+      - '**/*.fasta'
+      - '**/*.txt'
+      data_keywords:
+      - train
+      - antioxidant
+      - AOP
+      - positive
+      - negative
+      sequence_column_hints:
+      - sequence
+      - seq
+      - peptide
+      label_column_hints:
+      - label
+      - class
+    run_command:
+      type: python_script
+      script: stacking_onehot.py
+      input_format: csv
+      output_format: csv
+
+  afp_mvfl:
+    display_name: AFP-MVFL
+    category: antifungal
+    stage: 2-Bioactividad
+    github_url: https://github.com/MuntahaMim/AFP-MVFL.git
+    doi: 10.3390/a17060247
+    conda_env: ml
+
+    length_range:
+    - 5
+    - 100
+    training_data:
+      search_patterns:
+      - '**/*.csv'
+      - '**/*.tsv'
+      - '**/*.fasta'
+      - '**/*.txt'
+      data_keywords:
+      - train
+      - AFP
+      - antifungal
+      - positive
+      - negative
+      sequence_column_hints:
+      - sequence
+      - seq
+      - peptide
+      label_column_hints:
+      - label
+      - class
+    run_command:
+      type: python_script
+      script: predict.py
+      input_format: csv
+      output_format: csv
+
+  antiaging_fl:
+    display_name: Antiaging-FL
+    category: anti_aging
+    stage: 2-Bioactividad
+    github_url: https://github.com/zhangzhiyuan257/anti_aging.git
+    doi: 10.1186/s12915-025-02469-4
+    conda_env: torch
+
+    length_range:
+    - 2
+    - 50
+    training_data:
+      search_patterns:
+      - '**/*.csv'
+      - '**/*.tsv'
+      - '**/*.fasta'
+      - '**/*.txt'
+      data_keywords:
+      - train
+      - anti-aging
+      - antiaging
+      - positive
+      - negative
+      sequence_column_hints:
+      - sequence
+      - seq
+      - peptide
+      label_column_hints:
+      - label
+      - class
+    run_command:
+      type: python_script
+      script: predict.py
+      input_format: csv
+      output_format: csv
+
+  deepforest_htp:
+    display_name: DeepForest-HTP
+    category: hypotensive
+    stage: 2-Bioactividad
+    github_url: https://github.com/DoctorQiyuanBai/Deep-Forest-AHT.git
+    doi: 10.1016/j.cmpb.2024.108514
+    conda_env: ml_deepforest
+
+    length_range:
+    - 2
+    - 50
+    training_data:
+      search_patterns:
+      - '**/*.csv'
+      - '**/*.tsv'
+      - '**/*.fasta'
+      - '**/*.txt'
+      data_keywords:
+      - train
+      - antihypertensive
+      - AHT
+      - positive
+      - negative
+      sequence_column_hints:
+      - sequence
+      - seq
+      - peptide
+      label_column_hints:
+      - label
+      - class
+    run_command:
+      type: python_script
+      script: predict.py
+      input_format: csv
+      output_format: csv
+
+  stackthp:
+    display_name: StackTHP
+    category: tumor_homing
+    stage: 2-Bioactividad
+    github_url: https://github.com/Ashikur562/StackTHP.git
+    doi: 10.1016/j.compbiomed.2025.109958
+    conda_env: ml
+
+    length_range:
+    - 5
+    - 50
+    training_data:
+      search_patterns:
+      - '**/*.csv'
+      - '**/*.tsv'
+      - '**/*.fasta'
+      - '**/*.txt'
+      data_keywords:
+      - train
+      - tumor-homing
+      - THP
+      - positive
+      - negative
+      sequence_column_hints:
+      - sequence
+      - seq
+      - peptide
+      label_column_hints:
+      - label
+      - class
+    run_command:
+      type: python_script
+      script: predict.py
+      input_format: csv
+      output_format: csv
+
+  cpppred_en:
+    display_name: CPPpred-En
+    category: cpp
+    stage: 3-Farmacocinetica
+    github_url: https://github.com/YE-MJ/CPPpred-En.git
+    doi: 10.1016/j.compbiomed.2025.110590
+    conda_env: torch
+
+    length_range:
+    - 5
+    - 50
+    training_data:
+      search_patterns:
+      - '**/*.csv'
+      - '**/*.tsv'
+      - '**/*.fasta'
+      - '**/*.txt'
+      data_keywords:
+      - train
+      - CPP
+      - cell-penetrating
+      - positive
+      - negative
+      sequence_column_hints:
+      - sequence
+      - seq
+      - peptide
+      label_column_hints:
+      - label
+      - class
+      - CPP
+    run_command:
+      type: python_script
+      script: predict.py
+      input_format: fasta
+      output_format: csv
+
+  macppred2:
+    display_name: mACPpred 2.0
+    category: anticancer
+    stage: 2-Bioactividad
+    github_url: https://github.com/nhattruongpham/mACPpred2.git
+    doi: 10.1016/j.jmb.2024.168687
+    conda_env: torch_legacy
+
+    length_range:
+    - 5
+    - 50
+    training_data:
+      search_patterns:
+      - data/*.fasta
+      - data/*.fa
+      - '**/*.fasta'
+      data_keywords:
+      - Training
+      - Independent
+      - ACP
+      - positive
+      - negative
+      sequence_column_hints:
+      - sequence
+      label_column_hints:
+      - label
+      label_source: header_prefix
+      header_prefix_positive: Positive_
+      header_prefix_negative: Negative_
+    run_command:
+      type: python_script
+      script: predictor.py
+      input_format: fasta
+      output_format: csv
+      arg_style: flagged
+      input_flag: --input_file
+      output_flag: --output_file
+      output_capture: file
+      output_parsing:
+        id_column: Name
+        prediction_column: Class
+        positive_label: ACP
+        score_column: Probability
+        score_ascending: false
+    standby: false
+    weights_download:
+      platform: zenodo
+      zenodo_doi: 10.5281/zenodo.11350064
+      zenodo_url: https://zenodo.org/record/11350064
+      target_path: models/
+      auto_download: true
+      notes: baseline_models/*.pkl + final_models/*.h5 from Zenodo. ~500MB total.
+
+  _aip_tranlac_backup:
+    display_name: AIP-TranLAC
+    category: anti_inflammatory
+    stage: 2-Bioactividad
+    github_url: https://github.com/Renjingyi123/AIP-TranLAC.git
+    doi: 10.1007/s12539-025-00761-z
+    conda_env: torch
+
+    length_range:
+    - 5
+    - 30
+    training_data:
+      search_patterns:
+      - '**/*.csv'
+      - '**/*.tsv'
+      - '**/*.fasta'
+      - '**/*.txt'
+      data_keywords:
+      - train
+      - AIP
+      - anti-inflammatory
+      - positive
+      - negative
+      sequence_column_hints:
+      - sequence
+      - seq
+      - peptide
+      label_column_hints:
+      - label
+      - class
+    run_command:
+      type: python_script
+      script: predict.py
+      input_format: fasta
+      output_format: csv
+      arg_style: flagged
+      input_flag: --input
+      output_flag: --output
+      output_capture: file
+      output_parsing:
+        id_column: ID
+        id_strip_prefix: ''
+        prediction_column: class_aip
+        positive_label: 1
+        score_column: prob_aip
+        score_ascending: true
+        score_threshold: null
+        prediction_type: classification
+      notes: Standalone predict.py created 2026-04-29 — extracts inference logic from train.py. Reads FASTA, loads AIP-TranLAC.pt via load_model(), iterates Ourmodel forward, dumps (ID, Sequence, prob_aip, class_aip). train.py original untouched.
+    standby: false
+    weights_download:
+      platform: in_repo
+      notes: AIP-TranLAC.pt (9.5 MB) en repo root. Cargado relativo a cwd=repo_dir.
+      auto_download: false
+
+  hypeptox_fuse:
+    display_name: HyPepTox-Fuse
+    category: toxicity
+    stage: 1-Seguridad
+    github_url: https://github.com/cbbl-skku-org/HyPepTox-Fuse.git
+    doi: 10.1016/j.jpha.2025.101410
+    conda_env: torch
+
+    length_range:
+    - 1
+    - 50
+    training_data:
+      search_patterns:
+      - raw_dataset/*.fa
+      - raw_dataset/*.fasta
+      - '**/*.fa'
+      - '**/*.fasta'
+      data_keywords:
+      - train
+      - pos
+      - neg
+      - toxic
+      sequence_column_hints:
+      - sequence
+      - seq
+      label_column_hints:
+      - label
+      label_source: filename
+      positive_filename_pattern: _pos
+      negative_filename_pattern: _neg
+    run_command:
+      type: python_script
+      script: ../../../scripts/wrappers/hypeptox_fuse_cli.py
+      input_flag: --input
+      output_flag: --output
+      input_format: fasta
+      output_format: csv
+      arg_style: flagged
+      output_capture: file
+      output_parsing:
+        format: csv
+        header: true
+        id_column: ID
+        prediction_column: Toxicity
+        positive_label: 'True'
+        score_column: Score
+        prediction_type: classification
+    timeout_seconds: 2700
+    standby: false

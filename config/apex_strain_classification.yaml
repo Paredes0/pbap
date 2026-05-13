@@ -1,0 +1,132 @@
+# APEX strain classification — pathogenic vs commensal vs ambiguous
+# ------------------------------------------------------------------
+# APEX (Penn) predicts MIC against 34 bacterial strains/species. APEX has NO
+# native pathogen/commensal flag — clasificación hecha por nosotros con base
+# en literatura básica (2026-04-30, fuentes: ATCC catalog, CDC pathogen lists,
+# microbiome literature on gut commensals).
+#
+# Strain names usan el campo `apex_strain` exactamente como aparecen en
+# `predict.py:42` y como columnas en `Predicted_MICs.csv`.
+# El campo `metric_name` corresponde a la columna del consolidated
+# (`apex__<metric_name>__uM`).
+#
+# Threshold usado por el orchestrator para "active": MIC ≤ active_mic_uM uM.
+# Se puede ajustar aquí sin tocar código.
+
+threshold:
+  active_mic_uM: 32.0
+
+pathogenic:
+  - apex_strain: "P. aeruginosa PAO1"
+    metric_name: MIC_P_aeruginosa_PAO1
+    reason: "Pseudomonas aeruginosa PAO1 — patógeno oportunista nosocomial, ESKAPE"
+  - apex_strain: "P. aeruginosa PA14"
+    metric_name: MIC_P_aeruginosa_PA14
+    reason: "Pseudomonas aeruginosa PA14 — cepa hipervirulenta, modelo de patogenicidad"
+  - apex_strain: "S. aureus ATCC12600"
+    metric_name: MIC_S_aureus_ATCC12600
+    reason: "Staphylococcus aureus type strain — patógeno gram+ común"
+  - apex_strain: "E. coli AIG221"
+    metric_name: MIC_E_coli_AIG221
+    reason: "E. coli AIG221 — aislado clínico antibiótico-insensible, patógeno"
+  - apex_strain: "E. coli AIG222"
+    metric_name: MIC_E_coli_AIG222
+    reason: "E. coli AIG222 — aislado clínico antibiótico-insensible, patógeno"
+  - apex_strain: "K. pneumoniae ATCC13883"
+    metric_name: MIC_K_pneumoniae_ATCC13883
+    reason: "Klebsiella pneumoniae — patógeno nosocomial, ESKAPE"
+  - apex_strain: "A. baumannii ATCC19606"
+    metric_name: MIC_A_baumannii_ATCC19606
+    reason: "Acinetobacter baumannii — patógeno nosocomial multirresistente, ESKAPE"
+  - apex_strain: "S. aureus (ATCC BAA-1556) - MRSA"
+    metric_name: MIC_S_aureus_ATCC_BAA_1556_MRSA
+    reason: "MRSA — Staphylococcus aureus meticilino-resistente, patógeno crítico"
+  - apex_strain: "vancomycin-resistant E. faecalis ATCC700802"
+    metric_name: MIC_vancomycin_resistant_E_faecalis_ATCC700802
+    reason: "Enterococcus faecalis vancomicino-resistente (VRE) — patógeno crítico"
+  - apex_strain: "vancomycin-resistant E. faecium ATCC700221"
+    metric_name: MIC_vancomycin_resistant_E_faecium_ATCC700221
+    reason: "Enterococcus faecium vancomicino-resistente (VRE) — patógeno ESKAPE"
+  - apex_strain: "Salmonella enterica ATCC 9150 (BEIRES NR-515)"
+    metric_name: MIC_Salmonella_enterica_ATCC_9150_BEIRES_NR_515
+    reason: "Salmonella enterica — patógeno entérico"
+  - apex_strain: "Salmonella enterica (BEIRES NR-170)"
+    metric_name: MIC_Salmonella_enterica_BEIRES_NR_170
+    reason: "Salmonella enterica — patógeno entérico"
+  - apex_strain: "Salmonella enterica ATCC 9150 (BEIRES NR-174)"
+    metric_name: MIC_Salmonella_enterica_ATCC_9150_BEIRES_NR_174
+    reason: "Salmonella enterica — patógeno entérico"
+  - apex_strain: "L. monocytogenes ATCC 19111 (BEIRES NR-106)"
+    metric_name: MIC_L_monocytogenes_ATCC_19111_BEIRES_NR_106
+    reason: "Listeria monocytogenes — patógeno entérico-invasivo"
+  - apex_strain: "C. spiroforme ATCC29900"
+    metric_name: MIC_C_spiroforme_ATCC29900
+    reason: "Clostridium spiroforme — patógeno oportunista (decisión usuario 2026-04-30): causa enteritis en conejos/equinos y se asocia a colitis en humanos inmunocomprometidos"
+
+commensal:
+  - apex_strain: "E. coli ATCC11775"
+    metric_name: MIC_E_coli_ATCC11775
+    reason: "E. coli type strain (linaje K-12) — clasificada como comensal por decisión del usuario 2026-04-30. Cepa de referencia genérica no patógena"
+  - apex_strain: "A. muciniphila ATCC BAA-835"
+    metric_name: MIC_A_muciniphila_ATCC_BAA_835
+    reason: "Akkermansia muciniphila — comensal intestinal beneficioso, asociado a salud metabólica"
+  - apex_strain: "B. fragilis ATCC25285"
+    metric_name: MIC_B_fragilis_ATCC25285
+    reason: "Bacteroides fragilis — comensal del intestino (oportunista en infecciones extra-intestinales, pero nicho primario es comensal)"
+  - apex_strain: "B. vulgatus ATCC8482"
+    metric_name: MIC_B_vulgatus_ATCC8482
+    reason: "Bacteroides vulgatus — comensal intestinal, abundante en microbiota humana"
+  - apex_strain: "C. aerofaciens ATCC25986"
+    metric_name: MIC_C_aerofaciens_ATCC25986
+    reason: "Collinsella aerofaciens — comensal intestinal humano"
+  - apex_strain: "C. scindens ATCC35704"
+    metric_name: MIC_C_scindens_ATCC35704
+    reason: "Clostridium scindens — comensal intestinal, deshidroxilación de ácidos biliares (protector contra C. difficile)"
+  - apex_strain: "B. thetaiotaomicron ATCC29148"
+    metric_name: MIC_B_thetaiotaomicron_ATCC29148
+    reason: "Bacteroides thetaiotaomicron — comensal intestinal central (degradación polisacáridos)"
+  - apex_strain: "B. thetaiotaomicron Complemmented"
+    metric_name: MIC_B_thetaiotaomicron_Complemmented
+    reason: "B. thetaiotaomicron variante de laboratorio — comensal"
+  - apex_strain: "B. thetaiotaomicron Mutant"
+    metric_name: MIC_B_thetaiotaomicron_Mutant
+    reason: "B. thetaiotaomicron variante de laboratorio — comensal"
+  - apex_strain: "B. uniformis ATCC8492"
+    metric_name: MIC_B_uniformis_ATCC8492
+    reason: "Bacteroides uniformis — comensal intestinal"
+  - apex_strain: "B. eggerthi ATCC27754"
+    metric_name: MIC_B_eggerthi_ATCC27754
+    reason: "Bacteroides eggerthii — comensal intestinal"
+  - apex_strain: "P. distasonis ATCC8503"
+    metric_name: MIC_P_distasonis_ATCC8503
+    reason: "Parabacteroides distasonis — comensal intestinal"
+  - apex_strain: "P. copri DSMZ18205"
+    metric_name: MIC_P_copri_DSMZ18205
+    reason: "Prevotella copri — comensal intestinal"
+  - apex_strain: "B. ovatus ATCC8483"
+    metric_name: MIC_B_ovatus_ATCC8483
+    reason: "Bacteroides ovatus — comensal intestinal"
+  - apex_strain: "E. rectale ATCC33656"
+    metric_name: MIC_E_rectale_ATCC33656
+    reason: "Eubacterium rectale — comensal intestinal, productor de butirato (protector epitelio)"
+  - apex_strain: "C. symbiosum"
+    metric_name: MIC_C_symbiosum
+    reason: "Clostridium symbiosum — comensal intestinal"
+  - apex_strain: "R. obeum"
+    metric_name: MIC_R_obeum
+    reason: "Ruminococcus obeum (Blautia obeum) — comensal intestinal"
+  - apex_strain: "R. torques"
+    metric_name: MIC_R_torques
+    reason: "Ruminococcus torques — comensal intestinal degradador de mucinas"
+  - apex_strain: "E. coli Nissle"
+    metric_name: MIC_E_coli_Nissle
+    reason: "E. coli Nissle 1917 — cepa probiótica comercial, comensal beneficioso"
+
+# Cepas dudosas — excluidas del agregado pathogenic_active / commensal_active.
+# Se siguen exportando como columnas individuales en consolidated.csv pero
+# NO cuentan para `apex__selectivity_tag`. Revisar y mover a una de las dos
+# listas anteriores cuando se confirme la clasificación.
+#
+# 2026-04-30 — vacío. E. coli ATCC11775 reasignado a `commensal` y C. spiroforme
+# ATCC29900 reasignado a `pathogenic` (oportunista) por decisión del usuario.
+ambiguous: []

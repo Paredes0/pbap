@@ -1,0 +1,421 @@
+categories:
+  toxicity:
+    display_name: Toxicidad
+    polarity: bad
+    stage: 1-Seguridad
+    target_pool_size: 4000
+    internal_cdhit_identity: 0.95
+    min_habitat_pct:
+      marino: 0.15
+      terrestre: 0.15
+    taxonomic_queries:
+      Inv_Marino_Cnidaria:
+        query: (keyword:KW-0800) AND (reviewed:true) AND (length:[5 TO 300]) AND (taxonomy_id:6073)
+        habitat: marino
+      Inv_Marino_Mollusca:
+        query: (keyword:KW-0800) AND (reviewed:true) AND (length:[5 TO 300]) AND (taxonomy_id:6447)
+        habitat: marino
+      Inv_Marino_Otros:
+        query: (keyword:KW-0800) AND (reviewed:true) AND (length:[5 TO 300]) AND ((taxonomy_id:7586) OR (taxonomy_id:6657)
+          OR (taxonomy_id:6040) OR (taxonomy_id:7712))
+        habitat: marino
+      Vert_Marino:
+        query: (keyword:KW-0800) AND (reviewed:true) AND (length:[5 TO 300]) AND ((taxonomy_id:7777) OR (taxonomy_id:7898))
+        habitat: marino
+      Aracnidos_Escorpiones:
+        query: (keyword:KW-0800) AND (reviewed:true) AND (length:[5 TO 300]) AND ((taxonomy_id:6893) OR (taxonomy_id:6855))
+        habitat: terrestre
+      Serpientes_Reptiles:
+        query: (keyword:KW-0800) AND (reviewed:true) AND (length:[5 TO 300]) AND (taxonomy_id:8504)
+        habitat: terrestre
+      Anfibios:
+        query: (keyword:KW-0800) AND (reviewed:true) AND (length:[5 TO 300]) AND (taxonomy_id:8292)
+        habitat: terrestre
+      Insectos:
+        query: (keyword:KW-0800) AND (reviewed:true) AND (length:[5 TO 300]) AND (taxonomy_id:50557)
+        habitat: terrestre
+      Mamiferos:
+        query: (keyword:KW-0800) AND (reviewed:true) AND (length:[5 TO 300]) AND (taxonomy_id:40674)
+        habitat: terrestre
+      Plantas_Hongos:
+        query: (keyword:KW-0800) AND (reviewed:true) AND (length:[5 TO 300]) AND ((taxonomy_id:3193) OR (taxonomy_id:4751))
+        habitat: planta
+      Hymenoptera_Venom:
+        query: (keyword:KW-0800) AND (reviewed:true) AND (length:[5 TO 300]) AND (taxonomy_id:7399)
+        habitat: terrestre
+      Cefalopodos:
+        query: (keyword:KW-0800) AND (reviewed:true) AND (length:[5 TO 300]) AND (taxonomy_id:6605)
+        habitat: marino
+      Anthozoa_AnemonasMarinas:
+        query: (keyword:KW-0800) AND (reviewed:true) AND (length:[5 TO 300]) AND (taxonomy_id:6101)
+        habitat: marino
+      Nematodos:
+        query: (keyword:KW-0800) AND (reviewed:true) AND (length:[5 TO 300]) AND (taxonomy_id:6231)
+        habitat: terrestre
+      ProtName_Toxin_Inv:
+        query: (protein_name:toxin) AND (reviewed:true) AND (length:[5 TO 300]) AND ((taxonomy_id:7711) OR (taxonomy_id:6072))
+        habitat: marino
+    additional_databases:
+      conoserver:
+        type: fasta
+        parser: conoserver
+        data_path: DATABASES_FASTA/conoserver_protein.fa.gz
+      arachnoserver:
+        type: fasta
+        parser: arachnoserver
+        data_path: DATABASES_FASTA/arachno_db_all_pep.fa
+    negative_config:
+      exclude_keywords:
+      - KW-0800
+      - KW-0872
+      - KW-0204
+      - KW-0547
+      - KW-0135
+      - KW-0410
+      ratio: 1.0
+      queries:
+        Neg_Marino:
+          query: (reviewed:true) AND (length:[5 TO 300]) AND ((taxonomy_id:6073) OR (taxonomy_id:6447) OR (taxonomy_id:7586))
+            NOT (keyword:KW-0800) NOT (keyword:KW-0872)
+          habitat: marino
+        Neg_Terrestre:
+          query: (reviewed:true) AND (length:[5 TO 300]) AND ((taxonomy_id:40674) OR (taxonomy_id:8292) OR (taxonomy_id:8504))
+            NOT (keyword:KW-0800) NOT (keyword:KW-0872)
+          habitat: terrestre
+        Neg_Plantas:
+          query: (reviewed:true) AND (length:[5 TO 300]) AND (taxonomy_id:3193) NOT (keyword:KW-0800) NOT (keyword:KW-0872)
+          habitat: planta
+    pool_length_range:
+    - 5
+    - 50
+    precursor_length_range:
+    - 5
+    - 300
+  hemolytic:
+    display_name: Hemolitico
+    polarity: bad
+    stage: 1-Seguridad
+    target_pool_size: 800
+    internal_cdhit_identity: 0.9
+    min_habitat_pct:
+      marino: 0.1
+      terrestre: 0.15
+    taxonomic_queries:
+      Hemolytic_General:
+        query: (cc_activity:hemolytic) AND (reviewed:true) AND (length:[5 TO 100])
+        habitat: desconocido
+      Hemolytic_KW:
+        query: (keyword:KW-0354) AND (reviewed:true) AND (length:[5 TO 100])
+        habitat: desconocido
+    additional_databases:
+      hemolytik:
+        type: download
+        parser: hemolytik
+      dbaasp:
+        type: api
+        parser: dbaasp
+    negative_config:
+      exclude_keywords:
+      - KW-0354
+      ratio: 1.0
+  allergenicity:
+    display_name: Alergenicidad
+    polarity: bad
+    stage: 1-Seguridad
+    target_pool_size: 600
+    internal_cdhit_identity: 0.9
+    min_habitat_pct:
+      marino: 0.05
+      terrestre: 0.15
+    taxonomic_queries:
+      Allergen_General:
+        query: (keyword:KW-0020) AND (reviewed:true) AND (length:[10 TO 100])
+        habitat: desconocido
+    additional_databases: {}
+    negative_config:
+      exclude_keywords:
+      - KW-0020
+      ratio: 1.0
+  antimicrobial:
+    display_name: Antimicrobiano
+    polarity: good
+    stage: 2-Bioactividad
+    target_pool_size: 2000
+    internal_cdhit_identity: 0.9
+    min_habitat_pct:
+      marino: 0.15
+      terrestre: 0.15
+    taxonomic_queries:
+      AMP_Inv_Marino:
+        query: (keyword:KW-0929) AND (reviewed:true) AND (length:[5 TO 100]) AND ((taxonomy_id:6073) OR (taxonomy_id:6447)
+          OR (taxonomy_id:7586) OR (taxonomy_id:6657))
+        habitat: marino
+      AMP_Anfibios:
+        query: (keyword:KW-0929) AND (reviewed:true) AND (length:[5 TO 100]) AND (taxonomy_id:8292)
+        habitat: terrestre
+      AMP_Insectos:
+        query: (keyword:KW-0929) AND (reviewed:true) AND (length:[5 TO 100]) AND (taxonomy_id:50557)
+        habitat: terrestre
+      AMP_Mamiferos:
+        query: (keyword:KW-0929) AND (reviewed:true) AND (length:[5 TO 100]) AND (taxonomy_id:40674)
+        habitat: terrestre
+      AMP_Plantas:
+        query: (keyword:KW-0929) AND (reviewed:true) AND (length:[5 TO 100]) AND (taxonomy_id:3193)
+        habitat: planta
+      AMP_General:
+        query: (keyword:KW-0929) AND (reviewed:true) AND (length:[5 TO 100])
+        habitat: desconocido
+    additional_databases:
+      apd3:
+        type: download
+        parser: apd3
+      dbaasp:
+        type: api
+        parser: dbaasp
+    negative_config:
+      exclude_keywords:
+      - KW-0929
+      - KW-0800
+      ratio: 1.0
+  anticancer:
+    display_name: Anticancer
+    polarity: good
+    stage: 2-Bioactividad
+    target_pool_size: 800
+    internal_cdhit_identity: 0.9
+    min_habitat_pct:
+      marino: 0.1
+      terrestre: 0.1
+    taxonomic_queries:
+      ACP_KW_Antineoplastic:
+        query: (keyword:KW-0042) AND (reviewed:true) AND (length:[5 TO 100])
+        habitat: desconocido
+      ACP_ProtName_Anticancer:
+        query: (protein_name:anticancer) AND (reviewed:true) AND (length:[5 TO 100])
+        habitat: desconocido
+      ACP_ProtName_Antitumor:
+        query: (protein_name:antitumor) AND (reviewed:true) AND (length:[5 TO 100])
+        habitat: desconocido
+      ACP_GO_ApoptosisInduction:
+        query: (go_id:GO:0006915) AND (keyword:KW-0929) AND (reviewed:true) AND (length:[5 TO 100])
+        habitat: desconocido
+      ACP_Toxin_Cytotoxic:
+        query: (keyword:KW-0800) AND (keyword:KW-0042) AND (reviewed:true) AND (length:[5 TO 100])
+        habitat: desconocido
+    additional_databases:
+      cancerppd:
+        type: download
+        parser: cancerppd
+    negative_config:
+      exclude_keywords:
+      - KW-0042
+      ratio: 1.0
+  antiviral:
+    display_name: Antiviral
+    polarity: good
+    stage: 2-Bioactividad
+    target_pool_size: 800
+    internal_cdhit_identity: 0.9
+    min_habitat_pct:
+      marino: 0.1
+      terrestre: 0.1
+    taxonomic_queries:
+      AVP_General:
+        query: (keyword:KW-0945) AND (reviewed:true) AND (length:[5 TO 100])
+        habitat: desconocido
+    additional_databases:
+      avpdb:
+        type: download
+        parser: avpdb
+    negative_config:
+      exclude_keywords:
+      - KW-0945
+      ratio: 1.0
+  anti_inflammatory:
+    display_name: Anti-inflamatorio
+    polarity: good
+    stage: 2-Bioactividad
+    target_pool_size: 500
+    internal_cdhit_identity: 0.9
+    min_habitat_pct:
+      marino: 0.05
+      terrestre: 0.1
+    taxonomic_queries:
+      AIP_GO_NegRegInflam:
+        query: (go_id:GO:0050728) AND (reviewed:true) AND (length:[5 TO 100])
+        habitat: desconocido
+      AIP_GO_InflamResponse:
+        query: (go_id:GO:0006954) AND (reviewed:true) AND (length:[5 TO 100])
+        habitat: desconocido
+      AIP_ProtName:
+        query: (protein_name:anti-inflammatory) AND (reviewed:true) AND (length:[5 TO 100])
+        habitat: desconocido
+      AIP_Cathelicidins:
+        query: (family:cathelicidin) AND (reviewed:true) AND (length:[5 TO 100])
+        habitat: terrestre
+      AIP_Amphibian_AMP:
+        query: (keyword:KW-0929) AND (taxonomy_id:8292) AND (reviewed:true) AND (length:[5 TO 100])
+        habitat: terrestre
+    additional_databases: {}
+    negative_config:
+      exclude_keywords: []
+      ratio: 1.0
+  antifungal:
+    display_name: Antifungico
+    polarity: good
+    stage: 2-Bioactividad
+    target_pool_size: 600
+    internal_cdhit_identity: 0.9
+    min_habitat_pct:
+      marino: 0.1
+      terrestre: 0.1
+    taxonomic_queries:
+      AFP_General:
+        query: (keyword:KW-0929) AND (cc_activity:antifungal) AND (reviewed:true) AND (length:[5 TO 100])
+        habitat: desconocido
+      AFP_Defensins:
+        query: (family:defensin) AND (reviewed:true) AND (length:[5 TO 100])
+        habitat: desconocido
+    additional_databases:
+      dbaasp:
+        type: api
+        parser: dbaasp
+    negative_config:
+      exclude_keywords:
+      - KW-0929
+      ratio: 1.0
+  anti_angiogenic:
+    display_name: Anti-angiogenico
+    polarity: good
+    stage: 2-Bioactividad
+    target_pool_size: 200
+    internal_cdhit_identity: 0.9
+    min_habitat_pct: {}
+    taxonomic_queries:
+      AAP_General:
+        query: (cc_activity:anti-angiogenic) AND (reviewed:true) AND (length:[5 TO 100])
+        habitat: desconocido
+    additional_databases: {}
+    negative_config:
+      exclude_keywords: []
+      ratio: 1.0
+  hypotensive:
+    display_name: Hipotensivo
+    polarity: good
+    stage: 2-Bioactividad
+    target_pool_size: 500
+    internal_cdhit_identity: 0.9
+    min_habitat_pct: {}
+    taxonomic_queries:
+      AHT_General:
+        query: (cc_activity:antihypertensive) AND (reviewed:true) AND (length:[2 TO 50])
+        habitat: desconocido
+    additional_databases:
+      biopep:
+        type: download
+        parser: biopep
+    negative_config:
+      exclude_keywords: []
+      ratio: 1.0
+  ecoli_inhibitor:
+    display_name: Inhibidor E.coli
+    polarity: good
+    stage: 2-Bioactividad
+    target_pool_size: 400
+    internal_cdhit_identity: 0.9
+    min_habitat_pct: {}
+    taxonomic_queries:
+      EIP_General:
+        query: (keyword:KW-0929) AND (cc_activity:antibacterial) AND (reviewed:true) AND (length:[5 TO 50])
+        habitat: desconocido
+    additional_databases:
+      dbaasp:
+        type: api
+        parser: dbaasp
+    negative_config:
+      exclude_keywords:
+      - KW-0929
+      ratio: 1.0
+  antioxidant:
+    display_name: Antioxidante
+    polarity: good
+    stage: 2-Bioactividad
+    target_pool_size: 400
+    internal_cdhit_identity: 0.9
+    min_habitat_pct: {}
+    taxonomic_queries:
+      AOP_General:
+        query: (keyword:KW-0049) AND (reviewed:true) AND (length:[2 TO 50])
+        habitat: desconocido
+    additional_databases:
+      biopep:
+        type: download
+        parser: biopep
+    negative_config:
+      exclude_keywords:
+      - KW-0049
+      ratio: 1.0
+  anti_aging:
+    display_name: Anti-envejecimiento
+    polarity: good
+    stage: 2-Bioactividad
+    target_pool_size: 200
+    internal_cdhit_identity: 0.9
+    min_habitat_pct: {}
+    taxonomic_queries:
+      Antiaging_General:
+        query: (cc_activity:antioxidant) AND (reviewed:true) AND (length:[2 TO 50])
+        habitat: desconocido
+    additional_databases: {}
+    negative_config:
+      exclude_keywords: []
+      ratio: 1.0
+  tumor_homing:
+    display_name: Tumor Homing
+    polarity: good
+    stage: 2-Bioactividad
+    target_pool_size: 200
+    internal_cdhit_identity: 0.9
+    min_habitat_pct: {}
+    taxonomic_queries:
+      THP_General:
+        query: (cc_activity:tumor-homing) AND (reviewed:true) AND (length:[5 TO 50])
+        habitat: desconocido
+    additional_databases: {}
+    negative_config:
+      exclude_keywords: []
+      ratio: 1.0
+  bbb:
+    display_name: BBB Penetration
+    polarity: good
+    stage: 3-Farmacocinetica
+    target_pool_size: 400
+    internal_cdhit_identity: 0.9
+    min_habitat_pct: {}
+    taxonomic_queries:
+      BBB_General:
+        query: (cc_subcellular_location:brain) AND (reviewed:true) AND (length:[2 TO 50])
+        habitat: desconocido
+    additional_databases: {}
+    negative_config:
+      exclude_keywords: []
+      ratio: 1.0
+  cpp:
+    display_name: Cell Penetrating Peptide
+    polarity: good
+    stage: 3-Farmacocinetica
+    target_pool_size: 600
+    internal_cdhit_identity: 0.9
+    min_habitat_pct: {}
+    taxonomic_queries:
+      CPP_General:
+        query: (cc_subcellular_location:cytoplasm) AND (keyword:KW-0812) AND (reviewed:true) AND (length:[5 TO 50])
+        habitat: desconocido
+    additional_databases:
+      cppsite:
+        type: download
+        parser: cppsite
+    negative_config:
+      exclude_keywords:
+      - KW-0812
+      ratio: 1.0

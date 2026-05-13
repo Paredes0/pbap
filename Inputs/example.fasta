@@ -1,0 +1,20 @@
+>magainin_2 Antimicrobial peptide from Xenopus laevis (canonical AMP)
+GIGKFLHSAKKFGKAFVGEIMNS
+>melittin Bee venom peptide (potent hemolytic, canonical positive control for hemolysis)
+GIGAVLKVLTTGLPALISWIKRKRQQ
+>buforin_2 Histone H2A-derived AMP, low hemolytic (canonical safe AMP control)
+TRSSRAGLQFPVGRVHRLLRK
+>LL37_human Cathelicidin-derived AMP, anti-inflammatory and antimicrobial
+LLGDFFRKSKEKIGKEFKRIVQRIKDFLRNLVPRTES
+>alpha_MSH Melanocyte-stimulating hormone fragment, anti-inflammatory
+SYSMEHFRWGKPV
+>indolicidin Bovine tryptophan-rich AMP
+ILPWKWPWWPWRR
+>VPP Tripeptide from milk (ACE inhibitor, non-toxic non-AMP control)
+VPP
+>polyG Glycine homopolymer (trivial negative control)
+GGGGGGGG
+>scrambled_random Random non-functional peptide
+MKLPSTAVDRLFGVK
+>example_candidate_27aa Synthetic candidate (27 aa, neutral net charge)
+KLAKLAKLAKLAKLAKLAKLAKLAKLA

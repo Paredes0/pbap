@@ -1,0 +1,901 @@
+global:
+  random_seed: 42
+  min_length: 5
+  max_length: 100
+  standard_aa: ACDEFGHIKLMNPQRSTVWY
+  uniprot_api_base: https://rest.uniprot.org/uniprotkb
+  cdhit_thresholds:
+  - 0.4
+  - 0.6
+  - 0.8
+  max_retries: 3
+  retry_delays:
+  - 5
+  - 15
+  - 45
+  base_output_dir: Dataset_Bioactividad
+  repos_dir: Dataset_Bioactividad/Tool_Repos
+  min_habitat_pct:
+    marino: 0.15
+    terrestre: 0.15
+environments:
+  ENV1-torch:
+    conda_name: pipeline_torch
+    pc: windows
+    gpu: true
+  ENV2-tf:
+    conda_name: pipeline_tf
+    pc: windows
+    gpu: true
+  ENV3-ml:
+    conda_name: pipeline_ml
+    pc: windows
+    gpu: false
+  ENV4-qsar:
+    conda_name: pipeline_qsar
+    pc: linux
+    gpu: false
+  ENV5-bertaip:
+    conda_name: pipeline_bertaip
+    pc: windows
+    gpu: true
+ssh:
+  # SSH dispatch is OPTIONAL and only used by audit_lib/cdhit_utils.py when the orchestrator
+  # runs on Windows and lacks a local cd-hit-2d binary. Edit these to point at your own
+  # Linux node, or leave the defaults and run the pipeline entirely on Linux.
+  # See README.md > Setup for details.
+  linux_host: CHANGE_ME.example.com        # e.g. 192.168.1.10 or your.host.tld
+  linux_user: CHANGE_ME                    # your SSH username on that node
+  cdhit_binary: /usr/local/bin/cd-hit-2d   # path to cd-hit-2d on the Linux node
+  sshfs_mount_windows: CHANGE_ME           # e.g. Z:/path/to/sshfs/mount (Windows side)
+  linux_base_path: CHANGE_ME               # e.g. /home/<user>/work/pipeline_Work (Linux side)
+tools:
+  toxinpred3:
+    display_name: ToxinPred3
+    category: toxicity
+    stage: 1-Seguridad
+    github_url: https://github.com/raghavagps/toxinpred3.git
+    doi: 10.1016/j.compbiomed.2024.108926
+    conda_env: ml
+
+    length_range:
+    - 1
+    - 35
+    training_data:
+      search_patterns:
+      - '**/*.csv'
+      - '**/*.tsv'
+      - '**/*.fasta'
+      - '**/*.fa'
+      - '**/*.txt'
+      data_keywords:
+      - train
+      - positive
+      - negative
+      - toxic
+      - non-toxic
+      - dataset
+      sequence_column_hints:
+      - sequence
+      - seq
+      - peptide
+      - Sequence
+      label_column_hints:
+      - label
+      - class
+      - target
+      - toxic
+      - Label
+      - Class
+    run_command:
+      type: python_script
+      script: toxinpred3.py
+      input_flag: -i
+      output_flag: -o
+      extra_args:
+      - -m
+      - '2'
+      input_format: fasta
+      output_format: csv
+      output_parsing:
+        id_column: Subject
+        prediction_column: Prediction
+        positive_label: Toxin
+        score_column: Hybrid Score
+        score_ascending: false
+  hemodl:
+    display_name: HemoDL
+    category: hemolytic
+    stage: 1-Seguridad
+    github_url: https://github.com/abcair/HemoDL.git
+    doi: 10.1016/j.ab.2024.115523
+    conda_env: ml
+
+    length_range:
+    - 2
+    - 133
+    training_data:
+      search_patterns:
+      - data/**/*.fa
+      - data/**/*.fasta
+      - '**/*.fa'
+      - '**/*.fasta'
+      data_keywords:
+      - D1
+      - D2
+      - D3
+      - D4
+      - hemolytic
+      - train
+      sequence_column_hints:
+      - sequence
+      label_column_hints:
+      - label
+      label_source: filename
+      positive_filename_pattern: _pos
+      negative_filename_pattern: _neg
+    run_command:
+      type: python_script
+      script: source/predict.py
+      input_format: fasta
+      output_format: csv
+      arg_style: flagged
+      input_flag: -p
+      output_flag: null
+      output_capture: hardcoded_file
+      hardcoded_output_name: predict_results.csv
+      output_parsing:
+        header: false
+        id_column_index: 0
+        score_column_index: 1
+        prediction_column: null
+        positive_label: null
+        score_ascending: false
+        score_threshold: 0.5
+        positive_class_label: Hemolytic
+        negative_class_label: Non-Hemolytic
+    standby: false
+    weights_download:
+      platform: in_repo
+      notes: LightGBM models in source/models/. ESM-2 650M and ProtT5-XL downloaded from HuggingFace on first run (~4GB).
+      auto_download: true
+  hemopi2:
+    display_name: HemoPI2
+    category: hemolytic
+    stage: 1-Seguridad
+    github_url: https://github.com/raghavagps/hemopi2.git
+    doi: 10.1038/s42003-025-07615-w
+    conda_env: torch
+
+    length_range:
+    - 2
+    - 100
+    training_data:
+      search_patterns:
+      - Dataset/*.csv
+      - '**/*.csv'
+      data_keywords:
+      - cross_val
+      - independent
+      - hemolytic
+      - train
+      sequence_column_hints:
+      - Sequence
+      - sequence
+      - seq
+      label_column_hints:
+      - label
+      - Label
+      - class
+      label_source: column
+    run_command:
+      type: python_script
+      script: hemopi2_classification.py
+      input_format: fasta
+      output_format: csv
+      arg_style: flagged
+      input_flag: -i
+      output_flag: -o
+      output_capture: hardcoded_file
+      hardcoded_output_name: predictions_hemopi2.csv
+      extra_args:
+      - -m
+      - '3'
+      - -j
+      - '1'
+      - -d
+      - '2'
+      - -wd
+      - .
+      output_parsing:
+        id_column: SeqID
+        prediction_column: Prediction
+        positive_label: Hemolytic
+        score_column: ESM Score
+        score_ascending: false
+        notes: 'Modelo 3 (ESM2-t6 finetuned solo, threshold 0.58 — default del paper). Cambiado desde -m 4 (Hybrid2 ESM+MERCI) el 2026-04-30 porque MERCI motif scoring devuelve sentinel -1.0 para péptidos cortos sin matches y colapsa el Hybrid Score a 0 — falla con controles canónicos (mellitina). El paper reporta AUC ~0.85 para ESM solo en su test set independiente; el "boost" de Hybrid2 era marginal y específico del test set del paper.'
+    standby: false
+    weights_download:
+      platform: webserver
+      webserver_url: https://webs.iiitd.edu.in/raghava/hemopi2/download.html
+      target_path: model/
+      instructions: '1. Download model zip from https://webs.iiitd.edu.in/raghava/hemopi2/download.html
+
+        2. Unzip into hemopi2/model/
+
+        3. Verify hemopi2_ml_clf.sav exists in model/'
+      auto_download: false
+  plm4alg:
+    display_name: pLM4Alg
+    category: allergenicity
+    stage: 1-Seguridad
+    github_url: https://github.com/dzjxzyd/pLM4Alg.git
+    doi: 10.1021/acs.jafc.3c07143
+    conda_env: torch_legacy
+
+    length_range:
+    - 10
+    - 100
+    training_data:
+      search_patterns:
+      - '**/*.csv'
+      - '**/*.tsv'
+      - '**/*.fasta'
+      - '**/*.txt'
+      data_keywords:
+      - train
+      - allergen
+      - non-allergen
+      - positive
+      - negative
+      sequence_column_hints:
+      - sequence
+      - seq
+      - peptide
+      label_column_hints:
+      - label
+      - class
+      - allergen
+    run_command:
+      type: python_script
+      script: predict.py
+      input_format: fasta
+      output_format: csv
+    standby: true
+    standby_reason: No runnable Python scripts — entire codebase is Jupyter notebooks (Google Colab). Training data only in
+      XLSX format (not CSV/FASTA). Model weights on institutional SharePoint (may require KSU login). Requires manual refactoring
+      before pipeline integration.
+  bert_ampep60:
+    display_name: BERT-AmPEP60
+    category: antimicrobial
+    stage: 2-Bioactividad
+    github_url: https://github.com/janecai0714/AMP_regression_EC_SA.git
+    doi: 10.1021/acs.jcim.4c01749
+    conda_env: torch
+
+    length_range:
+    - 5
+    - 60
+    training_data:
+      search_patterns:
+      - data/*.csv
+      - '**/*.csv'
+      data_keywords:
+      - train
+      - EC
+      - SA
+      - MIC
+      - pMIC
+      sequence_column_hints:
+      - SEQUENCE
+      - Sequence
+      - sequence
+      label_column_hints:
+      - EC_pMIC
+      - SA_pMIC
+      - EC_MIC
+      label_source: regression_column
+      regression_column: EC_pMIC
+      regression_positive_threshold: 3.0
+    run_command:
+      type: python_script
+      script: predict.py
+      cwd_subdir: predict
+      input_format: fasta
+      output_format: csv
+      arg_style: flagged
+      input_flag: --input-fasta
+      output_flag: --output-csv
+      output_capture: file
+      output_parsing:
+        id_column: ID
+        id_strip_prefix: '>'
+        prediction_column: null
+        positive_label: null
+        score_column: null
+        score_ascending: true
+        score_threshold: null
+        prediction_type: extra_only
+        extra_metrics:
+        - name: MIC_E_coli
+          unit: uM
+          field: "ec_predicted_MIC_μM"
+          transform: identity
+        - name: MIC_S_aureus
+          unit: uM
+          field: "sa_predicted_MIC_μM"
+          transform: identity
+      notes: Multi-target regression (E. coli + S. aureus MIC, μM). class_norm=null per orchestrator_design.md §2. Field names use literal μ character (U+03BC) as written by predict.py.
+    standby: false
+    weights_download:
+      platform: onedrive
+      notes: Script auto-downloads via onedrivedownloader package on first run from SharePoint educativo MPU (~400MB total ec+sa).
+      auto_download: true
+  apex:
+    display_name: APEX
+    category: antimicrobial
+    stage: 2-Bioactividad
+    github_url: https://gitlab.com/machine-biology-group-public/apex.git
+    doi: 10.1038/s41551-024-01201-x
+    conda_env: qsar
+
+    length_range:
+    - 5
+    - 100
+    training_data:
+      search_patterns: []
+      data_keywords: []
+      sequence_column_hints: []
+      label_column_hints: []
+      label_source: null
+      notes: Training data not available in repo (only web app DB). CD-HIT leakage grading not possible.
+    run_command:
+      type: python_script
+      script: predict.py
+      input_format: fasta
+      output_format: csv
+      arg_style: positional
+      input_flag: null
+      output_flag: null
+      pre_command: "awk '/^>/{next}{print}' ${INPUT} > test_seqs.txt"
+      output_capture: hardcoded_file
+      hardcoded_output_name: Predicted_MICs.csv
+      output_parsing:
+        id_column: ""
+        id_is_sequence: true
+        prediction_column: null
+        positive_label: null
+        score_column: null
+        score_ascending: true
+        score_threshold: null
+        prediction_type: extra_only
+        extra_metrics:
+        - name: MIC_E_coli_ATCC11775
+          unit: uM
+          field: "E. coli ATCC11775"
+          transform: identity
+        - name: MIC_P_aeruginosa_PAO1
+          unit: uM
+          field: "P. aeruginosa PAO1"
+          transform: identity
+        - name: MIC_P_aeruginosa_PA14
+          unit: uM
+          field: "P. aeruginosa PA14"
+          transform: identity
+        - name: MIC_S_aureus_ATCC12600
+          unit: uM
+          field: "S. aureus ATCC12600"
+          transform: identity
+        - name: MIC_E_coli_AIG221
+          unit: uM
+          field: "E. coli AIG221"
+          transform: identity
+        - name: MIC_E_coli_AIG222
+          unit: uM
+          field: "E. coli AIG222"
+          transform: identity
+        - name: MIC_K_pneumoniae_ATCC13883
+          unit: uM
+          field: "K. pneumoniae ATCC13883"
+          transform: identity
+        - name: MIC_A_baumannii_ATCC19606
+          unit: uM
+          field: "A. baumannii ATCC19606"
+          transform: identity
+        - name: MIC_A_muciniphila_ATCC_BAA_835
+          unit: uM
+          field: "A. muciniphila ATCC BAA-835"
+          transform: identity
+        - name: MIC_B_fragilis_ATCC25285
+          unit: uM
+          field: "B. fragilis ATCC25285"
+          transform: identity
+        - name: MIC_B_vulgatus_ATCC8482
+          unit: uM
+          field: "B. vulgatus ATCC8482"
+          transform: identity
+        - name: MIC_C_aerofaciens_ATCC25986
+          unit: uM
+          field: "C. aerofaciens ATCC25986"
+          transform: identity
+        - name: MIC_C_scindens_ATCC35704
+          unit: uM
+          field: "C. scindens ATCC35704"
+          transform: identity
+        - name: MIC_B_thetaiotaomicron_ATCC29148
+          unit: uM
+          field: "B. thetaiotaomicron ATCC29148"
+          transform: identity
+        - name: MIC_B_thetaiotaomicron_Complemmented
+          unit: uM
+          field: "B. thetaiotaomicron Complemmented"
+          transform: identity
+        - name: MIC_B_thetaiotaomicron_Mutant
+          unit: uM
+          field: "B. thetaiotaomicron Mutant"
+          transform: identity
+        - name: MIC_B_uniformis_ATCC8492
+          unit: uM
+          field: "B. uniformis ATCC8492"
+          transform: identity
+        - name: MIC_B_eggerthi_ATCC27754
+          unit: uM
+          field: "B. eggerthi ATCC27754"
+          transform: identity
+        - name: MIC_C_spiroforme_ATCC29900
+          unit: uM
+          field: "C. spiroforme ATCC29900"
+          transform: identity
+        - name: MIC_P_distasonis_ATCC8503
+          unit: uM
+          field: "P. distasonis ATCC8503"
+          transform: identity
+        - name: MIC_P_copri_DSMZ18205
+          unit: uM
+          field: "P. copri DSMZ18205"
+          transform: identity
+        - name: MIC_B_ovatus_ATCC8483
+          unit: uM
+          field: "B. ovatus ATCC8483"
+          transform: identity
+        - name: MIC_E_rectale_ATCC33656
+          unit: uM
+          field: "E. rectale ATCC33656"
+          transform: identity
+        - name: MIC_C_symbiosum
+          unit: uM
+          field: "C. symbiosum"
+          transform: identity
+        - name: MIC_R_obeum
+          unit: uM
+          field: "R. obeum"
+          transform: identity
+        - name: MIC_R_torques
+          unit: uM
+          field: "R. torques"
+          transform: identity
+        - name: MIC_S_aureus_ATCC_BAA_1556_MRSA
+          unit: uM
+          field: "S. aureus (ATCC BAA-1556) - MRSA"
+          transform: identity
+        - name: MIC_vancomycin_resistant_E_faecalis_ATCC700802
+          unit: uM
+          field: "vancomycin-resistant E. faecalis ATCC700802"
+          transform: identity
+        - name: MIC_vancomycin_resistant_E_faecium_ATCC700221
+          unit: uM
+          field: "vancomycin-resistant E. faecium ATCC700221"
+          transform: identity
+        - name: MIC_E_coli_Nissle
+          unit: uM
+          field: "E. coli Nissle"
+          transform: identity
+        - name: MIC_Salmonella_enterica_ATCC_9150_BEIRES_NR_515
+          unit: uM
+          field: "Salmonella enterica ATCC 9150 (BEIRES NR-515)"
+          transform: identity
+        - name: MIC_Salmonella_enterica_BEIRES_NR_170
+          unit: uM
+          field: "Salmonella enterica (BEIRES NR-170)"
+          transform: identity
+        - name: MIC_Salmonella_enterica_ATCC_9150_BEIRES_NR_174
+          unit: uM
+          field: "Salmonella enterica ATCC 9150 (BEIRES NR-174)"
+          transform: identity
+        - name: MIC_L_monocytogenes_ATCC_19111_BEIRES_NR_106
+          unit: uM
+          field: "L. monocytogenes ATCC 19111 (BEIRES NR-106)"
+          transform: identity
+        notes: APEX is multi-target MIC regression (34 strains). class_norm=null, score=null per orchestrator_design.md §2 (no arbitrary binary threshold). FASTA preprocessed via pre_command (sequence-per-line txt). CUDA required.
+    standby: false
+    weights_download:
+      platform: in_repo
+      notes: 20 ensemble PyTorch model files in trained_models/. No external download needed.
+      auto_download: false
+  antibp3:
+    display_name: AntiBP3
+    category: antimicrobial
+    stage: 2-Bioactividad
+    github_url: https://github.com/raghavagps/AntiBP3.git
+    doi: 10.3390/antibiotics13020168
+    conda_env: ml
+
+    length_range:
+    - 5
+    - 50
+    training_data:
+      search_patterns: []
+      data_keywords: []
+      sequence_column_hints: []
+      label_column_hints: []
+      label_source: null
+      notes: Pre-trained sklearn .pkl models in repo. Raw training data not available. CD-HIT leakage grading not possible.
+    run_command:
+      type: python_script
+      script: antibp3.py
+      input_format: fasta
+      output_format: csv
+      arg_style: flagged
+      input_flag: -i
+      output_flag: -o
+      extra_args:
+      - -s
+      - '1'
+      - -j
+      - '1'
+      - -d
+      - '2'
+      - -wd
+      - .
+      output_capture: file
+      output_parsing:
+        id_column: Seq ID
+        prediction_column: Prediction
+        positive_label: ABPs
+        score_column: ML Score
+        score_ascending: false
+      notes: Must run on Linux (bundled blastp binary is Linux x86_64). Use SSH dispatch v�a CD-HIT.
+    standby: false
+    weights_download:
+      platform: in_repo
+      notes: Three .pkl models (ET/RF/SVC for GP/GN/GV) in model/. blastp binary bundled.
+      auto_download: false
+  deepbp:
+    display_name: DeepBP
+    category: anticancer
+    stage: 2-Bioactividad
+    github_url: https://github.com/Zhou-Jianren/bioactive-peptides.git
+    doi: 10.1186/s12859-024-05974-5
+    conda_env: torch_legacy
+
+    length_range:
+    - 5
+    - 50
+    training_data:
+      search_patterns:
+      - ACP/data/*.tsv
+      - '**/*.tsv'
+      data_keywords:
+      - train
+      - ACP
+      - label
+      - text_a
+      sequence_column_hints:
+      - text_a
+      label_column_hints:
+      - label
+      label_source: inverted_column
+      label_inverted: true
+      sequence_format: tsv
+    run_command:
+      type: python_script
+      script: main/predict_ACP.py
+      input_format: fasta
+      output_format: csv
+      arg_style: positional
+      positional_input_index: 0
+      output_capture: stdout
+      stdout_parse_type: python_list
+      output_parsing:
+        id_column: ID
+        prediction_column: Prediction
+        positive_label: ACP
+        score_column: null
+        score_ascending: false
+      notes: No probability output — binary only. ESM-2 downloaded from Meta at runtime.
+    standby: false
+    weights_download:
+      platform: in_repo
+      notes: CNN ensemble .h5 in ACP/save_models/CNN/Independence/. GRU/CapsuleGAN dirs may be empty — verify after clone.
+      auto_download: false
+  acp_dpe:
+    display_name: ACP-DPE
+    category: anticancer
+    stage: 2-Bioactividad
+    github_url: https://github.com/CYJ-sudo/ACP-DPE.git
+    doi: 10.1049/syb2.70010
+    conda_env: torch_legacy
+
+    length_range:
+    - 5
+    - 50
+    training_data:
+      search_patterns:
+      - '**/*.csv'
+      - '**/*.tsv'
+      - '**/*.fasta'
+      - '**/*.txt'
+      data_keywords:
+      - train
+      - ACP
+      - anticancer
+      - positive
+      - negative
+      sequence_column_hints:
+      - sequence
+      - seq
+      - peptide
+      label_column_hints:
+      - label
+      - class
+    run_command:
+      type: python_script
+      script: Test.py
+      input_format: fasta
+      output_format: csv
+      arg_style: flagged
+      input_flag: --input
+      output_flag: --output
+      output_capture: file
+      output_parsing:
+        id_column: ID
+        id_strip_prefix: ''
+        prediction_column: class_acp
+        positive_label: 1
+        score_column: prob_acp
+        score_ascending: true
+        score_threshold: null
+        prediction_type: classification
+      notes: Patched 2026-04-26 — added __main__ with argparse, FASTA→CSV adapter, drop_last=False, per-seq probability dump. Lógica original (CNN_gru + main_model.pt + 0.5/0.5 ensemble gru/cnn) intacta.
+    standby: false
+    weights_download:
+      platform: in_repo
+      notes: model/main_model.pt + model/alt_model.pt + residue2idx.pkl en repo. Cargados con cwd=repo_dir.
+      auto_download: false
+  avppred_bwr:
+    display_name: AVPpred-BWR
+    category: antiviral
+    stage: 2-Bioactividad
+    github_url: https://github.com/zyweizm/AVPpred-BWR.git
+    doi: 10.1093/bioinformatics/btaf126
+    conda_env: torch
+
+    length_range:
+    - 5
+    - 100
+    training_data:
+      search_patterns:
+      - '**/*.csv'
+      - '**/*.tsv'
+      - '**/*.fasta'
+      - '**/*.txt'
+      data_keywords:
+      - train
+      - AVP
+      - antiviral
+      - positive
+      - negative
+      sequence_column_hints:
+      - sequence
+      - seq
+      - peptide
+      label_column_hints:
+      - label
+      - class
+      - antiviral
+    run_command:
+      type: python_script
+      script: predict.py
+      input_format: fasta
+      output_format: csv
+    standby: true
+    standby_reason: No predict/inference script exists — only train.py and test.py with hardcoded absolute paths (/mnt/raid5/...)
+      to the authors' private server. Pre-computed feature .npz files (k-mer embeddings) available only via Baidu Netdisk
+      (not programmatically downloadable). Training data FASTA + labels are in repo but feature pipeline cannot be reproduced
+      without the .npz files.
+  bertaip:
+    display_name: BertAIP
+    category: anti_inflammatory
+    stage: 2-Bioactividad
+    github_url: https://github.com/ying-jc/BertAIP.git
+    doi: null
+    conda_env: pipeline_bertaip
+
+    length_range:
+    - 5
+    - 54
+    training_data:
+      search_patterns:
+      - '**/*.fasta'
+      data_keywords:
+      - train
+      - AIP
+      - anti-inflammatory
+      - positive
+      - negative
+      sequence_column_hints:
+      - sequence
+      label_column_hints:
+      - label
+    run_command:
+      type: python_script
+      script: BertAIP.py
+      input_format: fasta
+      output_format: csv
+      arg_style: flagged
+      input_flag: --seq
+      output_flag: --out
+      output_capture: file
+      output_parsing:
+        id_column: SeqID
+        prediction_column: Prediction of AIP
+        positive_label: 1
+        score_column: Probability of AIP
+        score_ascending: false
+        score_threshold: 0.8
+        prediction_type: classification
+        prefer_threshold_over_raw_class: true
+        notes: 'Threshold 0.8 (subido desde 0.5 default del paper el 2026-05-01) — el modelo es optimista y produce demasiados falsos positivos con threshold 0.5 en péptidos del usuario. `prefer_threshold_over_raw_class: true` fuerza al orchestrator a re-clasificar usando score >= 0.8 en vez de aceptar la decisión binaria interna del modelo (que usa corte 0.5 hardcodeado). Decisión registrada en `docs/decisions.md` §10.'
+    standby: false
+    weights_download:
+      platform: huggingface
+      notes: Huggingface model yingjc/BertAIP is auto-downloaded by simpletransformers at runtime.
+      auto_download: true
+  antifungipept:
+    display_name: AntiFungiPept
+    category: antifungal
+    stage: 2-Bioactividad
+    github_url: https://github.com/JinZhangLab/antifungal.git
+    doi: 10.1021/acs.jcim.4c00142
+    conda_env: ml_legacy_py38
+
+    length_range:
+    - 5
+    - 50
+    training_data:
+      search_patterns:
+      - '**/*.csv'
+      - '**/*.tsv'
+      - '**/*.fasta'
+      - '**/*.xlsx'
+      data_keywords:
+      - train
+      - antifungal
+      - candida
+      - positive
+      - negative
+      sequence_column_hints:
+      - sequence
+      - seq
+      - peptide
+      label_column_hints:
+      - label
+      - class
+      - MIC
+    run_command:
+      type: python_script
+      script: antifungal/predict.py
+      input_format: csv
+      output_format: csv
+  deepb3p:
+    display_name: DeepB3P
+    category: bbb
+    stage: 3-Farmacocinetica
+    github_url: https://github.com/GreatChenLab/deepB3P.git
+    doi: 10.1016/j.jare.2024.08.002
+    conda_env: deepb3p_legacy
+
+    length_range:
+    - 2
+    - 50
+    training_data:
+      search_patterns:
+      - '**/*.csv'
+      - '**/*.tsv'
+      - '**/*.fasta'
+      - '**/*.txt'
+      data_keywords:
+      - train
+      - BBB
+      - B3P
+      - positive
+      - negative
+      - penetrating
+      sequence_column_hints:
+      - sequence
+      - seq
+      - peptide
+      label_column_hints:
+      - label
+      - class
+      - BBB
+    run_command:
+      type: python_script
+      script: predict_user.py
+      input_format: fasta
+      output_format: csv
+      arg_style: positional
+      input_flag: null
+      output_flag: null
+      output_capture: hardcoded_file
+      hardcoded_output_name: prob.txt
+      output_parsing:
+        id_column: peptide
+        id_is_sequence: true
+        prediction_column: null
+        positive_label: null
+        score_column: prob
+        score_ascending: false
+        score_threshold: 0.5
+        positive_class_label: BBB+
+        negative_class_label: BBB-
+  perseucpp:
+    display_name: PerseuCPP
+    category: cpp
+    stage: 3-Farmacocinetica
+    github_url: https://github.com/goalmeida05/PERSEU.git
+    doi: 10.1093/bioadv/vbaf213
+    conda_env: torch
+
+    length_range:
+    - 5
+    - 50
+    training_data:
+      search_patterns:
+      - '**/*.csv'
+      - '**/*.tsv'
+      - '**/*.fasta'
+      - '**/*.txt'
+      data_keywords:
+      - train
+      - CPP
+      - cell-penetrating
+      - positive
+      - negative
+      sequence_column_hints:
+      - sequence
+      - seq
+      - peptide
+      label_column_hints:
+      - label
+      - class
+    run_command:
+      type: python_script
+      script: PERSEUcpp.py
+      input_format: fasta
+      output_format: csv
+      arg_style: flagged
+      input_flag: --input
+      output_flag: null
+      output_capture: hardcoded_file
+      hardcoded_output_name: Results.csv
+      output_parsing:
+        id_column: seq
+        id_is_sequence: true
+        prediction_column: Classification_cpp
+        positive_label: 1
+        score_column: prob_cpp
+        score_ascending: true
+        score_threshold: null
+        prediction_type: classification
+        extra_metrics:
+        - name: efficiency_high_prob
+          unit: none
+          field: prob_eff
+          transform: identity
+      notes: 2-stage CPP/Efficiency. Eje binario = CPP classification (prob_cpp). Eficiencia (prob_eff = High prob, '-' si no se evalua) expuesta como extra_metric. Patched __main__ to support --input argparse alongside legacy interactive prompt.
+    standby: false
+    weights_download:
+      platform: in_repo
+      notes: PERSEU-MODEL.pkl (5.6MB) + PERSEU-Efficiency.pkl (542KB) en repo root. Cargados con cwd=repo_dir.
+      auto_download: false

@@ -1,0 +1,33 @@
+cff-version: 1.2.0
+message: "If you use this software in your research, please cite it as below."
+title: "Peptide Bioactivity Audit Pipeline (PBAP)"
+abstract: >-
+  An integrated, modular orchestration pipeline that audits the
+  reusability of published peptide-bioactivity prediction tools and
+  coordinates their inference under a unified output schema, with
+  per-strain pathogen/commensal selectivity classification (APEX) and
+  a hierarchical multi-criteria ranking system. The pipeline integrates
+  10 functional tools spanning 7 bioactivity categories (toxicity,
+  hemolytic, antimicrobial, anti-inflammatory, anticancer, BBB, CPP)
+  out of 26 tools published 2023-2025 that were systematically evaluated.
+type: software
+authors:
+  - family-names: "Paredes Alfaro"
+    given-names: "Noé"
+    email: "noeparedesalf@gmail.com"
+repository-code: "https://github.com/Paredes0/pipeline_Work---copia"
+license: "LicenseRef-PolyForm-Noncommercial-1.0.0"
+license-url: "https://polyformproject.org/licenses/noncommercial/1.0.0"
+keywords:
+  - peptide bioactivity
+  - antimicrobial peptides
+  - machine learning
+  - reproducibility
+  - tool orchestration
+  - bacterial selectivity
+  - drug discovery
+  - open science
+  - modular architecture
+  - human-AI collaboration
+date-released: "2026-05-13"
+version: "0.1.0"
