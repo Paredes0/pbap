@@ -58,8 +58,9 @@ cd pbap
 # See https://mamba.readthedocs.io/en/latest/installation/micromamba-installation.html
 
 # 3. Create the orchestrator's own environment (Python ≥ 3.10)
-micromamba create -n pbap_orchestrator python=3.11 pyyaml pandas numpy openpyxl requests
+micromamba create -n pbap_orchestrator python=3.11 pip
 micromamba activate pbap_orchestrator
+pip install -r requirements.txt
 
 # 4. (Optional but typical) Clone the prediction tools you want to use
 #    into Dataset_Bioactividad/Tool_Repos/<tool_name>/

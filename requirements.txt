@@ -1,0 +1,10 @@
+# Minimal runtime dependencies of the PBAP orchestrator itself.
+# The per-tool prediction environments are managed separately via
+# micromamba (see docs/deployment.md). These are only the Python packages
+# directly imported by audit_lib/ and scripts/run_audit.py.
+
+pyyaml>=6.0
+pandas>=1.5
+numpy>=1.23
+openpyxl>=3.1
+requests>=2.28

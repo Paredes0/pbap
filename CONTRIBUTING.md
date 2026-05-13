@@ -45,8 +45,9 @@ cd pbap
 # See https://mamba.readthedocs.io/en/latest/installation/micromamba-installation.html
 
 # 3. Create the orchestrator environment (Python ≥ 3.10)
-micromamba create -n pbap_orchestrator python=3.11 pyyaml pandas numpy openpyxl requests
+micromamba create -n pbap_orchestrator python=3.11 pip
 micromamba activate pbap_orchestrator
+pip install -r requirements.txt
 
 # 4. Run the smoke test (uses Inputs/example.fasta)
 python scripts/run_audit.py --input Inputs/example.fasta --dry-run
