@@ -15,8 +15,9 @@ authors:
   - family-names: "Paredes Alfonso"
     given-names: "Noé"
     email: "noeparedesalf@gmail.com"
+    orcid: "https://orcid.org/0009-0000-9739-9756"
 repository-code: "https://github.com/Paredes0/pbap"
-license: "LicenseRef-PolyForm-Noncommercial-1.0.0"
+url: "https://github.com/Paredes0/pbap"
 license-url: "https://polyformproject.org/licenses/noncommercial/1.0.0"
 keywords:
   - peptide bioactivity
@@ -30,4 +31,4 @@ keywords:
   - modular architecture
   - human-AI collaboration
 date-released: "2026-05-13"
-version: "0.1.0"
+version: "0.1.1"
