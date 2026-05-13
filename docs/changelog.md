@@ -9,6 +9,70 @@ last_updated: 2026-05-13
 
 ## 2026-05
 
+- 2026-05-13 — **Auditoría total del repo: Tier D (depth)**. Tres
+  mejoras de fondo derivadas del audit:
+  (a) `docs/glossary.md` overhaul (Tier D + M3): ~16 términos nuevos
+  o reescritos (Applicability Domain, APEX strain classification,
+  arg_style, dual schema, holistic/structural score, patch
+  reproducible, wrapper, bootstrap scripts, Cloudflare Quick Tunnel,
+  mitigation shield, allow-list/kill switch, takedown, repro gaps,
+  Phase 1/2, project memory, end-of-task checklist, contract,
+  index-first, ADR…). Cada entrada enlaza al doc canónico.
+  (b) `docs/roadmap.md` sincronizado con realidad: items "Public demo
+  (Gradio)", "Bootstrap scripts", "Leakage analysis CD-HIT-2D" y
+  "Taxonomic bias analysis" marcados como `done` con enlaces. Nuevo
+  item "Phase-2 integration into Phase-1 reports" capturando deuda
+  real. "Richer HTML report" pasa a `partially done`.
+  (c) `.github/workflows/smoke.yml` gana 3 steps CI nuevos: validate
+  bash syntax de los 2 bootstrap scripts (`bash -n`), validate que
+  los 5 `.patch` son unified diffs bien formados (--- /+++ /@@), y
+  validate que los 6 YAML manifests de envs/ parsean y cubren los 6
+  envs core. Sin esto, un commit que rompiera un patch o un manifest
+  pasaba el CI silenciosamente.
+- 2026-05-13 — **Auditoría total del repo: Tier C (seguridad)**.
+  Tres hallazgos del audit cerrados:
+  (S1, X-Forwarded-For) — el backend del demo ya no toma ciegamente
+  la primera IP del header XFF. Nueva env var `TRUSTED_PROXY_HOSTS`
+  (default `127.0.0.1,::1`, que coincide con Cloudflare Tunnel local)
+  determina desde qué hosts se confía el header. Si el immediate hop
+  no es de un proxy de confianza, XFF se ignora y rate-limit usa la
+  IP de la conexión directa. Si sí es de confianza, se walka el chain
+  de derecha a izquierda quedándose con la primera IP no trusted —
+  esa es la real, no spoofable más allá del primer proxy.
+  (S2, CORS) — `ALLOWED_ORIGINS` ya no defaultea a `*`. Default
+  ahora es lista vacía → el middleware CORS NO se instala y el
+  backend rechaza requests cross-origin de browsers. El operador
+  DEBE setear `ALLOWED_ORIGINS=https://<space>.hf.space` (o `*` si
+  acepta el trade-off explícitamente) antes de exponer el demo.
+  Logged como warning al arranque del servidor.
+  (S3, iframe sandbox) — el iframe que embebe el REPORT.html en el
+  frontend ahora lleva `sandbox="allow-scripts allow-same-origin"`
+  + `referrerpolicy="no-referrer"`. Permite los scripts internos del
+  reporte (sortable tables, filters) pero deniega top-navigation,
+  form submission, popups y origen distinto. Blast radius mínimo.
+- 2026-05-13 — **Auditoría total del repo: Tier A+B (coherencia)**.
+  Seis hallazgos cerrados:
+  (C1) `CITATION.cff:18` + `CONTRIBUTING.md:41` — URLs
+  `pipeline_Work---copia` (nombre interno antiguo del repo) → `pbap`.
+  (M1) README badge `conda_envs-9` → `conda_envs-6_active` (refleja
+  lo que `bootstrap_envs.sh` realmente crea, sin contar los 3 envs
+  históricos de tools standby).
+  (M2) `docs/deployment.md` §4 reestructurado en 3 subsecciones:
+  "4.1 Core envs (recreatable from this repo)" — los 6 con YAML;
+  "4.2 Historical envs for parked/blocked tools (not redistributed)"
+  — los 3 históricos sin YAML, ahora marcados explícitamente como
+  no reproducibles; "4.3 Auxiliary envs (on demand)" —
+  `pbap_orchestrator` (requerido para CLI) y `pbap_demo_api`
+  (opcional, demo).
+  (M4) `THIRD_PARTY_LICENSES.md:41` — URL upstream de PerseuCPP era
+  `goalmeida05/PERSEUcpp` (404 verificado vía curl). Corregido a
+  `goalmeida05/PERSEU` (200). Era el único upstream URL realmente
+  roto del documento.
+  (M5) `NOTICE` — "the 26 third-party prediction tools" → "the
+  third-party prediction tools (roughly two dozen evaluated; ten
+  currently active — see THIRD_PARTY_LICENSES.md and
+  pipeline_viability.md for the authoritative inventory)". Evita
+  cifra exacta ambigua entre 25 y 26.
 - 2026-05-13 — **SETUP_FROM_SCRATCH.md: añadido bloque "expected tree"**.
   Entre paso 2 (envs) y paso 3 (HemoPI2 manual download) se inserta
   un árbol ASCII que muestra la estructura exacta que un tercero debe

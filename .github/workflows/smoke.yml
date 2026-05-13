@@ -105,6 +105,62 @@ jobs:
           print("All audit_lib modules import OK.")
           PY
 
+      - name: Validate bootstrap scripts are syntactically valid bash
+        run: |
+          set -e
+          for s in scripts/bootstrap_tools.sh scripts/bootstrap_envs.sh; do
+            bash -n "$s" && echo "OK   $s"
+          done
+
+      - name: Validate patch files are well-formed unified diffs
+        run: |
+          python - <<'PY'
+          import pathlib, sys, re
+          patches = sorted(pathlib.Path("patches").glob("*.patch"))
+          if not patches:
+              sys.exit("No patches/*.patch found")
+          ok, bad = [], []
+          # Minimal unified-diff sanity: must have at least one `diff --git`
+          # or `--- a/...` and one `+++ b/...` plus one hunk header `@@ ... @@`.
+          hunk_re = re.compile(r"^@@ .* @@", re.MULTILINE)
+          for p in patches:
+              text = p.read_text(encoding="utf-8", errors="replace")
+              has_old = "--- a/" in text or "--- " in text
+              has_new = "+++ b/" in text or "+++ " in text
+              has_hunk = hunk_re.search(text) is not None
+              if has_old and has_new and has_hunk:
+                  ok.append(p.name)
+              else:
+                  bad.append(f"{p.name}: old={has_old} new={has_new} hunk={has_hunk}")
+          if bad:
+              for b in bad: print("FAIL", b, file=sys.stderr)
+              sys.exit(1)
+          print(f"OK {len(ok)} patch files well-formed: {', '.join(ok)}")
+          PY
+
+      - name: Validate env YAML manifests parse and declare a name
+        run: |
+          python - <<'PY'
+          import yaml, pathlib, sys
+          envs = sorted(pathlib.Path("envs").glob("*.yaml"))
+          if not envs:
+              sys.exit("No envs/*.yaml found")
+          expected_envs = {"ml", "torch", "qsar", "torch_legacy",
+                          "deepb3p_legacy", "pipeline_bertaip"}
+          seen = set()
+          for e in envs:
+              with open(e, "r", encoding="utf-8") as f:
+                  doc = yaml.safe_load(f)
+              if not isinstance(doc, dict) or "name" not in doc:
+                  sys.exit(f"FAIL {e}: missing top-level 'name:'")
+              seen.add(doc["name"])
+              print(f"OK   {e.name}  (name={doc['name']})")
+          missing = expected_envs - seen
+          if missing:
+              sys.exit(f"Missing required env manifests for: {sorted(missing)}")
+          print(f"All {len(envs)} env manifests parse and cover the 6 core envs.")
+          PY
+
       - name: Check no personal paths remain in tracked files
         run: |
           # Only check files actually tracked by git (what gets published).

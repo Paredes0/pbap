@@ -22,14 +22,19 @@ This is the **public** roadmap: ideas, milestones and improvements that are open
 ## Short term — usability and packaging
 
 ### Docker image (one-command setup)
-**What**: bundle the orchestrator, the 9 micromamba environments and the tool repositories into a single Docker image.
-**Why**: drop the "clone N tools by hand" step that currently blocks new users.
+**What**: bundle the orchestrator, the 6 micromamba environments and the tool repositories into a single Docker image.
+**Why**: even with `bootstrap_tools.sh` + `bootstrap_envs.sh`, the disk and time cost (~35–45 GB, ~30–60 min) keeps the barrier high. A pre-built image would drop it to "docker pull + run".
 **Status**: `idea`.
 
-### Public demo (Streamlit / Gradio)
+### Public demo (Gradio)
 **What**: a small hosted page where anyone can paste a peptide sequence, run the pipeline and see the HTML report.
 **Why**: lower the activation energy for evaluating the pipeline.
-**Status**: `idea`.
+**Status**: `done` — live at [huggingface.co/spaces/Paredes-0/pbap-demo](https://huggingface.co/spaces/Paredes-0/pbap-demo). Operator-side scaffold in [`demo/`](../demo/), ADR `2026-05-13` in [`decisions.md`](decisions.md).
+
+### Bootstrap scripts (reproducibility from `git clone`)
+**What**: scripts that clone the 10 upstream tools, apply the 5 reproducibility patches, and create the 6 micromamba envs — so a third party can recreate the pipeline without access to the maintainer's internal tree.
+**Why**: previously the public repo carried only orchestrator code; the 10 tools and the envs were assumed to "be there", which they aren't on a fresh machine.
+**Status**: `done` — see `scripts/bootstrap_tools.sh`, `scripts/bootstrap_envs.sh`, [`SETUP_FROM_SCRATCH.md`](SETUP_FROM_SCRATCH.md), and [`patches/`](../patches/) + [`envs/`](../envs/).
 
 ### Demo video (≤ 90 seconds)
 **What**: screen recording — drop FASTA → run pipeline → open HTML report.
@@ -67,7 +72,12 @@ This is the **public** roadmap: ideas, milestones and improvements that are open
 ### Leakage analysis via CD-HIT-2D (Phase 2)
 **What**: for every tool, compute CD-HIT-2D similarity between the user input and the tool's training set. Tag every peptide with `Gold` / `Silver` / `Bronze` / `Red` to indicate how novel it is for that specific tool.
 **Why**: reframes the output as "this prediction is reliable because the peptide is similar to what the tool was trained on" vs. "this is extrapolation". Empirical applicability-domain calibration.
-**Status**: `idea`.
+**Status**: `done` (Phase 2 audit pipeline) — implemented in `scripts/cdhit_leakage_analysis.py` and orchestrated by `bin/audit_pipeline.sh`. Reframed as Applicability Domain bands in 2026-05 (ADR in [`decisions.md`](decisions.md)). **Not integrated into Phase 1 user inference** — its outputs are offline validation artifacts, not per-peptide labels in the user report. See [`leakage_analysis.md`](leakage_analysis.md).
+
+### Phase-2 integration into Phase-1 reports
+**What**: surface CD-HIT-2D AD bands and reliability stratification into the user-facing `REPORT.html` (today they live only in offline Phase-2 outputs).
+**Why**: the user inferring on novel peptides today has no visibility into how reliable each tool's verdict is for *their specific input*.
+**Status**: `idea`. Builds on the now-complete Phase-2 leakage analysis.
 
 ### Reliability curves stratified by leakage grade
 **What**: for each tool and each grade, compute sensitivity/specificity/MCC/AUC against an independent ground-truth dataset. Result: a "trust this tool this much, when the peptide is this far from its training".
@@ -77,12 +87,12 @@ This is the **public** roadmap: ideas, milestones and improvements that are open
 ### Taxonomic bias analysis
 **What**: stratify per-tool metrics by taxonomic origin (bacteria / fungi / plants / animals / etc).
 **Why**: a tool that excels on bacterial AMPs may flop on fungal peptides — the user should be told.
-**Status**: `idea`.
+**Status**: `done` (Phase 2) — implemented in `scripts/taxonomic_bias_analysis.py` with Fisher exact + Wilson CI + Benjamini–Hochberg FDR. See [`taxonomic_analysis.md`](taxonomic_analysis.md). Same caveat: Phase-2 only.
 
 ### Weighted ensemble by reliability
 **What**: instead of equal-vote consensus, weight each tool's prediction by its calibrated reliability for the specific peptide.
 **Why**: better integration of heterogeneous predictors.
-**Status**: `idea`. Depends on the two items above.
+**Status**: `idea`. Depends on the reliability curves item above. Documented as "Option E" in [`orchestrator_design.md`](orchestrator_design.md) §4 — current consensus layer is "Option B" (agreement only, no voting).
 
 ---
 
@@ -99,9 +109,9 @@ This is the **public** roadmap: ideas, milestones and improvements that are open
 **Status**: `idea`.
 
 ### Richer HTML report
-**What**: sortable tables, filters, export to PDF, side-by-side comparison of peptides, per-peptide drill-down on its own page.
+**What**: sortable tables, filters, side-by-side comparison of peptides, per-peptide drill-down, APEX heatmap and disagreement view.
 **Why**: navigating a report with 100+ peptides gets tedious.
-**Status**: `idea`.
+**Status**: partially `done` — current `REPORT.html` already supports sortable tables, filters, per-peptide drill-down, an APEX 34-strain block and a disagreement section. Remaining `idea` items: PDF export, side-by-side peptide comparison view, persistent column-pinning across reloads.
 
 ---
 
