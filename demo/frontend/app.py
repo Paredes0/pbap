@@ -35,11 +35,11 @@ ALL_TOOLS = [
     ("HemoPI2 — hemolysis",           "hemopi2"),
     ("HemoDL — hemolysis",            "hemodl"),
     ("DeepB3P — blood-brain barrier", "deepb3p"),
-    ("DeepBP — bitter peptides",      "deepbp"),
+    ("DeepBP — anticancer",           "deepbp"),
     ("APEX — MIC across 34 strains",  "apex"),
     ("PerseuCPP — cell-penetrating",  "perseucpp"),
     ("ACP-DPE — anticancer",          "acp_dpe"),
-    ("BERT-AIP — anti-inflammatory",  "bertaip"),
+    ("BertAIP — anti-inflammatory",   "bertaip"),
 ]
 
 EXAMPLE_INPUT = """\
@@ -220,15 +220,15 @@ original papers**, not this demo.
 | Tool | What it predicts | Upstream |
 |---|---|---|
 | ToxinPred3 | Toxicity | [raghavagps/toxinpred3](https://github.com/raghavagps/toxinpred3) |
-| AntiBP3 | Antibacterial | [raghavagps/antibp3](https://github.com/raghavagps/antibp3) |
+| AntiBP3 | Antibacterial | [raghavagps/AntiBP3](https://github.com/raghavagps/AntiBP3) |
 | HemoPI2 | Hemolysis | [raghavagps/hemopi2](https://github.com/raghavagps/hemopi2) |
-| HemoDL | Hemolysis | [plisson-lab/HemoDL](https://github.com/plisson-lab/HemoDL) |
-| DeepB3P | Blood-brain barrier | [GreenStarTeam/DeepB3P3](https://github.com/GreenStarTeam/DeepB3P3) |
-| DeepBP | Bitter peptides | [Brian-fei/DeepBP](https://github.com/Brian-fei/DeepBP) |
-| APEX | MIC across 34 strains | [de-la-Fuente-Lab/APEX](https://github.com/de-la-Fuente-Lab/APEX) |
-| PerseuCPP | Cell-penetrating | [plisson-lab/Perseus](https://github.com/plisson-lab/Perseus) |
-| ACP-DPE | Anticancer | [Brian-fei/ACP-DPE](https://github.com/Brian-fei/ACP-DPE) |
-| BERT-AIP | Anti-inflammatory | upstream repo (see `THIRD_PARTY_LICENSES.md`) |
+| HemoDL | Hemolysis | [abcair/HemoDL](https://github.com/abcair/HemoDL) |
+| DeepB3P | Blood-brain barrier | [GreatChenLab/deepB3P](https://github.com/GreatChenLab/deepB3P) |
+| DeepBP | Anticancer | [Zhou-Jianren/bioactive-peptides](https://github.com/Zhou-Jianren/bioactive-peptides) |
+| APEX | MIC across 34 strains | [machine-biology-group-public/apex](https://gitlab.com/machine-biology-group-public/apex) |
+| PerseuCPP | Cell-penetrating | [goalmeida05/PERSEU](https://github.com/goalmeida05/PERSEU) |
+| ACP-DPE | Anticancer | [CYJ-sudo/ACP-DPE](https://github.com/CYJ-sudo/ACP-DPE) |
+| BertAIP | Anti-inflammatory | [ying-jc/BertAIP](https://github.com/ying-jc/BertAIP) |
 
 Source code for this orchestration layer:
 **[github.com/Paredes0/pbap](https://github.com/Paredes0/pbap)**

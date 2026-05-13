@@ -9,6 +9,26 @@ last_updated: 2026-05-13
 
 ## 2026-05
 
+- 2026-05-13 — **Fix de atribuciones erróneas en el frontend del demo**.
+  El `demo/frontend/app.py` tenía dos clases de bugs heredados de la
+  primera redacción:
+  (a) Categoría incorrecta: DeepBP figuraba como "bitter peptides"
+      cuando es **anticancer** (el config y `docs/deployment.md` ya
+      decían anticancer; solo el demo estaba mal).
+  (b) URLs upstream incorrectas en 6/10 tools (yo me inventé
+      `plisson-lab/HemoDL`, `GreenStarTeam/DeepB3P3`, `Brian-fei/DeepBP`,
+      `de-la-Fuente-Lab/APEX`, `plisson-lab/Perseus`, `Brian-fei/ACP-DPE`).
+      Las URLs reales según `config/pipeline_config.yaml :: github_url`
+      son: `abcair/HemoDL`, `GreatChenLab/deepB3P`,
+      `Zhou-Jianren/bioactive-peptides`,
+      `gitlab.com/machine-biology-group-public/apex`,
+      `goalmeida05/PERSEU`, `CYJ-sudo/ACP-DPE`.
+  Esto importa: el escudo de mitigación del demo (ver ADR del
+  2026-05-13 "Public demo as a separate layer") se apoya
+  explícitamente en atribución correcta por tool. Linkar al repo
+  equivocado anulaba esa garantía.
+  Aprovechado también para alinear el nombre BertAIP (config) en vez
+  de BERT-AIP (display que solo aparecía en el demo).
 - 2026-05-13 — **Contract gaps del demo cerrados**. Cuando se añadió
   el área `demo/` (commit `3985822`) el `ONBOARDING.md` §4 exigía
   tres updates secundarios que omití entonces. Ahora aplicados:
