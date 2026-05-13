@@ -9,6 +9,18 @@ last_updated: 2026-05-13
 
 ## 2026-05
 
+- 2026-05-13 — **Postura legal explícita para los patches**. El
+  `patches/README.md` añade una sección "Legal posture" que documenta
+  por escrito (a) que los patches son adaptadores de interoperabilidad,
+  no redistribución de las tools; (b) que aplican on top de `git clone`
+  upstream y son inútiles solos; (c) para las 4 tools sin LICENSE
+  explícito (hemodl, deepb3p, perseucpp, acp_dpe) la postura es
+  fair-use / academic-interoperability con ~50 líneas de código
+  original en I/O adapters, no en arquitectura/weights/training; (d)
+  takedown email noeparedesalf@gmail.com con commit a 24h; (e) reglas
+  para forks: preservar notice + paso de "clone upstream" + contacto
+  takedown. Postura consistente con el ADR del 2026-05-13 sobre el
+  demo público.
 - 2026-05-13 — **README: pequeño fix de coherencia post-bootstrap**.
   La sección "Folders excluded from the repository" (a) añade
   `reference_data/` (estaba gitignored pero no documentado en este
