@@ -1,5 +1,8 @@
 # 🧬 Peptide Bioactivity Audit Pipeline (PBAP)
 
+> 🌐 **Live demo and architecture overview** → **[paredes0.github.io/pbap](https://paredes0.github.io/pbap/)**
+> Standalone visual walkthrough of how the pipeline works (Phase 1 flow, integrated tools, agreement layer, hierarchical ranking, APEX selectivity, applicability-domain grading). Best read alongside the docs below.
+
 ![Status](https://img.shields.io/badge/status-Phase_1_operational-success)
 ![License](https://img.shields.io/badge/license-PolyForm_Noncommercial_1.0.0-blue)
 ![Tools](https://img.shields.io/badge/integrated_tools-10_of_26-orange)
@@ -51,7 +54,7 @@ dozens of new tools are published every year.
 
 ```bash
 # 1. Clone
-git clone https://github.com/Paredes0/pipeline_Work---copia.git pbap
+git clone https://github.com/Paredes0/pbap.git
 cd pbap
 
 # 2. Install micromamba (per-tool environment manager)
@@ -156,9 +159,12 @@ Full guide and dimensions: see [`CONTRIBUTING.md`](CONTRIBUTING.md) and
 
 This repository follows the **AGENTS.md convention**: a root file
 ([`AGENTS.md`](AGENTS.md)) defines the operating manual for AI agents
-working on the code, and the doc directory ([`docs/INDEX.md`](docs/INDEX.md))
-serves as their navigation entry point. Compatible agents include Claude
-Code, Gemini CLI, Cursor, GitHub Copilot Workspace and similar.
+working on the code, the doc directory ([`docs/INDEX.md`](docs/INDEX.md))
+serves as their navigation entry point, and a short
+[`ONBOARDING.md`](ONBOARDING.md) at the root explains *how* the docs
+system stays alive when code changes (the contract). Compatible agents
+include Claude Code, Gemini CLI, Cursor, GitHub Copilot Workspace and
+similar.
 
 If you clone this repository and open it with an AI assistant, it will pick
 up the project's full context (architecture, decisions, conventions,

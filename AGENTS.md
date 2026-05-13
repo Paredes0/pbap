@@ -1,63 +1,130 @@
-# AGENTS.md — pipeline_Work - copia
+# AGENTS.md — PBAP
 
-> **Operating manual para todos los agentes IA del swarm.**
-> CLAUDE.md, GEMINI.md y .github/copilot-instructions.md importan este archivo automáticamente.
-> Este archivo es solo el ÍNDICE rápido. La memoria real del proyecto vive en `docs/`.
+> **Operating manual for every AI agent working on this repository.**
+> `CLAUDE.md`, `GEMINI.md` and `.github/copilot-instructions.md`
+> automatically import this file. Compatible agents: Claude Code,
+> Gemini CLI in Antigravity, Cursor, GitHub Copilot Workspace.
+>
+> This file is the **index** of operating rules. The actual project
+> memory lives in `docs/`. The contract between code and docs lives
+> in [`ONBOARDING.md`](ONBOARDING.md).
 
-## REGLA #1 — Antes de actuar, lee `docs/INDEX.md`
+## Rule #1 — Read [`ONBOARDING.md`](ONBOARDING.md) and [`docs/INDEX.md`](docs/INDEX.md) before acting
 
-`docs/INDEX.md` es el entry point de la memoria del proyecto. CUALQUIER agente (humano o IA) que vaya a tocar este repo en cualquier subtarea no trivial DEBE empezar leyéndolo y, desde ahí, navegar a los docs específicos relevantes a lo que va a hacer.
+Any non-trivial task on this repository starts with two reads:
 
-Mapeo área → doc(s):
-- **Diseño / arquitectura** → `docs/architecture.md`, `docs/decisions.md`
-- **APIs públicas (firmas, contratos)** → `docs/api.md` (si existe)
-- **Modelos de datos, esquemas, formatos** → `docs/data.md` (si existe)
-- **Patrones e idioms del código** → `docs/conventions.md`
-- **Términos del dominio** → `docs/glossary.md`
-- **Issues conocidos / deuda técnica / TODOs** → `docs/todo.md` (si existe)
-- **Cualquier otro doc opcional/custom** → ver tabla en `docs/INDEX.md`
+1. [`ONBOARDING.md`](ONBOARDING.md) — explains what the docs system
+   is for, what contract you must follow when changing things, and
+   what the end-of-task checklist looks like. **Required reading**
+   for the first task in any session.
+2. [`docs/INDEX.md`](docs/INDEX.md) — navigation map of all canonical
+   docs. From there, jump to the specific doc relevant to your task.
 
-`docs/changelog.md` se actualiza automáticamente al cerrar cada tarea (lo hace `/log`). No lo edites a mano salvo emergencia.
+Area → doc mapping (quick lookup):
 
-## REGLA #2 — Tras una tarea, actualiza la memoria si procede
+| Area you are working on | Doc(s) to consult |
+|---|---|
+| Design / architecture | `docs/architecture.md`, `docs/decisions.md` |
+| Public APIs of `audit_lib/` | `docs/api.md` |
+| Data models / schemas / I/O formats | `docs/data.md` |
+| Orchestrator behavior (Phase 1) | `docs/orchestrator_design.md` |
+| Per-tool viability and history | `docs/pipeline_viability.md` |
+| CD-HIT-2D grading / Applicability Domain | `docs/leakage_analysis.md` |
+| Taxonomic bias methodology | `docs/taxonomic_analysis.md` |
+| Code patterns and idioms | `docs/conventions.md` |
+| Domain terms | `docs/glossary.md` |
+| Tool inventory / environments | `docs/deployment.md` |
+| Third-party licensing | `docs/licenses_audit.md`, `THIRD_PARTY_LICENSES.md` |
+| Known issues / tech debt | `docs/todo.md` |
+| Recent project state | `docs/changelog.md` |
+| Anything else | see the table in `docs/INDEX.md` |
 
-Si una subtarea cambia arquitectura, decisiones, APIs públicas, modelos de datos, convenciones, glossary, etc., DEBE incluirse en el mismo plan una subtarea adicional para actualizar (o crear) el doc correspondiente. `/plan` lo hace automáticamente; si lo invocas manualmente, no lo olvides.
+`docs/changelog.md` is updated by the agent at task close (see
+Rule #2). Do not edit it manually for past events; do append for the
+current task.
 
-## Stack y comandos (lookup rápido)
+## Rule #2 — After a task, run the end-of-task checklist
 
-- Lenguaje / framework: Python / Bash
-- Tests: (ninguno automatizado — proyecto científico ad-hoc; verificación manual ejecutando los scripts. Ver `docs/INDEX_LOOKUP.md` para invocar componentes individuales)
-- Lint: (ninguno)
-- Build: (ninguno)
-- Dev: `python scripts/run_audit.py --input <name>.fasta` (orquestador E2E Fase 1)
-- Format: (ninguno)
+Before declaring a task complete, run the contract checks defined in
+[`ONBOARDING.md`](ONBOARDING.md) §4 (contract table) and §5
+(end-of-task checklist). Summary:
 
-Detalle pleno en `docs/architecture.md` y `docs/conventions.md`.
+| If you touched | Then check |
+|---|---|
+| Public signature in `audit_lib/*.py` | `docs/api.md` |
+| Runner dimensions in `audit_lib/tool_runner.py` | `docs/orchestrator_design.md` §3 |
+| `scripts/run_audit.py` behavior or reports | `docs/orchestrator_design.md` + `docs/data.md` |
+| Phase-2 scripts | `docs/INDEX_LOOKUP.md` + `docs/*_analysis.md` |
+| `config/pipeline_config.yaml` (tool change) | `docs/deployment.md` + `docs/pipeline_viability.md` |
+| `config/categories_config.yaml` | `docs/orchestrator_design.md` §9 |
+| New external tool | `docs/pipeline_viability.md` + `THIRD_PARTY_LICENSES.md` + `docs/licenses_audit.md` |
+| New statistical threshold / heuristic | `docs/decisions.md` (new ADR) |
+| Architectural change | `docs/architecture.md` + `docs/decisions.md` |
+| Any user-visible change | `docs/changelog.md` (one-line entry) |
 
-## Convenciones (top-level — el detalle fino en `docs/conventions.md`)
+The CI workflow `.github/workflows/docs-sync.yml` will additionally
+warn on every PR/push that changes `audit_lib/`, `scripts/` or
+`config/` without touching `docs/`. The warning is **non-blocking but
+visible** — do not push code-only changes hoping it will go unnoticed.
 
-- Idioma de commits: español
-- Estilo de commits: libre
-- Nombres de ramas: `feat/<tema>`, `fix/<tema>`, `chore/<tema>`
-- Indentación: 4 espacios
+If you used `/plan` to plan the task, the plan must include a docs
+subtask. If you used `/log close-task`, the changelog entry is
+generated automatically.
 
-## No tocar sin permiso explícito
+## Stack and commands (quick lookup)
 
-- `Dataset_Bioactividad/`, `Outputs/`, `DATABASES_FASTA/` (datos científicos)
-- `_external_refs/` (notas externas Claude Code, no del proyecto)
-- `CLAUDE.md.bak` (backup pre-swarm-init)
-- `Inputs/*.fasta` (datasets de entrada — modificar invalidaría runs anteriores)
-- `reference_data/` (referencia inmutable)
-- `config/pipeline_config.yaml` (~900 líneas con 14 tools activas — solo editar el bloque del tool específico, nunca refactor masivo. Las 12 tools BLOCKED/inactivas viven en `config/pipeline_config_blocked.yaml`)
+- Language / framework: Python / Bash.
+- Tests: (no automated suite — scientific project; manual verification
+  by running the scripts. See `docs/INDEX_LOOKUP.md` to invoke
+  individual components).
+- Lint: (none).
+- Build: (none).
+- Dev: `python scripts/run_audit.py --input <name>.fasta` (Phase 1
+  E2E orchestrator).
+- Format: (none enforced).
 
-## Routing del swarm
+Full detail in `docs/architecture.md` and `docs/conventions.md`.
 
-- Categorías: `code`, `code-hard`, `async`, `git`, `docs-google`, `review`.
-- Reglas duras y políticas de delegación en la skill global `swarm-routing` (`~/.gemini/antigravity/skills/swarm-routing/SKILL.md`).
-- **Antes de delegar/ejecutar**, cada agente debe haber leído `docs/INDEX.md`. Esto es no negociable.
+## Conventions (top-level — fine detail in `docs/conventions.md`)
 
-## Failover de orquestador
+- Commit language: **Spanish** (project convention).
+- Commit style: free, focused on impact of the change.
+- Branch naming: `feat/<topic>`, `fix/<topic>`, `chore/<topic>`,
+  `docs/<topic>`.
+- Indentation: 4 spaces (PEP 8).
 
-Si Antigravity se queda sin tokens:
+## Do not touch without explicit permission
+
+- `Dataset_Bioactividad/`, `Outputs/`, `DATABASES_FASTA/` (scientific
+  data).
+- `_external_refs/` (external notes, not project content).
+- `CLAUDE.md.bak` (pre-swarm backup).
+- `Inputs/*.fasta` (input datasets — editing them invalidates past
+  runs).
+- `reference_data/` (immutable reference).
+- `config/pipeline_config.yaml` (~900 lines with 14 active tools —
+  only edit the block of the specific tool, never refactor in bulk.
+  The 12 BLOCKED / inactive tools live in
+  `config/pipeline_config_blocked.yaml`).
+
+## Routing (if part of a multi-agent swarm)
+
+- Task categories: `code`, `code-hard`, `async`, `git`, `docs-google`,
+  `review`.
+- Hard delegation rules in the global skill `swarm-routing`.
+- **Before delegating or executing**, every agent must have read
+  `ONBOARDING.md` and `docs/INDEX.md`. Non-negotiable.
+
+## Orchestrator failover
+
+If Antigravity runs out of tokens:
 `claude --mcp-config .swarm/mcp_failover.json`
-Estado persistido en `.swarm/plan.md` y `.swarm/worklog.md`.
+State persisted to `.swarm/plan.md` and `.swarm/worklog.md`.
+
+---
+
+> If you are an AI agent reading this for the first time in this
+> session, your immediate next action is to read
+> [`ONBOARDING.md`](ONBOARDING.md), then `docs/INDEX.md`, then the
+> specific doc(s) most relevant to the task at hand. Do not skip
+> these reads even for "small" tasks.
