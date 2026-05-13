@@ -64,6 +64,9 @@ docs/INDEX.md) imports or references it.
 │   ├── roadmap.md
 │   ├── todo.md
 │   └── changelog.md            ← append a line on every notable change
+├── demo/                  ← reference scaffold for the public web demo
+│   ├── api/                    ← FastAPI backend (operator's Linux host)
+│   └── frontend/               ← Gradio app (Hugging Face Space)
 └── site/                  ← GitHub Pages landing source
 ```
 
@@ -95,6 +98,8 @@ are often the ones that leave the worst paper trail.
 | Significant behavior change (any of the above) | `docs/changelog.md` (one-line entry) |
 | Architecture-level change (component added / replaced / removed) | `docs/architecture.md` + `docs/decisions.md` (new ADR) |
 | Landing page (`site/`) | `site/DEPLOY.md` if the build flow changed |
+| Public demo backend (`demo/api/`) | `demo/api/README.md` (endpoints, deployment, mitigation shield) |
+| Public demo frontend (`demo/frontend/`) | `demo/frontend/README.md` (Space deployment) |
 | `AGENTS.md` / this file / `docs/INDEX.md` | nothing else — these are the meta-layer |
 
 If your task does not change anything in the left column, you do not

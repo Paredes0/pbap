@@ -60,6 +60,8 @@ Before declaring a task complete, run the contract checks defined in
 | New external tool | `docs/pipeline_viability.md` + `THIRD_PARTY_LICENSES.md` + `docs/licenses_audit.md` |
 | New statistical threshold / heuristic | `docs/decisions.md` (new ADR) |
 | Architectural change | `docs/architecture.md` + `docs/decisions.md` |
+| `demo/api/` (backend endpoints, queue, limits) | `demo/api/README.md` |
+| `demo/frontend/` (Gradio UI, attribution, disclaimer) | `demo/frontend/README.md` |
 | Any user-visible change | `docs/changelog.md` (one-line entry) |
 
 The CI workflow `.github/workflows/docs-sync.yml` will additionally

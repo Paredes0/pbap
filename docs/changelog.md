@@ -9,6 +9,22 @@ last_updated: 2026-05-13
 
 ## 2026-05
 
+- 2026-05-13 — **Public demo scaffold** under `demo/`. Two halves:
+  (a) `demo/api/` — FastAPI backend (`server.py`, `jobs.py`,
+  `limits.py`, `runner.py`) intended to run on the operator's Linux
+  host. Single-worker FIFO queue, per-IP rate limit (3 jobs/h),
+  global daily cap (200 jobs/day), 50-peptide submission cap,
+  10-minute per-job timeout, in-memory state (no PII persists).
+  Subprocess wrapper invokes `scripts/run_audit.py` unchanged.
+  Templates included for `.env`, `cloudflared` config and a systemd
+  unit. (b) `demo/frontend/` — Gradio Hugging Face Space app that
+  proxies submissions to the backend, renders the inline
+  `REPORT.html` and exposes the four downloadable artifacts. Ships
+  with the mandatory "Tools and attribution" block plus the
+  takedown-contact disclaimer (mitigation shield, documented in
+  `demo/api/README.md`). The root `README.md` banner gains a "Try
+  it online" pointer; `ONBOARDING.md` §3–§4 and `AGENTS.md` Rule #2
+  contract tables learn about the new `demo/` paths.
 - 2026-05-13 — **Landing page redesign pass**: refreshed
   `site/index.html` (+478 lines of CSS/UX polish). Preserves the
   Applicability Domain framing in Section 07 (two-lens block,

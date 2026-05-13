@@ -1,7 +1,12 @@
 # 🧬 Peptide Bioactivity Audit Pipeline (PBAP)
 
-> 🌐 **Live demo and architecture overview** → **[paredes0.github.io/pbap](https://paredes0.github.io/pbap/)**
-> Standalone visual walkthrough of how the pipeline works (Phase 1 flow, integrated tools, agreement layer, hierarchical ranking, APEX selectivity, applicability-domain grading). Best read alongside the docs below.
+> 🌐 **Architecture overview** → **[paredes0.github.io/pbap](https://paredes0.github.io/pbap/)**
+> Visual walkthrough of how the pipeline works (Phase 1 flow, integrated tools, agreement layer, hierarchical ranking, APEX selectivity, applicability-domain grading).
+>
+> 🧪 **Try it online (no install)** → see [`demo/`](demo/) for the
+> reference scaffold of a free, non-commercial public demo. The
+> operator-side `FastAPI + Gradio` setup lets anyone submit up to 50
+> peptides and download the same `REPORT.html` the CLI produces locally.
 
 ![Status](https://img.shields.io/badge/status-Phase_1_operational-success)
 ![License](https://img.shields.io/badge/license-PolyForm_Noncommercial_1.0.0-blue)
@@ -193,6 +198,10 @@ quality bar as manual contributions.
 │   ├── categories_config.yaml        # Bioactivity categories + polarities
 │   └── apex_strain_classification.yaml  # Pathogen / commensal mapping
 ├── docs/                         # Project documentation (INDEX.md is the entry)
+├── demo/                         # Reference scaffold for the public web demo
+│   ├── api/                      #   FastAPI backend (operator's Linux host)
+│   └── frontend/                 #   Gradio app (Hugging Face Space)
+├── site/                         # GitHub Pages landing source
 ├── Inputs/                       # Drop your FASTA files here (gitignored)
 ├── Outputs/                      # Auto-created per run (gitignored)
 ├── test_data/                    # Tiny FASTA samples for smoke tests

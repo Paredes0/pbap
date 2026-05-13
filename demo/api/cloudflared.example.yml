@@ -1,0 +1,43 @@
+# Cloudflare Tunnel config — example.
+#
+# Why Cloudflare Tunnel and not port-forwarding:
+#   - No port opened on your router (TCP/UDP egress only).
+#   - Automatic HTTPS with a valid cert.
+#   - Free for low-volume non-commercial use.
+#   - Built-in rate limiting and bot protection if you want to enable them.
+#
+# Setup (one-time):
+#   1. Install cloudflared on your Linux PC:
+#        curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 \
+#          -o /usr/local/bin/cloudflared && chmod +x /usr/local/bin/cloudflared
+#   2. Login (opens browser):
+#        cloudflared tunnel login
+#   3. Create a tunnel:
+#        cloudflared tunnel create pbap-demo
+#      This prints a TUNNEL_ID and a credentials file path.
+#   4. Map a hostname under a domain you own to this tunnel:
+#        cloudflared tunnel route dns pbap-demo pbap-demo.<your-domain>.com
+#   5. Copy this file to ~/.cloudflared/config.yml, fill in TUNNEL_ID and the
+#      credentials path, then run:
+#        cloudflared tunnel run pbap-demo
+#      (or install as a service: `cloudflared service install`).
+#
+# Refs:
+#   - https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/
+#   - https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/install-and-setup/tunnel-guide/
+
+tunnel: <TUNNEL_ID_GOES_HERE>
+credentials-file: /home/noe/.cloudflared/<TUNNEL_ID>.json
+
+ingress:
+  - hostname: pbap-demo.<your-domain>.com
+    service: http://127.0.0.1:8000
+    originRequest:
+      noTLSVerify: false
+      connectTimeout: 30s
+      # Cap individual responses to keep the tunnel snappy. REPORT.html files
+      # are usually 1–3 MB; bump if you ever produce larger artifacts.
+      # httpHostHeader: pbap-demo.<your-domain>.com
+
+  # Catch-all required by cloudflared — returns HTTP 404 for any other host.
+  - service: http_status:404

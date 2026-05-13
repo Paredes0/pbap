@@ -1,0 +1,44 @@
+# systemd unit — example. Copy to /etc/systemd/system/pbap-api.service,
+# fill in the placeholders, then:
+#
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now pbap-api
+#   sudo journalctl -u pbap-api -f
+#
+# Pair this with a separate `cloudflared.service` (installed by
+# `cloudflared service install`) so each restarts independently.
+
+[Unit]
+Description=PBAP demo API (FastAPI)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=noe
+Group=noe
+WorkingDirectory=/home/noe/work/pipeline_Work/pbap_public/demo/api
+EnvironmentFile=/home/noe/work/pipeline_Work/pbap_public/demo/api/.env
+
+# Activate the env that has fastapi + uvicorn installed. This env is OWN to
+# the demo backend, NOT one of the per-tool envs. Create it once with:
+#   micromamba create -n pbap_demo_api python=3.11 pip
+#   micromamba activate pbap_demo_api
+#   pip install -r requirements.txt
+ExecStart=/home/noe/micromamba/envs/pbap_demo_api/bin/uvicorn server:app \
+    --host 127.0.0.1 --port 8000 \
+    --workers 1 \
+    --proxy-headers --forwarded-allow-ips="*"
+
+Restart=on-failure
+RestartSec=5s
+
+# Soft sandboxing. Tighten further if you don't need write access to home.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=read-only
+ReadWritePaths=/home/noe/pbap_demo_jobs
+
+[Install]
+WantedBy=multi-user.target
