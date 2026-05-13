@@ -38,7 +38,7 @@ Python ≥ 3.10. Minimal setup:
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/Paredes0/pipeline_Work---copia.git pbap
+git clone https://github.com/Paredes0/pbap.git
 cd pbap
 
 # 2. Install micromamba (the per-tool environment manager)

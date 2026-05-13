@@ -38,7 +38,7 @@ obtain a commercial license for **this orchestrator** (see `LICENSE`).
 | **DeepB3P** | ✅ | *No explicit LICENSE* | <https://github.com/GreatChenLab/DeepB3P> | Tang et al., *J. Adv. Res.* 2025. DOI: 10.1016/j.jare.2024.08.002 |
 | **DeepBP** | ✅ | *No explicit LICENSE* | <https://github.com/Zhou-Jianren/bioactive-peptides> | Zhang et al., *BMC Bioinformatics* 2024. DOI: 10.1186/s12859-024-05974-5 |
 | **APEX (Penn)** | ✅ | Penn Software APEX (custom, non-commercial only) | <https://gitlab.com/machine-biology-group-public/apex> | Wan et al., *Nat. Biomed. Eng.* 2024. DOI: 10.1038/s41551-024-01201-x |
-| **PerseuCPP** | ✅ | *No explicit LICENSE* | <https://github.com/goalmeida05/PERSEUcpp> | Bernardes-Loch et al., *Bioinformatics Advances* 2025. DOI: 10.1093/bioadv/vbaf213 |
+| **PerseuCPP** | ✅ | *No explicit LICENSE* | <https://github.com/goalmeida05/PERSEU> | Bernardes-Loch et al., *Bioinformatics Advances* 2025. DOI: 10.1093/bioadv/vbaf213 |
 | **ACP-DPE** | ✅ | *No explicit LICENSE* | <https://github.com/CYJ-sudo/ACP-DPE> | Huang et al., *IET Syst. Biol.* 2025. DOI: 10.1049/syb2.70010 |
 | **BertAIP** | ✅ | *No explicit LICENSE* | <https://github.com/ying-jc/BertAIP> | ying-jc, GitHub (under review) |
 

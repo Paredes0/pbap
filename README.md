@@ -13,7 +13,7 @@
 ![License](https://img.shields.io/badge/license-PolyForm_Noncommercial_1.0.0-blue)
 ![Tools](https://img.shields.io/badge/integrated_tools-10_of_26-orange)
 ![Categories](https://img.shields.io/badge/bioactivity_categories-7-blueviolet)
-![Environments](https://img.shields.io/badge/conda_envs-9-yellow)
+![Environments](https://img.shields.io/badge/conda_envs-6_active-yellow)
 
 **PBAP** is a modular orchestrator that audits the reusability of published
 peptide-bioactivity prediction tools and coordinates them under a **unified

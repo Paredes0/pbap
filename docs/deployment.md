@@ -95,36 +95,62 @@ the viability audit (`docs/pipeline_viability.md`).
 
 ---
 
-## 4. Real Micromamba environment inventory
+## 4. Micromamba environment inventory
 
-To guarantee reproducibility and avoid dependency conflicts, the
-following environments are maintained on the system:
+### 4.1 — Core envs for the 10 active tools (recreatable from this repo)
 
-- **deepb3p_legacy**: DeepB3P-specific (Python 3.7, TensorFlow 1.14).
-- **ml**: general environment for classic ML tools (sklearn, xgboost,
-  etc.).
-- **ml_deepforest**: dedicated to DeepForest-HTP (CascadeForest
-  libraries).
-- **ml_legacy_py38**: for tools that require Python 3.8 and old
-  package versions.
-- **ml_pycaret**: dedicated to tools depending on the PyCaret API.
-- **pipeline_bertaip**: BertAIP-specific environment to avoid conflicts
-  with other Transformers implementations.
-- **qsar**: RDKit and cheminformatics descriptors.
-- **torch**: main environment with modern PyTorch and Transformers.
-- **torch_legacy**: PyTorch tools with legacy dependencies (e.g. older
-  CUDA).
+These six environments are required to run the active pipeline and
+are **redistributed as YAML manifests** under `envs/`. A third party
+recreates them with `bash scripts/bootstrap_envs.sh` (see
+[`SETUP_FROM_SCRATCH.md`](SETUP_FROM_SCRATCH.md) §2).
+
+- **ml** (Python 3.10): general classic ML stack (sklearn, xgboost,
+  blastp, biopython). Used by `toxinpred3`, `antibp3`, `hemodl`.
+- **torch** (Python 3.10): modern PyTorch 2.x + Transformers + `fair-esm`.
+  Used by `hemopi2`, `perseucpp`.
+- **qsar** (Python 3.10): RDKit and cheminformatics descriptors. Used
+  by `apex`.
+- **torch_legacy** (Python 3.9): PyTorch tools with older Keras / TF
+  shims. Used by `deepbp`, `acp_dpe`.
+- **deepb3p_legacy** (Python 3.7): TensorFlow 1.14 legacy stack. Used
+  by `deepb3p`. The only Python 3.7 env needed.
+- **pipeline_bertaip** (Python 3.10): BertAIP-specific Transformers /
+  simpletransformers config, kept independent to avoid version
+  collisions. Used by `bertaip`.
+
+### 4.2 — Historical envs for parked / blocked tools (not redistributed)
+
+These environments exist on the original development host because
+they were used during the 2026-04 viability audit (see
+[`pipeline_viability.md`](pipeline_viability.md)), but the tools that
+need them are currently in `STANDBY` / `BLOCKED` state and **no YAML
+manifest is shipped** for them. Operators who want to reactivate one
+of these tools must recreate the env themselves:
+
+- **ml_deepforest**: CascadeForest libraries. Used by `deepforest_htp`
+  (BLOCKED).
+- **ml_legacy_py38** (Python 3.8): used by `antifungipept` (active in
+  the audit history but currently inactive in the public release).
+- **ml_pycaret**: PyCaret API. Used by tools no longer in the active set.
+
+### 4.3 — Auxiliary envs (created on demand, not for tool execution)
+
+- **pbap_orchestrator** *(required for Phase 1 CLI)*: tiny env with
+  the orchestrator's 5 dependencies (`pyyaml`, `pandas`, `numpy`,
+  `openpyxl`, `requests`). Created manually in step 4 of
+  [`SETUP_FROM_SCRATCH.md`](SETUP_FROM_SCRATCH.md); not redistributed
+  as a YAML because `requirements.txt` already pins it.
 - **pbap_demo_api** *(optional, demo only)*: backend env for the
   public web demo under `demo/api/`. Contains only `fastapi`,
-  `uvicorn`, `pydantic` and `python-multipart` (see
-  `demo/api/requirements.txt`). **Not** required for CLI use of the
-  pipeline; only needed when an operator wants to host the public
-  Gradio + FastAPI demo themselves. Setup steps live in
-  `demo/api/README.md` §"Deployment".
+  `uvicorn`, `pydantic` and `python-multipart`. **Not** required for
+  CLI use; only relevant when hosting the public Gradio + FastAPI
+  demo. Setup in [`../demo/api/README.md`](../demo/api/README.md)
+  §"Deployment".
 
-**Conflict isolation**: dedicated environments (e.g.
-`pipeline_bertaip`, `pbap_demo_api`) are kept independent to prevent
-version collisions.
+**Conflict isolation**: each env is independent of the others to
+prevent transitive dependency collisions (numpy 2.0 vs. legacy
+TensorFlow versions, modern Transformers vs. simpletransformers,
+etc.). Tools never share an interpreter at runtime.
 
 ---
 

@@ -31,9 +31,12 @@ documentation and infrastructure of the pipeline:
 WHAT IS *NOT* DISTRIBUTED IN THIS REPOSITORY
 ================================================================================
 
-The 26 third-party prediction tools that the pipeline can orchestrate are
-NOT included in this repository. Each tool has its own license, its own
-repository, and its own model weights. To run the full pipeline you must:
+The third-party prediction tools that the pipeline can orchestrate
+(roughly two dozen evaluated; ten currently active — see
+THIRD_PARTY_LICENSES.md and docs/pipeline_viability.md for the
+authoritative inventory) are NOT included in this repository. Each
+tool has its own license, its own repository, and its own model
+weights. To run the full pipeline you must:
 
   1. Clone the upstream repositories yourself (URLs in
      docs/pipeline_viability.md and config/pipeline_config.yaml).
