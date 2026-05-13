@@ -57,12 +57,27 @@ def _env_bool(name: str, default: bool) -> bool:
 
 
 TRUST_PROXY_HEADERS = _env_bool("TRUST_PROXY_HEADERS", True)
-ALLOWED_ORIGINS = [
-    o.strip() for o in os.environ.get("ALLOWED_ORIGINS", "*").split(",") if o.strip()
-] or ["*"]
+
+# CORS: by default the backend rejects cross-origin requests outright. The
+# operator MUST set ALLOWED_ORIGINS to the public Space domain (or to "*"
+# explicitly, accepting the trade-off) before the demo is reachable from a
+# browser. Refusing to default to "*" forces a conscious decision and
+# avoids the common footgun where a forgotten env var leaves the API
+# wide open.
+_RAW_ORIGINS = os.environ.get("ALLOWED_ORIGINS", "")
+ALLOWED_ORIGINS = [o.strip() for o in _RAW_ORIGINS.split(",") if o.strip()] or []
+
 WORKER_COUNT = int(os.environ.get("WORKER_COUNT", "1"))
 JANITOR_INTERVAL_SECONDS = int(os.environ.get("JANITOR_INTERVAL_SECONDS", "3600"))
 JANITOR_JOB_TTL_SECONDS = int(os.environ.get("JANITOR_JOB_TTL_SECONDS", "86400"))
+
+# Comma-separated list of /CIDR or exact IPs that are allowed to populate
+# the X-Forwarded-For chain. Cloudflare Tunnel terminates on 127.0.0.1
+# from the uvicorn process's perspective, so the safe default is to
+# trust only loopback. Operators behind a different proxy must extend
+# this list explicitly.
+_RAW_TRUSTED = os.environ.get("TRUSTED_PROXY_HOSTS", "127.0.0.1,::1")
+TRUSTED_PROXY_HOSTS = {h.strip() for h in _RAW_TRUSTED.split(",") if h.strip()}
 
 app = FastAPI(
     title="PBAP demo API",
@@ -72,27 +87,52 @@ app = FastAPI(
     ),
     version="0.1.0",
 )
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
-    allow_credentials=False,
-    allow_methods=["GET", "POST", "OPTIONS"],
-    allow_headers=["*"],
-)
+if ALLOWED_ORIGINS:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=ALLOWED_ORIGINS,
+        allow_credentials=False,
+        allow_methods=["GET", "POST", "OPTIONS"],
+        allow_headers=["*"],
+    )
+else:
+    logger.warning(
+        "ALLOWED_ORIGINS is empty; CORS middleware NOT installed. "
+        "Set ALLOWED_ORIGINS to the public Space domain (or '*' to explicitly "
+        "accept the risk) in demo/api/.env before exposing the demo."
+    )
 
 jobs = JobManager(worker_count=WORKER_COUNT)
 rate_limiter = RateLimiter()
 
 
 def _client_ip(request: Request) -> str:
-    if TRUST_PROXY_HEADERS:
-        forwarded = request.headers.get("X-Forwarded-For")
-        if forwarded:
-            return forwarded.split(",")[0].strip()
-        real = request.headers.get("X-Real-IP")
-        if real:
-            return real.strip()
-    return request.client.host if request.client else "unknown"
+    """Return the IP we'll use for rate-limiting.
+
+    The X-Forwarded-For chain looks like `client, proxy1, proxy2, …` where
+    each proxy appends its predecessor's source IP. The trustworthy IP is
+    the **last** one set by a proxy we control — so we walk the chain
+    from the right and keep the first entry whose immediate hop is in
+    TRUSTED_PROXY_HOSTS. This is the standard mitigation against header
+    spoofing (an attacker can put anything in the leftmost field but
+    cannot forge the chain past a trusted proxy).
+    """
+    immediate_hop = request.client.host if request.client else "unknown"
+    if not TRUST_PROXY_HEADERS or immediate_hop not in TRUSTED_PROXY_HOSTS:
+        return immediate_hop
+
+    forwarded = request.headers.get("X-Forwarded-For")
+    if forwarded:
+        chain = [p.strip() for p in forwarded.split(",") if p.strip()]
+        if chain:
+            # Walk right-to-left: the rightmost untrusted IP is the real client.
+            for ip in reversed(chain):
+                if ip not in TRUSTED_PROXY_HOSTS:
+                    return ip
+    real = request.headers.get("X-Real-IP")
+    if real:
+        return real.strip()
+    return immediate_hop
 
 
 # ----------------------------------------------------------------------------

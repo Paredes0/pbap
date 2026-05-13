@@ -231,6 +231,8 @@ imports (rare).
 
 | Symptom | First thing to check |
 |---|---|
+| HF Space says "Backend unreachable" but `/health` works locally | `ALLOWED_ORIGINS` is empty. The backend rejects cross-origin browser requests by default — set this env var to your Space's origin (`https://<user>-pbap-demo.hf.space`) and restart `pbap-api.service`. |
+| Rate limit triggers even though you're sending from one IP, or doesn't trigger when you'd expect | Check `TRUSTED_PROXY_HOSTS` matches the actual host of your Cloudflare Tunnel / nginx / etc. The backend ignores `X-Forwarded-For` if the immediate connection isn't from a trusted proxy, which means it would rate-limit on `127.0.0.1` instead of the real IP. |
 | `/submit` returns `429` | You hit a rate limit. Check `/health.rate.jobs_last_24h`. |
 | `/submit` returns `400` | Validation. Common: too many peptides, non-standard residues, length out of range. |
 | Job sits in `PENDING` forever | Worker thread dead — check `journalctl -u pbap-api` for tracebacks. |
