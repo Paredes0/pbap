@@ -37,18 +37,32 @@ const AGREEMENT_EXAMPLES = [
 ];
 
 function AgreementDemo() {
+  // For multi-tool consensus states the chip/colour comes from the
+  // consensus map. For `single_tool` rows there is no consensus to
+  // report (only one tool produced a non-null prediction in this
+  // category), but a real POS/NEG value still exists — derive the chip
+  // from the single tool's own class. The `single_tool` label below
+  // the chip clarifies that this is not a multi-tool consensus.
   const consensusToChip = {
     'consensus_positive': 'POS',
     'consensus_negative': 'NEG',
     'split': 'SPLIT',
-    'single_tool': '—',
   };
   const consensusToCls = {
     'consensus_positive': 'pos',
     'consensus_negative': 'neg',
     'split': 'split',
-    'single_tool': 'none',
   };
+  const chipFor = (row) => (
+    row.consensus === 'single_tool'
+      ? (row.tools[0].class === 'positive' ? 'POS' : 'NEG')
+      : consensusToChip[row.consensus]
+  );
+  const clsFor = (row) => (
+    row.consensus === 'single_tool'
+      ? (row.tools[0].class === 'positive' ? 'pos' : 'neg')
+      : consensusToCls[row.consensus]
+  );
 
   return (
     <table className="matrix">
@@ -85,8 +99,8 @@ function AgreementDemo() {
               </div>
             </td>
             <td>
-              <span className={'cell-cons ' + consensusToCls[row.consensus]}>
-                {consensusToChip[row.consensus]}
+              <span className={'cell-cons ' + clsFor(row)}>
+                {chipFor(row)}
               </span>
               <div className="ml" style={{marginTop: 4, fontSize: 9.5}}>{row.consensus}</div>
             </td>

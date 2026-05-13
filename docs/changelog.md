@@ -9,6 +9,20 @@ last_updated: 2026-05-13
 
 ## 2026-05
 
+- 2026-05-13 — **site/components/agreement.jsx: fix bug del chip de
+  consenso para `single_tool`**. La columna "Consensus" de la tabla
+  "Intra-category agreement" mostraba "—" cuando el estado era
+  `single_tool` (caso de las filas antimicrobial y toxicity en el
+  ejemplo). En realidad, el orquestador (`run_audit.py:_compute_agreements`,
+  líneas 305-324) asigna `single_tool` cuando exactamente una de las
+  tools de la categoría produjo un valor binario no-null — pero ese
+  valor binario sí existe (POS o NEG). El "—" era engañoso: sugería
+  ausencia de predicción cuando lo que hay es ausencia de **consenso**
+  por falta de una segunda tool. Fix: cuando `consensus === 'single_tool'`,
+  el chip se deriva ahora de `tools[0].class` (POS si positive, NEG si
+  negative), con el color verde/gris correspondiente; el subtítulo
+  inferior sigue mostrando `single_tool` para indicar que NO es un
+  consenso entre dos tools. Disparará redeploy de Pages.
 - 2026-05-13 — **site/index.html: actualizar "9 envs" → "6 envs"**.
   Dos lugares quedaban con la cifra histórica (9, contando los 3
   legacy ml_deepforest/ml_legacy_py38/ml_pycaret que no se
