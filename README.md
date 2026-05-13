@@ -223,12 +223,19 @@ quality bar as manual contributions.
 
 Folders excluded from the repository (see `.gitignore`):
 
-- `Dataset_Bioactividad/` — local clones of third-party tools (see
-  `docs/pipeline_viability.md` for upstream URLs).
+- `Dataset_Bioactividad/` — local clones of the 10 third-party tools.
+  **Auto-clonado por `scripts/bootstrap_tools.sh`** usando los `github_url`
+  declarados en `config/pipeline_config.yaml` (e historial detallado en
+  `docs/pipeline_viability.md`).
 - `DATABASES_FASTA/` — external peptide databases (download yourself from
-  DBAASP, APD3, ConoServer, etc.).
+  DBAASP, APD3, ConoServer, etc.). Required for Phase 2 (offline audit)
+  only; Phase 1 (user inference) does not need it.
+- `reference_data/` — internal curated reference data used by Phase 2.
+  Not redistributed; Phase 2 is therefore not reproducible from this repo
+  alone (see `docs/SETUP_FROM_SCRATCH.md` §scope note).
 - `Inputs/*` / `Outputs/*` — user data and run artefacts (folders kept via
-  `.gitkeep`).
+  `.gitkeep`; `Inputs/example.fasta` is tracked so the smoke test works
+  out of the box).
 
 ---
 

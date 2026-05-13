@@ -9,6 +9,14 @@ last_updated: 2026-05-13
 
 ## 2026-05
 
+- 2026-05-13 — **README: pequeño fix de coherencia post-bootstrap**.
+  La sección "Folders excluded from the repository" (a) añade
+  `reference_data/` (estaba gitignored pero no documentado en este
+  bloque), (b) actualiza la nota de `Dataset_Bioactividad/` para
+  indicar que `scripts/bootstrap_tools.sh` ahora lo auto-clona en
+  vez del antiguo "consulta `pipeline_viability.md` y clona manual",
+  (c) matiza que `Inputs/example.fasta` sí está tracked aunque
+  `Inputs/*` esté gitignored. Sin cambio de código.
 - 2026-05-13 — **Repro gaps cerrados — la repo es ahora reproducible
   de cero para Phase 1**. Cinco piezas nuevas atan el setup desde
   `git clone` a un smoke test en verde:
