@@ -1,0 +1,125 @@
+# docs-sync — warn if code changed but docs did not
+#
+# Fires on every push to main and every PR. Computes the set of files
+# changed in the diff and emits a non-blocking warning if any file
+# under audit_lib/, scripts/ or config/ changed without a matching
+# change under docs/. The warning shows up in the run summary and on
+# the PR conversation tab, where it is hard to miss.
+#
+# Intentionally non-blocking. A failed CI check on every code-only
+# change would be noisy and would push contributors to disable the
+# guard. The goal is visibility and habit-building, not enforcement.
+#
+# Contract this enforces: see ONBOARDING.md §4.
+
+name: Docs sync check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (with history)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Compute changed files
+        id: changes
+        run: |
+          set -euo pipefail
+
+          # Pick the right base: PR -> base SHA; push -> previous commit on the branch.
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE_SHA="${{ github.event.pull_request.base.sha }}"
+            HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+          else
+            BASE_SHA="${{ github.event.before }}"
+            HEAD_SHA="${{ github.sha }}"
+            # First push of a branch: before is all-zeros. Compare against parent.
+            if [ "${BASE_SHA}" = "0000000000000000000000000000000000000000" ]; then
+              BASE_SHA="${HEAD_SHA}^"
+            fi
+          fi
+
+          echo "Diff range: ${BASE_SHA}..${HEAD_SHA}"
+          CHANGED_FILES="$(git diff --name-only "${BASE_SHA}" "${HEAD_SHA}" || true)"
+          echo "Changed files:"
+          echo "${CHANGED_FILES}"
+
+          # Categorize.
+          CODE_CHANGED=0
+          DOCS_CHANGED=0
+          CODE_PATHS=""
+          while IFS= read -r f; do
+            [ -z "${f}" ] && continue
+            case "${f}" in
+              audit_lib/*|scripts/*|config/*)
+                CODE_CHANGED=1
+                CODE_PATHS="${CODE_PATHS}\n  - ${f}"
+                ;;
+              docs/*|ONBOARDING.md|AGENTS.md|CLAUDE.md|GEMINI.md)
+                DOCS_CHANGED=1
+                ;;
+            esac
+          done <<EOF
+          ${CHANGED_FILES}
+          EOF
+
+          echo "code_changed=${CODE_CHANGED}" >> "${GITHUB_OUTPUT}"
+          echo "docs_changed=${DOCS_CHANGED}" >> "${GITHUB_OUTPUT}"
+          {
+            echo "code_paths<<__EOF__"
+            printf "%b" "${CODE_PATHS}"
+            echo
+            echo "__EOF__"
+          } >> "${GITHUB_OUTPUT}"
+
+      - name: Warn if code changed without docs
+        if: steps.changes.outputs.code_changed == '1' && steps.changes.outputs.docs_changed == '0'
+        run: |
+          # Use ::warning:: so it surfaces both in the run summary and on the PR.
+          echo "::warning title=Docs sync check::Code changed under audit_lib/, scripts/ or config/, but no docs/ file was updated in the same diff."
+          {
+            echo "## ⚠️ Docs sync warning"
+            echo
+            echo "This diff modifies files under \`audit_lib/\`, \`scripts/\` or \`config/\` but **does not update any doc** in \`docs/\` or the meta-files (\`ONBOARDING.md\`, \`AGENTS.md\`)."
+            echo
+            echo "Per the contract in \`ONBOARDING.md\` §4, most changes in those areas should also update the corresponding doc — typically one or more of:"
+            echo "- \`docs/api.md\` (public signatures in \`audit_lib/\`)"
+            echo "- \`docs/orchestrator_design.md\` (runner / orchestrator / report behavior)"
+            echo "- \`docs/deployment.md\` (tool inventory / environments)"
+            echo "- \`docs/pipeline_viability.md\` (per-tool verdict)"
+            echo "- \`docs/decisions.md\` (new statistical threshold / heuristic / ADR)"
+            echo "- \`docs/changelog.md\` (one-line entry for any user-visible change)"
+            echo
+            echo "**Code paths that triggered the warning:**"
+            printf "%b" "${{ steps.changes.outputs.code_paths }}"
+            echo
+            echo "If the change is intentionally docs-irrelevant (e.g. a comment-only fix or a no-op refactor), ignore this warning. Otherwise, please update the relevant docs in the same change."
+            echo
+            echo "_This check is non-blocking. It is here to keep the docs and code in sync over time._"
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: Report OK
+        if: steps.changes.outputs.code_changed == '0' || steps.changes.outputs.docs_changed == '1'
+        run: |
+          echo "## ✅ Docs sync check"
+          {
+            echo "## ✅ Docs sync check"
+            if [ "${{ steps.changes.outputs.code_changed }}" = "1" ]; then
+              echo
+              echo "Code under \`audit_lib/\`, \`scripts/\` or \`config/\` changed **and** docs were updated in the same diff. Good."
+            else
+              echo
+              echo "No code under \`audit_lib/\`, \`scripts/\` or \`config/\` changed in this diff. Nothing to enforce."
+            fi
+          } >> "${GITHUB_STEP_SUMMARY}"
