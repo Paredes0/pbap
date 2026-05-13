@@ -7,7 +7,9 @@ sdk: gradio
 sdk_version: 4.40.0
 app_file: app.py
 pinned: false
-license: polyform-noncommercial-1.0.0
+license: other
+license_name: polyform-noncommercial-1.0.0
+license_link: https://polyformproject.org/licenses/noncommercial/1.0.0/
 ---
 
 # PBAP demo — Hugging Face Space
