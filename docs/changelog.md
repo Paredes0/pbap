@@ -9,6 +9,13 @@ last_updated: 2026-05-13
 
 ## 2026-05
 
+- 2026-05-13 — **CTA del demo en la landing page**. `site/index.html`
+  gana un bloque "hero-cta" después de los stats: botón primario
+  amarillo HF "Try the live demo" → `huggingface.co/spaces/Paredes-0/pbap-demo`,
+  botón secundario "View source on GitHub", y un meta-text con la
+  política ("Free · non-commercial · up to 50 peptides"). Sigue la
+  paleta existente del site (oklch tokens + IBM Plex). El workflow
+  `pages.yml` redeploya automáticamente al pushear `site/**`.
 - 2026-05-13 — **Public demo live**. Banner del README enlaza directo
   al Space en `huggingface.co/spaces/Paredes-0/pbap-demo` (antes
   apuntaba solo al scaffold `demo/`). Añadido badge "Open in HF

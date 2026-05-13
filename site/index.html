@@ -301,6 +301,40 @@
   .stat-num { font-family: 'IBM Plex Serif'; font-size: 32px; font-weight: 400; line-height: 1; }
   .stat-label { font-family: 'IBM Plex Mono'; font-size: 10px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; margin-top: 6px; }
 
+  /* === Hero CTA (live demo + repo) === */
+  .hero-cta {
+    display: flex; flex-wrap: wrap; gap: 14px;
+    margin-top: 36px; align-items: center;
+  }
+  .cta-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 14px 22px; border-radius: 8px;
+    font-family: 'IBM Plex Sans'; font-size: 14px; font-weight: 500;
+    text-decoration: none; letter-spacing: 0.02em;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+    border: 1px solid transparent;
+  }
+  .cta-btn:hover { transform: translateY(-1px); }
+  .cta-btn.primary {
+    background: #FFD21E; color: #1A1A1A;
+    box-shadow: 0 1px 0 rgba(0,0,0,0.15);
+  }
+  .cta-btn.primary:hover { box-shadow: 0 6px 16px rgba(255,210,30,0.35); }
+  .cta-btn.secondary {
+    background: transparent; color: var(--ink);
+    border-color: var(--line);
+  }
+  .cta-btn.secondary:hover { border-color: var(--ink-2); }
+  .cta-emoji { font-size: 16px; line-height: 1; }
+  .cta-meta {
+    font-family: 'IBM Plex Mono'; font-size: 10px;
+    color: var(--muted); letter-spacing: 0.08em;
+    text-transform: uppercase; margin-left: 6px;
+  }
+  @media (max-width: 560px) {
+    .cta-meta { margin-left: 0; flex-basis: 100%; }
+  }
+
   /* === Cards / blocks === */
   .card {
     background: var(--paper);
@@ -1198,6 +1232,16 @@
     <div class="stat"><div class="stat-num">9</div><div class="stat-label">Conda environments</div></div>
     <div class="stat"><div class="stat-num">34</div><div class="stat-label">APEX strains</div></div>
     <div class="stat"><div class="stat-num">5</div><div class="stat-label">Output formats</div></div>
+  </div>
+
+  <div class="hero-cta">
+    <a class="cta-btn primary" href="https://huggingface.co/spaces/Paredes-0/pbap-demo" target="_blank" rel="noopener">
+      <span class="cta-emoji">🤗</span> Try the live demo
+    </a>
+    <a class="cta-btn secondary" href="https://github.com/Paredes0/pbap" target="_blank" rel="noopener">
+      View source on GitHub
+    </a>
+    <span class="cta-meta">Free · non-commercial · up to 50 peptides</span>
   </div>
 </section>
 
