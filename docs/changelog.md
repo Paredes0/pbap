@@ -9,6 +9,7 @@ last_updated: 2026-05-13
 
 ## 2026-05
 
+- 2026-05-13 — **GitHub Pages landing site** added under `site/` with auto-deploy workflow (`.github/workflows/pages.yml`). Standalone HTML5 + React via UMD + Babel (no build step). Two-lens framing of the CD-HIT-2D bands aligned with the AD reframing in `docs/leakage_analysis.md`. Files: `site/index.html`, `site/components/*.jsx`, `site/.nojekyll`, `site/DEPLOY.md`, `.github/workflows/pages.yml`. Target URL: `https://paredes0.github.io/pbap/`.
 - 2026-05-13 — **Applicability-domain reframing of leakage grades**.
   Rewrote `docs/leakage_analysis.md` to introduce the Applicability
   Domain (AD) concept from QSAR (Tropsha & Golbraikh; OECD Principle 3)

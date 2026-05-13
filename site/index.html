@@ -1,0 +1,1259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PBAP — How the pipeline works</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
+
+<script>
+  // Set theme BEFORE first paint to avoid FOUC.
+  (function() {
+    try {
+      var saved = localStorage.getItem('pbap-theme');
+      var sysDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      var theme = saved || (sysDark ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', theme);
+    } catch(e) {
+      document.documentElement.setAttribute('data-theme', 'light');
+    }
+  })();
+</script>
+
+<style>
+  :root, [data-theme="light"] {
+    --bg: #F4F0E6;
+    --paper: #FBF8F1;
+    --ink: #14120C;
+    --ink-2: #3B362A;
+    --muted: #756E5C;
+    --line: #D8D1BD;
+    --line-strong: #B8AE93;
+    --hairline: #E5DFCC;
+    --good: oklch(0.52 0.12 145);
+    --good-soft: oklch(0.92 0.05 145);
+    --bad: oklch(0.52 0.14 28);
+    --bad-soft: oklch(0.93 0.05 28);
+    --neutral: oklch(0.55 0 0);
+    --accent: oklch(0.45 0.13 250);
+    --accent-soft: oklch(0.93 0.04 250);
+    --gold: oklch(0.78 0.13 85);
+    --silver: oklch(0.78 0.01 250);
+    --bronze: oklch(0.62 0.11 55);
+    --red: oklch(0.55 0.18 25);
+    --warn: oklch(0.78 0.13 75);
+    --shadow: 0 1px 0 rgba(20,18,12,0.04), 0 2px 6px rgba(20,18,12,0.04);
+    --radius: 6px;
+
+    /* phase tints */
+    --p1-bg: #F4F0E6;
+    --p2-bg: #EBE6D6;
+    --p2-ink: #2A271B;
+
+    /* themable strong-contrast surface (dark panels in light theme,
+       inverts to light panels in dark theme — preserves "focus" semantics) */
+    --surface-strong: #14120C;
+    --on-surface-strong: #FBF8F1;
+    --on-strong-85: color-mix(in srgb, #FBF8F1 85%, transparent);
+    --on-strong-80: color-mix(in srgb, #FBF8F1 80%, transparent);
+    --on-strong-60: color-mix(in srgb, #FBF8F1 60%, transparent);
+    --on-strong-50: color-mix(in srgb, #FBF8F1 50%, transparent);
+    --on-strong-45: color-mix(in srgb, #FBF8F1 45%, transparent);
+    --strong-panel-bg: color-mix(in srgb, #FBF8F1 4%, transparent);
+    --strong-panel-border: color-mix(in srgb, #FBF8F1 10%, transparent);
+
+    /* chrome */
+    --topbar-bg: rgba(244,240,230,0.92);
+    --body-glow-1: rgba(255,255,255,0.4);
+    --body-glow-2: rgba(200,180,140,0.15);
+
+    /* themed consensus chip backgrounds */
+    --pos-bg: oklch(0.92 0.08 145);  --pos-fg: oklch(0.32 0.1 145);
+    --neg-bg: oklch(0.92 0 0);       --neg-fg: oklch(0.4 0 0);
+    --split-bg: oklch(0.92 0.1 85);  --split-fg: oklch(0.4 0.13 65);
+
+    /* themed strain-grid backgrounds */
+    --strain-path-bg: oklch(0.92 0.1 145);   --strain-path-bd: oklch(0.7 0.12 145);
+    --strain-comm-bg: oklch(0.92 0.1 28);    --strain-comm-bd: oklch(0.7 0.14 28);
+    --strain-amb-bg:  oklch(0.95 0.13 85);   --strain-amb-bd:  oklch(0.78 0.14 85);
+  }
+
+  [data-theme="dark"] {
+    --bg: #15130D;
+    --paper: #1F1C13;
+    --ink: #F0EBDD;
+    --ink-2: #C8C1AB;
+    --muted: #8A8273;
+    --line: #2D2A20;
+    --line-strong: #4A4537;
+    --hairline: #25221A;
+    --good: oklch(0.72 0.14 145);
+    --good-soft: oklch(0.3 0.08 145);
+    --bad: oklch(0.72 0.15 28);
+    --bad-soft: oklch(0.32 0.08 28);
+    --neutral: oklch(0.7 0 0);
+    --accent: oklch(0.72 0.15 250);
+    --accent-soft: oklch(0.3 0.08 250);
+    --gold: oklch(0.8 0.14 85);
+    --silver: oklch(0.7 0.01 250);
+    --bronze: oklch(0.68 0.12 55);
+    --red: oklch(0.7 0.18 25);
+    --warn: oklch(0.8 0.13 75);
+    --shadow: 0 1px 0 rgba(0,0,0,0.3), 0 4px 12px rgba(0,0,0,0.25);
+
+    --p1-bg: #15130D;
+    --p2-bg: #1A1812;
+
+    /* invert: strong surface becomes LIGHT in dark theme — preserves contrast */
+    --surface-strong: #F0EBDD;
+    --on-surface-strong: #14120C;
+    --on-strong-85: color-mix(in srgb, #14120C 85%, transparent);
+    --on-strong-80: color-mix(in srgb, #14120C 80%, transparent);
+    --on-strong-60: color-mix(in srgb, #14120C 60%, transparent);
+    --on-strong-50: color-mix(in srgb, #14120C 50%, transparent);
+    --on-strong-45: color-mix(in srgb, #14120C 45%, transparent);
+    --strong-panel-bg: color-mix(in srgb, #14120C 5%, transparent);
+    --strong-panel-border: color-mix(in srgb, #14120C 12%, transparent);
+
+    --topbar-bg: rgba(21,19,13,0.88);
+    --body-glow-1: rgba(255,240,200,0.025);
+    --body-glow-2: rgba(140,100,60,0.04);
+
+    --pos-bg: oklch(0.3 0.08 145);   --pos-fg: oklch(0.86 0.13 145);
+    --neg-bg: oklch(0.28 0 0);       --neg-fg: oklch(0.78 0 0);
+    --split-bg: oklch(0.32 0.1 85);  --split-fg: oklch(0.86 0.12 85);
+
+    --strain-path-bg: oklch(0.3 0.09 145);   --strain-path-bd: oklch(0.5 0.12 145);
+    --strain-comm-bg: oklch(0.32 0.1 28);    --strain-comm-bd: oklch(0.55 0.14 28);
+    --strain-amb-bg:  oklch(0.34 0.11 85);   --strain-amb-bd:  oklch(0.6 0.14 85);
+  }
+
+  html { color-scheme: light; }
+  [data-theme="dark"] { color-scheme: dark; }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'IBM Plex Sans', system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    transition: background-color 0.25s ease, color 0.25s ease;
+  }
+  body {
+    background-image:
+      radial-gradient(circle at 10% 0%, var(--body-glow-1) 0%, transparent 50%),
+      radial-gradient(circle at 90% 100%, var(--body-glow-2) 0%, transparent 50%);
+    min-height: 100vh;
+  }
+
+  .mono { font-family: 'IBM Plex Mono', monospace; font-feature-settings: "ss01"; }
+  .serif { font-family: 'IBM Plex Serif', Georgia, serif; }
+
+  /* page width */
+  .wrap { max-width: 1280px; margin: 0 auto; padding: 0 40px; }
+  @media (max-width: 760px) { .wrap { padding: 0 20px; } }
+
+  /* === Top bar === */
+  .topbar {
+    border-bottom: 1px solid var(--line);
+    padding: 14px 0;
+    position: sticky; top: 0; z-index: 50;
+    background: var(--topbar-bg);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: background-color 0.25s ease, border-color 0.25s ease;
+  }
+  .topbar-inner { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+  .topright { display: flex; align-items: center; gap: 18px; }
+
+  /* === Theme toggle === */
+  .theme-toggle {
+    width: 34px; height: 34px;
+    display: grid; place-items: center;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    cursor: pointer;
+    color: var(--ink);
+    padding: 0;
+    transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+    flex-shrink: 0;
+  }
+  .theme-toggle:hover { border-color: var(--ink); }
+  .theme-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .theme-toggle svg { width: 16px; height: 16px; display: block; }
+  .theme-toggle .sun { display: none; }
+  [data-theme="dark"] .theme-toggle .sun { display: block; }
+  [data-theme="dark"] .theme-toggle .moon { display: none; }
+  .brand { display: flex; align-items: center; gap: 12px; font-family: 'IBM Plex Mono'; font-weight: 600; font-size: 13px; letter-spacing: 0.04em; }
+  .brand-glyph {
+    width: 28px; height: 28px; border: 1.5px solid var(--ink); border-radius: 50%;
+    display: grid; place-items: center; font-size: 11px; background: var(--paper);
+  }
+  .brand-glyph::before { content: ""; width: 8px; height: 8px; background: var(--ink); border-radius: 50%; }
+  .topnav { display: flex; gap: 20px; font-size: 12px; font-family: 'IBM Plex Mono'; color: var(--muted); }
+  .topnav a { color: inherit; text-decoration: none; }
+  .topnav a:hover { color: var(--ink); }
+
+  .topphase {
+    display: flex; gap: 8px; align-items: center;
+    font-family: 'IBM Plex Mono'; font-size: 10.5px;
+    letter-spacing: 0.04em;
+  }
+  .topphase .pp {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 3px 8px; border-radius: 3px;
+    border: 1px solid var(--line);
+    background: var(--paper);
+  }
+  .topphase .pp .dot { width: 6px; height: 6px; border-radius: 50%; }
+  .topphase .p1 .dot { background: var(--good); }
+  .topphase .p2 .dot { background: var(--muted); }
+  .topphase .p2 { background: transparent; color: var(--muted); }
+  .topphase b { font-weight: 600; }
+  @media (max-width: 1080px) { .topnav { display: none; } }
+  @media (max-width: 660px) { .topphase { display: none; } }
+
+  /* === Section header === */
+  .section {
+    padding: 80px 0 40px;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .section-num {
+    display: inline-block;
+    font-family: 'IBM Plex Mono'; font-size: 11px;
+    color: var(--muted); letter-spacing: 0.12em;
+    margin-bottom: 12px;
+  }
+  .phase-badge {
+    display: inline-block;
+    font-family: 'IBM Plex Mono'; font-size: 10px;
+    padding: 3px 8px; border-radius: 3px;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    margin-left: 10px; vertical-align: middle;
+    border: 1px solid var(--line);
+    background: var(--paper);
+    color: var(--muted);
+  }
+  .phase-badge.p2 { background: var(--surface-strong); color: var(--on-surface-strong); border-color: var(--surface-strong); }
+  .section-title {
+    font-family: 'IBM Plex Serif'; font-weight: 400;
+    font-size: clamp(28px, 4vw, 44px);
+    line-height: 1.08;
+    margin: 0 0 14px 0;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+  .section-title em { font-style: italic; color: var(--ink-2); }
+  .section-lede {
+    font-size: 17px; color: var(--ink-2);
+    max-width: 68ch; line-height: 1.6;
+    text-wrap: pretty;
+  }
+
+  h3 {
+    font-family: 'IBM Plex Sans'; font-weight: 600;
+    font-size: 13px; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--muted);
+    margin: 0 0 12px 0;
+  }
+
+  /* === Hero === */
+  .hero { padding: 64px 0 56px; }
+  .hero-eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: 'IBM Plex Mono'; font-size: 11px;
+    color: var(--muted); letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .hero-eyebrow::before { content: ""; width: 24px; height: 1px; background: var(--ink); display: inline-block; }
+  .hero-title {
+    font-family: 'IBM Plex Serif'; font-weight: 400;
+    font-size: clamp(40px, 7vw, 88px);
+    line-height: 0.98; letter-spacing: -0.025em;
+    margin: 16px 0 10px 0;
+    text-wrap: balance;
+  }
+  .hero-title em { font-style: italic; color: var(--ink-2); }
+  .hero-sub {
+    font-size: 19px; color: var(--ink-2);
+    max-width: 60ch; line-height: 1.55;
+    margin-bottom: 30px;
+  }
+  .hero-stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    margin-top: 36px;
+  }
+  .stat {
+    padding: 18px 20px 16px 0;
+    border-right: 1px solid var(--hairline);
+  }
+  .stat:last-child { border-right: none; }
+  .stat-num { font-family: 'IBM Plex Serif'; font-size: 32px; font-weight: 400; line-height: 1; }
+  .stat-label { font-family: 'IBM Plex Mono'; font-size: 10px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; margin-top: 6px; }
+
+  /* === Cards / blocks === */
+  .card {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+  }
+  .card-pad { padding: 22px; }
+  .card-tight { padding: 14px 16px; }
+
+  /* === Pipeline flow === */
+  .flow {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 28px;
+    overflow-x: auto;
+    box-shadow: var(--shadow);
+  }
+  .flow-row {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0;
+    align-items: stretch;
+    min-width: 880px;
+  }
+  .step {
+    position: relative;
+    padding: 16px 18px 18px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    margin-right: 26px;
+    cursor: pointer;
+    transition: all 0.18s ease;
+  }
+  .step:last-child { margin-right: 0; }
+  .step:hover { transform: translateY(-2px); border-color: var(--ink); }
+  .step.active { background: var(--surface-strong); color: var(--on-surface-strong); border-color: var(--surface-strong); }
+  .step.active .step-label,
+  .step.active .step-tech { color: var(--on-surface-strong); opacity: 0.8; }
+  .step::after {
+    content: "→";
+    position: absolute;
+    right: -22px; top: 50%;
+    transform: translateY(-50%);
+    font-family: 'IBM Plex Mono'; font-size: 16px;
+    color: var(--line-strong);
+  }
+  .step:last-child::after { display: none; }
+  .step-num {
+    font-family: 'IBM Plex Mono'; font-size: 10px;
+    color: var(--muted); letter-spacing: 0.1em;
+  }
+  .step.active .step-num { color: var(--on-surface-strong); opacity: 0.6; }
+  .step-name {
+    font-family: 'IBM Plex Sans'; font-weight: 600;
+    font-size: 14px; line-height: 1.2;
+    margin-top: 6px; margin-bottom: 6px;
+  }
+  .step-label { font-size: 11px; color: var(--muted); line-height: 1.35; }
+  .step-tech {
+    font-family: 'IBM Plex Mono'; font-size: 10px;
+    color: var(--muted); margin-top: 8px;
+    word-break: break-word;
+  }
+
+  .step-detail {
+    margin-top: 18px;
+    padding: 22px 24px;
+    background: var(--surface-strong);
+    color: var(--on-surface-strong);
+    border-radius: var(--radius);
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 28px;
+    transition: background-color 0.25s ease, color 0.25s ease;
+  }
+  @media (max-width: 760px) { .step-detail { grid-template-columns: 1fr; } }
+  .step-detail h4 {
+    font-family: 'IBM Plex Serif'; font-weight: 400;
+    font-size: 22px; line-height: 1.15;
+    margin: 0 0 10px 0;
+  }
+  .step-detail .desc { font-size: 14px; line-height: 1.6; color: var(--on-strong-85); }
+  .step-detail .kbits { font-family: 'IBM Plex Mono'; font-size: 11px; color: var(--on-strong-60); margin-top: 10px; }
+  .step-detail .panel {
+    font-family: 'IBM Plex Mono'; font-size: 11.5px; line-height: 1.6;
+    background: var(--strong-panel-bg);
+    border: 1px solid var(--strong-panel-border);
+    padding: 14px 16px; border-radius: 4px;
+    color: var(--on-strong-85);
+    white-space: pre-wrap;
+  }
+  .step-detail .panel .cm { color: var(--on-strong-45); }
+  .step-detail .panel .kw { color: oklch(0.7 0.13 75); }
+  .step-detail .panel .st { color: oklch(0.6 0.14 145); }
+
+  /* === Tool grid === */
+  .tool-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
+  }
+  .tool {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    padding: 14px 14px 12px;
+    border-radius: var(--radius);
+    position: relative;
+    overflow: hidden;
+  }
+  .tool::before {
+    content: "";
+    position: absolute; left: 0; top: 0; bottom: 0;
+    width: 3px; background: var(--good);
+  }
+  .tool.bad::before { background: var(--bad); }
+  .tool.neutral::before { background: var(--neutral); }
+  .tool-name { font-weight: 600; font-size: 15px; letter-spacing: -0.01em; }
+  .tool-cat {
+    font-family: 'IBM Plex Mono'; font-size: 10.5px;
+    color: var(--muted); margin-top: 2px;
+    letter-spacing: 0.04em;
+  }
+  .tool-tech {
+    font-size: 11.5px; color: var(--ink-2);
+    margin-top: 10px; line-height: 1.45;
+  }
+  .tool-env {
+    font-family: 'IBM Plex Mono'; font-size: 10px;
+    color: var(--muted); margin-top: 8px;
+    border-top: 1px dashed var(--hairline); padding-top: 6px;
+  }
+
+  /* polarity chip */
+  .chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-family: 'IBM Plex Mono'; font-size: 10px;
+    padding: 2px 6px; border-radius: 3px;
+    letter-spacing: 0.04em; text-transform: uppercase;
+    border: 1px solid currentColor;
+  }
+  .chip.good { color: var(--good); background: var(--good-soft); border-color: transparent; }
+  .chip.bad { color: var(--bad); background: var(--bad-soft); border-color: transparent; }
+  .chip.neutral { color: var(--muted); background: rgba(0,0,0,0.04); border-color: transparent; }
+
+  /* === Two col === */
+  .two-col {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 28px;
+  }
+  @media (max-width: 880px) { .two-col { grid-template-columns: 1fr; } }
+  .three-col {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+  }
+  @media (max-width: 880px) { .three-col { grid-template-columns: 1fr; } }
+  .four-col {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;
+  }
+  @media (max-width: 880px) { .four-col { grid-template-columns: repeat(2, 1fr); } }
+
+  /* === Table === */
+  table.matrix {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    font-family: 'IBM Plex Mono';
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  table.matrix th, table.matrix td {
+    padding: 9px 12px; text-align: left;
+    border-bottom: 1px solid var(--hairline);
+  }
+  table.matrix th {
+    background: var(--bg);
+    font-weight: 600;
+    font-size: 10.5px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  table.matrix tr:last-child td { border-bottom: none; }
+
+  /* === Consensus chips === */
+  .cell-cons {
+    display: inline-block; padding: 2px 7px;
+    font-family: 'IBM Plex Mono'; font-size: 10.5px;
+    font-weight: 600; border-radius: 3px;
+    letter-spacing: 0.04em;
+  }
+  .cell-cons.pos { background: var(--pos-bg); color: var(--pos-fg); }
+  .cell-cons.neg { background: var(--neg-bg); color: var(--neg-fg); }
+  .cell-cons.split { background: var(--split-bg); color: var(--split-fg); }
+  .cell-cons.none { background: transparent; color: var(--muted); border: 1px dashed var(--line); }
+
+  /* === APEX strain visualisation === */
+  .strain-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 6px;
+  }
+  @media (max-width: 660px) { .strain-grid { grid-template-columns: repeat(4, 1fr); } }
+  .strain {
+    aspect-ratio: 1.2;
+    border-radius: 4px;
+    border: 1px solid var(--line);
+    padding: 6px 7px;
+    font-family: 'IBM Plex Mono';
+    font-size: 9.5px;
+    display: flex; flex-direction: column;
+    justify-content: space-between;
+    background: var(--paper);
+    cursor: default;
+  }
+  .strain .sname { color: var(--ink); font-weight: 600; line-height: 1.05; }
+  .strain .smic { color: var(--muted); font-size: 9px; }
+  .strain.path-active { background: var(--strain-path-bg); border-color: var(--strain-path-bd); }
+  .strain.comm-active { background: var(--strain-comm-bg); border-color: var(--strain-comm-bd); }
+  .strain.amb-active  { background: var(--strain-amb-bg);  border-color: var(--strain-amb-bd); }
+  .strain.path { border-left: 3px solid var(--good); }
+  .strain.comm { border-left: 3px solid var(--bad); }
+  .strain.amb { border-left: 3px solid var(--warn); }
+
+  /* badges */
+  .badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 8px; border-radius: 4px;
+    font-family: 'IBM Plex Mono'; font-size: 11px;
+    font-weight: 600; letter-spacing: 0.02em;
+  }
+  .badge-pathogen { background: linear-gradient(135deg, oklch(0.92 0.13 85), oklch(0.85 0.16 75)); color: oklch(0.3 0.13 60); border: 1px solid oklch(0.7 0.14 75); }
+  .badge-potent { background: oklch(0.92 0.08 250); color: oklch(0.35 0.13 250); }
+  .badge-very-potent { background: oklch(0.92 0.11 50); color: oklch(0.4 0.16 40); }
+
+  /* === Confidence tiers === */
+  .tier-row {
+    display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 0;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  @media (max-width: 880px) { .tier-row { grid-template-columns: 1fr 1fr; } }
+  .tier {
+    padding: 22px 22px 24px;
+    border-right: 1px solid var(--line);
+    position: relative;
+  }
+  .tier:last-child { border-right: none; }
+  .tier-dot {
+    width: 14px; height: 14px; border-radius: 50%;
+    margin-bottom: 14px;
+    box-shadow: 0 0 0 4px rgba(0,0,0,0.04);
+  }
+  .tier.gold .tier-dot { background: var(--gold); }
+  .tier.silver .tier-dot { background: var(--silver); }
+  .tier.bronze .tier-dot { background: var(--bronze); }
+  .tier.red .tier-dot { background: var(--red); }
+  .tier-name { font-family: 'IBM Plex Serif'; font-size: 22px; font-weight: 500; letter-spacing: -0.01em; }
+  .tier-name em { color: var(--ink-2); font-weight: 400; }
+  .tier-thresh { font-family: 'IBM Plex Mono'; font-size: 11px; color: var(--muted); margin-top: 4px; }
+  .tier-desc { font-size: 13px; color: var(--ink-2); margin-top: 12px; line-height: 1.55; }
+
+  /* === Two-lens framing for the leakage bands === */
+  .lens-row {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+  }
+  @media (max-width: 760px) { .lens-row { grid-template-columns: 1fr; } }
+  .lens-card {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 20px 22px 22px;
+    position: relative;
+    overflow: hidden;
+  }
+  .lens-card::before {
+    content: ""; position: absolute; top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+  .lens-bench::before { background: var(--good); }
+  .lens-use::before { background: var(--accent, var(--ink)); }
+  .lens-title {
+    font-family: 'IBM Plex Serif'; font-size: 17px;
+    font-weight: 500; letter-spacing: -0.01em;
+    margin-top: 4px;
+  }
+  .lens-sub {
+    font-family: 'IBM Plex Mono'; font-size: 11px;
+    color: var(--muted); margin-top: 4px;
+    letter-spacing: 0.04em;
+  }
+  .lens-list {
+    list-style: none; padding: 0; margin: 14px 0 0;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .lens-list li {
+    font-size: 13px; color: var(--ink-2); line-height: 1.5;
+    padding-left: 0;
+  }
+  .lens-tag {
+    display: inline-block;
+    font-family: 'IBM Plex Mono'; font-size: 10.5px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 999px;
+    margin-right: 8px;
+    color: var(--ink);
+    background: var(--surface, rgba(0,0,0,0.06));
+    letter-spacing: 0.04em;
+  }
+  .lens-tag.lens-gold   { background: color-mix(in oklch, var(--gold) 28%, var(--paper)); }
+  .lens-tag.lens-silver { background: color-mix(in oklch, var(--silver) 32%, var(--paper)); }
+  .lens-tag.lens-bronze { background: color-mix(in oklch, var(--bronze) 28%, var(--paper)); }
+  .lens-tag.lens-red    { background: color-mix(in oklch, var(--red) 24%, var(--paper)); }
+
+
+  /* === Phase columns === */
+  .phase-card {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 24px 24px 22px;
+    position: relative;
+    overflow: hidden;
+  }
+  .phase-card::before {
+    content: ""; position: absolute; top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+  .phase-card.p1::before { background: var(--accent); }
+  .phase-card.p2::before { background: var(--ink); }
+  .phase-tag {
+    font-family: 'IBM Plex Mono'; font-size: 11px;
+    letter-spacing: 0.08em; color: var(--muted);
+    text-transform: uppercase;
+  }
+  .phase-name {
+    font-family: 'IBM Plex Serif'; font-size: 28px;
+    margin: 8px 0 6px; letter-spacing: -0.01em;
+  }
+  .phase-target { font-size: 13px; color: var(--ink-2); margin-bottom: 14px; }
+  .phase-steps { list-style: none; padding: 0; margin: 0; counter-reset: ps; }
+  .phase-steps li {
+    counter-increment: ps;
+    padding: 9px 0 9px 32px;
+    border-top: 1px solid var(--hairline);
+    position: relative;
+    font-size: 13.5px;
+  }
+  .phase-steps li::before {
+    content: counter(ps, decimal-leading-zero);
+    position: absolute; left: 0; top: 9px;
+    font-family: 'IBM Plex Mono'; font-size: 11px;
+    color: var(--muted); letter-spacing: 0.04em;
+  }
+  .phase-steps li .lab {
+    font-family: 'IBM Plex Mono'; font-size: 10.5px;
+    color: var(--muted); display: block; margin-top: 2px;
+  }
+
+  /* === Outputs === */
+  .output-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+  }
+  .output {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 16px 16px 14px;
+    position: relative;
+  }
+  .output-file {
+    font-family: 'IBM Plex Mono'; font-size: 12.5px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .output-kind {
+    font-family: 'IBM Plex Mono'; font-size: 10px;
+    color: var(--muted); margin-top: 2px;
+    letter-spacing: 0.04em; text-transform: uppercase;
+  }
+  .output-desc { font-size: 12.5px; color: var(--ink-2); line-height: 1.5; margin-top: 10px; }
+  .output-pill {
+    position: absolute; top: 14px; right: 14px;
+    font-family: 'IBM Plex Mono'; font-size: 9.5px;
+    color: var(--muted); letter-spacing: 0.04em;
+  }
+  .output.primary { background: var(--surface-strong); color: var(--on-surface-strong); border-color: var(--surface-strong); }
+  .output.primary .output-file { color: var(--on-surface-strong); }
+  .output.primary .output-kind { color: var(--on-strong-60); }
+  .output.primary .output-desc { color: var(--on-strong-80); }
+  .output.primary .output-pill { color: var(--on-strong-50); }
+
+  /* === Schema dual visualisation === */
+  .schema {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  @media (max-width: 760px) { .schema { grid-template-columns: 1fr; } }
+  .axis {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+  }
+  .axis-name { font-family: 'IBM Plex Mono'; font-size: 11px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; }
+  .axis-title { font-family: 'IBM Plex Serif'; font-size: 22px; margin: 6px 0 6px; }
+  .axis-desc { font-size: 13px; color: var(--ink-2); margin-bottom: 14px; line-height: 1.55; }
+
+  /* === Ranking formula === */
+  .formula {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 22px 24px;
+    font-family: 'IBM Plex Mono';
+    font-size: 13px;
+    line-height: 1.8;
+    overflow-x: auto;
+  }
+  .formula .lhs { color: var(--ink); font-weight: 600; }
+  .formula .op { color: var(--muted); padding: 0 6px; }
+  .formula .var-good { color: oklch(0.4 0.15 145); }
+  .formula .var-bad { color: oklch(0.4 0.17 28); }
+  .formula .var-adj { color: oklch(0.4 0.15 250); }
+
+  /* === Phase 2 divider — strong visual break === */
+  .phase-divider {
+    margin: 0;
+    background: var(--p2-bg);
+    border-top: 2px solid var(--ink);
+    border-bottom: 1px solid var(--line);
+    padding: 36px 0 28px;
+  }
+  .phase-divider-inner {
+    display: flex; gap: 28px; align-items: flex-start;
+  }
+  @media (max-width: 760px) { .phase-divider-inner { flex-direction: column; gap: 14px; } }
+  .phase-divider-rule {
+    flex-shrink: 0;
+    font-family: 'IBM Plex Mono'; font-size: 11px;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--muted);
+    padding-top: 4px;
+  }
+  .phase-divider-rule .num {
+    display: block; font-size: 13px; color: var(--ink);
+    font-weight: 600; letter-spacing: 0.06em;
+  }
+  .phase-divider-title {
+    font-family: 'IBM Plex Serif'; font-size: clamp(24px, 3.4vw, 32px);
+    line-height: 1.1; letter-spacing: -0.01em;
+    margin: 0 0 8px 0;
+    color: var(--ink);
+  }
+  .phase-divider-title em { font-style: italic; color: var(--ink-2); }
+  .phase-divider-sub {
+    font-size: 15px; line-height: 1.55; color: var(--ink-2);
+    max-width: 72ch; text-wrap: pretty;
+  }
+  .phase-divider-sub strong { color: var(--ink); font-weight: 600; }
+
+  /* Phase-2 themed section — different bg + accent */
+  .section.p2-section {
+    background: var(--p2-bg);
+    border-bottom: 2px solid var(--ink);
+    padding-top: 40px;
+  }
+  .section.p2-section .section-num {
+    color: var(--ink-2);
+  }
+  .callout {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--ink);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--ink-2);
+    max-width: 90ch;
+  }
+  .callout strong { color: var(--ink); font-weight: 600; }
+  .callout .ml { display: block; margin-bottom: 6px; }
+
+  /* === Footer === */
+  footer {
+    padding: 64px 0 80px;
+    border-top: 1px solid var(--line);
+    background: var(--paper);
+    color: var(--muted);
+    font-size: 12.5px;
+    font-family: 'IBM Plex Mono';
+    transition: background-color 0.25s ease, border-color 0.25s ease;
+  }
+  footer a { color: var(--ink); text-decoration: none; }
+  .footer-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.4fr 1fr;
+    gap: 36px;
+    margin-bottom: 40px;
+  }
+  @media (max-width: 760px) { .footer-grid { grid-template-columns: 1fr; gap: 28px; } }
+  .footer-block { display: flex; flex-direction: column; align-items: flex-start; }
+  .footer-title {
+    font-family: 'IBM Plex Sans'; font-weight: 600;
+    font-size: 10.5px; letter-spacing: 0.12em;
+    color: var(--muted); text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  .footer-sub {
+    font-family: 'IBM Plex Serif'; font-size: 19px; font-weight: 400;
+    color: var(--ink); letter-spacing: -0.01em;
+    line-height: 1.2; margin-bottom: 12px;
+  }
+  .footer-meta { font-size: 11px; color: var(--muted); }
+  .footer-link {
+    display: inline-flex; align-items: center; gap: 9px;
+    color: var(--ink-2);
+    padding: 5px 0; font-size: 12.5px;
+    line-height: 1.3;
+    border-bottom: 1px dotted transparent;
+    transition: color 0.15s ease, border-color 0.15s ease;
+  }
+  .footer-link:hover { color: var(--ink); border-bottom-color: var(--line-strong); }
+  .footer-link svg {
+    width: 14px; height: 14px; flex-shrink: 0;
+    opacity: 0.7;
+    transition: opacity 0.15s ease;
+  }
+  .footer-link:hover svg { opacity: 1; }
+  .footer-fineprint {
+    font-size: 11px; line-height: 1.7;
+    color: var(--muted); max-width: 95ch;
+    border-top: 1px solid var(--hairline);
+    padding-top: 24px;
+    margin: 0;
+  }
+
+  /* utils */
+  .row { display: flex; align-items: center; gap: 10px; }
+  .col { display: flex; flex-direction: column; gap: 10px; }
+  .gap-12 { gap: 12px; }
+  .gap-20 { gap: 20px; }
+  .mt-4 { margin-top: 4px; } .mt-8 { margin-top: 8px; } .mt-12 { margin-top: 12px; } .mt-16 { margin-top: 16px; } .mt-24 { margin-top: 24px; } .mt-40 { margin-top: 40px; }
+  .mb-8 { margin-bottom: 8px; } .mb-16 { margin-bottom: 16px; } .mb-24 { margin-bottom: 24px; }
+  .muted { color: var(--muted); }
+  .num { font-variant-numeric: tabular-nums; }
+
+  .arrow-down { color: var(--muted); font-family: 'IBM Plex Mono'; text-align: center; padding: 8px 0; }
+
+  .ml { font-family: 'IBM Plex Mono'; font-size: 11px; color: var(--muted); letter-spacing: 0.04em; }
+  .yamllike {
+    font-family: 'IBM Plex Mono'; font-size: 12px; line-height: 1.65;
+    background: var(--bg); border: 1px solid var(--line);
+    border-radius: 4px; padding: 14px 16px;
+    color: var(--ink-2);
+  }
+  .yamllike .key { color: var(--ink); }
+  .yamllike .str { color: oklch(0.4 0.15 145); }
+  .yamllike .num { color: oklch(0.4 0.15 250); }
+  .yamllike .cm { color: var(--muted); }
+</style>
+</head>
+
+<body>
+
+<header class="topbar">
+  <div class="wrap topbar-inner">
+    <div class="brand">
+      <div class="brand-glyph"></div>
+      <div>PBAP&nbsp;·&nbsp;Peptide&nbsp;Bioactivity&nbsp;Audit&nbsp;Pipeline</div>
+    </div>
+    <div class="topright">
+      <nav class="topnav">
+        <a href="#flow">Flow</a>
+        <a href="#tools">Tools</a>
+        <a href="#schema">Schema</a>
+        <a href="#ranking">Ranking</a>
+        <a href="#apex">APEX</a>
+        <a href="#audit">Audit</a>
+        <a href="#outputs">Outputs</a>
+      </nav>
+      <div class="topphase">
+        <span class="pp p1"><span class="dot"></span><b>Phase 1</b>&nbsp;· operational</span>
+        <span class="pp p2"><span class="dot"></span><b>Phase 2</b>&nbsp;· offline audit tooling</span>
+      </div>
+      <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark or light theme" title="Toggle theme" type="button">
+        <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+        <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="4"/>
+          <line x1="12" y1="2" x2="12" y2="4"/>
+          <line x1="12" y1="20" x2="12" y2="22"/>
+          <line x1="4.93" y1="4.93" x2="6.34" y2="6.34"/>
+          <line x1="17.66" y1="17.66" x2="19.07" y2="19.07"/>
+          <line x1="2" y1="12" x2="4" y2="12"/>
+          <line x1="20" y1="12" x2="22" y2="12"/>
+          <line x1="4.93" y1="19.07" x2="6.34" y2="17.66"/>
+          <line x1="17.66" y1="6.34" x2="19.07" y2="4.93"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main>
+<section class="hero wrap">
+  <div class="hero-eyebrow">Technical diagram · May 2026</div>
+  <h1 class="hero-title">How <em>PBAP</em> works.</h1>
+  <p class="hero-sub">
+    A modular orchestrator that audits 26 published peptide-bioactivity prediction tools, runs the 10 that actually work under a unified output schema, and adds analytical layers — concordance, pathogen/commensal selectivity, hierarchical ranking — that no individual tool ships with.
+  </p>
+
+  <div class="hero-stats">
+    <div class="stat"><div class="stat-num">26</div><div class="stat-label">Tools evaluated</div></div>
+    <div class="stat"><div class="stat-num">10</div><div class="stat-label">Operational (38%)</div></div>
+    <div class="stat"><div class="stat-num">7</div><div class="stat-label">Bioactivity categories</div></div>
+    <div class="stat"><div class="stat-num">9</div><div class="stat-label">Conda environments</div></div>
+    <div class="stat"><div class="stat-num">34</div><div class="stat-label">APEX strains</div></div>
+    <div class="stat"><div class="stat-num">5</div><div class="stat-label">Output formats</div></div>
+  </div>
+</section>
+
+<!-- ========== SECTION 01 — PHASE OVERVIEW ========== -->
+<section class="section">
+  <div class="wrap">
+    <div class="section-num">01 · ARCHITECTURE</div>
+    <h2 class="section-title">Two phases, <em>one philosophy</em>.</h2>
+    <p class="section-lede">PBAP operates in two independent modes. <b>Phase 1</b> is what a user runs on their FASTA — sections 02–06 below describe it in detail. <b>Phase 2</b> is the offline scientific audit that validates each tool against independent evaluation pools; its output is internal QC, not part of any user run.</p>
+
+    <div class="two-col mt-40">
+      <div class="phase-card p1">
+        <div class="phase-tag">Phase 01 · <span class="mono">scripts/run_audit.py</span></div>
+        <h3 class="phase-name">User inference</h3>
+        <p class="phase-target">FASTA → consolidated predictions + ranking. What the end user actually runs.</p>
+        <ol class="phase-steps">
+          <li>FASTA batching<span class="lab">anti-OOM, default 100 peptides / batch</span></li>
+          <li>Per-tool execution in sub-processes<span class="lab">micromamba run · 9 isolated envs</span></li>
+          <li>Normalisation to the dual schema<span class="lab">class_norm + score + extra_metrics</span></li>
+          <li>Intra-category agreement<span class="lab">consensus_positive · split · single_tool</span></li>
+          <li>APEX selectivity (pathogen vs commensal)<span class="lab">post-processing of the 34 MICs</span></li>
+          <li>Hierarchical ranking<span class="lab">structural_score → holistic_score</span></li>
+          <li>Report generation<span class="lab">HTML · MD · CSV · XLSX · JSON</span></li>
+        </ol>
+      </div>
+
+      <div class="phase-card p2">
+        <div class="phase-tag">Phase 02 · <span class="mono">bin/audit_pipeline.sh</span></div>
+        <h3 class="phase-name">Scientific audit <span style="font-size:13px;color:var(--muted);font-family:'IBM Plex Mono';letter-spacing:0.04em;">— offline only</span></h3>
+        <p class="phase-target">Per tool, validate against independent data and quantify its biases. <strong>Never invoked by a user run.</strong></p>
+        <ol class="phase-steps">
+          <li>Mining positives per bioactivity<span class="lab">UniProt + 9 specialised databases</span></li>
+          <li>Extracting the author's training set<span class="lab">from each tool's repo</span></li>
+          <li>Leakage analysis (CD-HIT-2D)<span class="lab">40 / 60 / 80% identity bands</span></li>
+          <li>Negative generation per tool<span class="lab">length-stratified sampling</span></li>
+          <li>Prediction &amp; benchmarking<span class="lab">recall, precision, MCC on the independent pool</span></li>
+          <li>Taxonomic bias<span class="lab">Fisher exact · Wilson CI · BH-FDR</span></li>
+          <li>Per-tool QC<span class="lab">distributions, AA composition, score_oor</span></li>
+          <li>Global cross-tool report<span class="lab">JSON · TXT · XLSX</span></li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== SECTION 02 — FLOW DIAGRAM ========== -->
+<section class="section" id="flow">
+  <div class="wrap">
+    <div class="section-num">02 · PHASE 1 FLOW</div>
+    <h2 class="section-title">Anatomy of a <em>run</em>.</h2>
+    <p class="section-lede">What happens between <span class="mono">Inputs/peptides.fasta</span> and <span class="mono">Outputs/peptides_2026-05-08T1530/REPORT.html</span>. Click on any step to inspect it.</p>
+
+    <div id="flow-mount" class="mt-40"></div>
+  </div>
+</section>
+
+<!-- ========== SECTION 03 — TOOLS ========== -->
+<section class="section" id="tools">
+  <div class="wrap">
+    <div class="section-num">03 · CATALOG</div>
+    <h2 class="section-title">10 tools, <em>7 categories</em>.</h2>
+    <p class="section-lede">Out of 26 published tools (2023–2025), only 10 are runnable end-to-end. Each one lives in its own conda environment — pinned, isolated — and emits into the common schema. Categories carry a polarity: <span class="chip good">GOOD</span> adds to holistic, <span class="chip bad">BAD</span> subtracts.</p>
+
+    <div class="mt-40" id="tools-mount"></div>
+  </div>
+</section>
+
+<!-- ========== SECTION 04 — SCHEMA DUAL ========== -->
+<section class="section" id="schema">
+  <div class="wrap">
+    <div class="section-num">04 · UNIFIED SCHEMA</div>
+    <h2 class="section-title">Two axes, <em>not mutually exclusive</em>.</h2>
+    <p class="section-lede">Some tools predict active / inactive (binary). Others predict continuous magnitudes — MIC in µM against 34 strains, in APEX's case. Forcing everything to binary discards information; using magnitudes only kills cross-tool comparison. PBAP keeps both axes alive.</p>
+
+    <div class="schema mt-40">
+      <div class="axis">
+        <div class="axis-name">Axis 01</div>
+        <div class="axis-title">Binary</div>
+        <p class="axis-desc">Every classifier emits <span class="mono">class_norm ∈ {positive, negative, null}</span> with <span class="mono">score ∈ [0, 1]</span>. Feeds the cross-tool matrix and the intra-category agreement detection.</p>
+        <div class="yamllike"><span class="cm"># pipeline_config.yaml — toxinpred3</span>
+<span class="key">output_parsing:</span>
+  <span class="key">format:</span> <span class="str">csv</span>
+  <span class="key">prediction_column:</span> <span class="str">Prediction</span>
+  <span class="key">positive_label:</span> <span class="num">1</span>
+  <span class="key">score_column:</span> <span class="str">Probability</span>
+  <span class="key">score_threshold:</span> <span class="num">0.5</span></div>
+      </div>
+
+      <div class="axis">
+        <div class="axis-name">Axis 02</div>
+        <div class="axis-title">Extra metrics</div>
+        <p class="axis-desc">Magnitudes with a unit. Materialised as columns <span class="mono">&lt;tool&gt;__&lt;metric&gt;__&lt;unit&gt;</span>. Same magnitude + target + unit → same column; any difference → separate column.</p>
+        <div class="yamllike"><span class="cm"># pipeline_config.yaml — apex (34 strains)</span>
+<span class="key">output_parsing:</span>
+  <span class="key">extra_metrics:</span>
+    - <span class="key">name:</span> <span class="str">MIC_E_coli</span>
+      <span class="key">unit:</span> <span class="str">uM</span>
+      <span class="key">field:</span> <span class="str">E.coli K12</span>
+    - <span class="key">name:</span> <span class="str">MIC_S_aureus</span>
+      <span class="key">unit:</span> <span class="str">uM</span>
+      <span class="key">field:</span> <span class="str">S.aureus ATCC25923</span>
+    <span class="cm"># … 32 more</span></div>
+      </div>
+    </div>
+
+    <h3 class="mt-40 mb-16">Intra-category agreement — what happens when two tools disagree</h3>
+    <div id="agreement-mount"></div>
+  </div>
+</section>
+
+<!-- ========== SECTION 05 — RANKING ========== -->
+<section class="section" id="ranking">
+  <div class="wrap">
+    <div class="section-num">05 · HIERARCHICAL RANKING</div>
+    <h2 class="section-title">Profile first, <em>magnitude second</em>.</h2>
+    <p class="section-lede">Two levels so the user can prioritise peptides without a high score in one category masking a structurally weak profile. A peptide with a good profile across many categories always ranks above one with a single high score in few.</p>
+
+    <div id="ranking-mount" class="mt-40"></div>
+  </div>
+</section>
+
+<!-- ========== SECTION 06 — APEX DEEP DIVE ========== -->
+<section class="section" id="apex">
+  <div class="wrap">
+    <div class="section-num">06 · SPECIAL CASE</div>
+    <h2 class="section-title">APEX — <em>34 strains, 4 labels, 2 means</em>.</h2>
+    <p class="section-lede">APEX predicts MIC against 34 bacterial strains. Some are pathogens (S. aureus, MRSA, K. pneumoniae). Others are gut-microbiome commensals (Akkermansia, Bacteroides). PBAP post-processes this into a selectivity label that feeds directly into the holistic_score.</p>
+
+    <div id="apex-mount" class="mt-40"></div>
+  </div>
+</section>
+
+<!-- ========== PHASE 2 DIVIDER — hard visual break ========== -->
+<div class="phase-divider">
+  <div class="wrap phase-divider-inner">
+    <div class="phase-divider-rule">
+      <span class="num">PHASE 2</span>
+      Audit-only<br/>not in user runs
+    </div>
+    <div>
+      <h2 class="phase-divider-title">Everything from <em>here down</em> is offline tooling.</h2>
+      <p class="phase-divider-sub">
+        The sections above describe what runs when a user invokes <span class="mono">scripts/run_audit.py</span> on their FASTA. <strong>The section below describes a separate orchestrator</strong> — <span class="mono">bin/audit_pipeline.sh</span> — which validates each tool against an independently constructed evaluation pool. Its artifacts live under <span class="mono">Dataset_Bioactividad/Reports/</span> and are <strong>never</strong> emitted by a user run.
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ========== SECTION 07 — AUDIT / LEAKAGE (PHASE 2 ONLY) ========== -->
+<section class="section p2-section" id="audit">
+  <div class="wrap">
+    <div class="section-num">07 · PHASE 2 ARTIFACT <span class="phase-badge p2">offline only</span></div>
+    <h2 class="section-title">Scientific validation — <em>Gold, Silver, Bronze, Red</em>.</h2>
+    <p class="section-lede">
+      When PBAP audits a tool against an independent evaluation pool (Phase 2 — <span class="mono">bin/audit_pipeline.sh</span>), <span class="mono">cd-hit-2d</span> bins each evaluation peptide by its <strong>maximum identity to the tool's training set</strong>. These are <strong>identity bands, not a single confidence ladder</strong> — they map onto the <em>Applicability Domain</em> concept from QSAR (Tropsha &amp; Golbraikh; OECD Principle 3). The right reading depends on what you are asking.
+    </p>
+
+    <div class="callout mt-24">
+      <span class="ml">SOURCE OF TRUTH · docs/leakage_analysis.md</span>
+      <strong>Phase 1 user reports do NOT include per-peptide tags.</strong> Applicability-domain calibration and per-peptide tagging in production are tracked as future work in <span class="mono">docs/roadmap.md</span> under "Leakage analysis via CD-HIT-2D (Phase 2)". What exists today: <span class="mono">scripts/cdhit_leakage_analysis.py</span> and <span class="mono">scripts/auditoria_validation.py</span> produce these bands for offline analysis over independently built evaluation pools.
+    </div>
+
+    <div class="tier-row mt-40">
+      <div class="tier gold">
+        <div class="tier-dot"></div>
+        <div class="tier-name">Gold <em>· far from training</em></div>
+        <div class="tier-thresh">survives 80%, 60% and 40% · &lt;40% identity</div>
+        <div class="tier-desc">Nearest training neighbor sits below 40% identity. The peptide is <strong>outside the applicability domain</strong> of this tool.</div>
+      </div>
+      <div class="tier silver">
+        <div class="tier-dot"></div>
+        <div class="tier-name">Silver <em>· in-domain, medium</em></div>
+        <div class="tier-thresh">survives 80%, 60% · dies at 40% · 40–60% identity</div>
+        <div class="tier-desc">Remote-to-moderate similarity (40–60%) to training. Inside the model's reasonable working range.</div>
+      </div>
+      <div class="tier bronze">
+        <div class="tier-dot"></div>
+        <div class="tier-name">Bronze <em>· in-domain, close</em></div>
+        <div class="tier-thresh">survives 80% · dies at 60% · 60–80% identity</div>
+        <div class="tier-desc">Close similarity (60–80%) to a training neighbor. Solidly inside the applicability domain.</div>
+      </div>
+      <div class="tier red">
+        <div class="tier-dot"></div>
+        <div class="tier-name">Red <em>· near-duplicate</em></div>
+        <div class="tier-thresh">dies at 80% · ≥80% identity</div>
+        <div class="tier-desc">Training has a peptide at ≥80% identity. Not literally the same sequence (a 50-aa peptide at 80% differs in 10 residues) but the local sequence fingerprint is largely preserved.</div>
+      </div>
+    </div>
+
+    <!-- Two-lens framing: same bands, two readings -->
+    <div class="lens-row mt-32">
+      <div class="lens-card lens-bench">
+        <div class="lens-title">Lens A · Benchmarking the tool</div>
+        <div class="lens-sub">How good is the model at generalizing?</div>
+        <ul class="lens-list">
+          <li><span class="lens-tag lens-gold">Gold</span> best signal — uncontaminated test of true generalization</li>
+          <li><span class="lens-tag lens-silver">Silver</span> clean — inside the AD, minimal leakage bias</li>
+          <li><span class="lens-tag lens-bronze">Bronze</span> mildly inflated — close-neighbor recognition leaks into the score</li>
+          <li><span class="lens-tag lens-red">Red</span> exclude — near-memorization by interpolation; any decent model wins here trivially</li>
+        </ul>
+      </div>
+      <div class="lens-card lens-use">
+        <div class="lens-title">Lens B · Trusting a specific prediction</div>
+        <div class="lens-sub">Will this tool be right on <em>this</em> peptide?</div>
+        <ul class="lens-list">
+          <li><span class="lens-tag lens-gold">Gold</span> <strong>low</strong> — peptide is out-of-distribution; the model extrapolates</li>
+          <li><span class="lens-tag lens-silver">Silver</span> high — inside the applicability domain</li>
+          <li><span class="lens-tag lens-bronze">Bronze</span> high — interpolation from known territory</li>
+          <li><span class="lens-tag lens-red">Red</span> high but trivial — practically correct because the model has seen a near-clone</li>
+        </ul>
+      </div>
+    </div>
+
+    <p class="muted mono mt-32" style="font-size:11.5px;">Practical takeaway: for benchmarking a tool, Gold is the cleanest signal and Red is excluded. For estimating how much to trust a specific prediction the tool just made on a specific peptide, the order is roughly reversed — Bronze and Silver are the operational sweet spot, Gold is where the model is least trustworthy. Phase-2 audit reporting therefore publishes per-band metrics <em>side by side</em> rather than a single trust verdict.</p>
+  </div>
+</section>
+
+<!-- ========== SECTION 08 — OUTPUTS (back to Phase 1) ========== -->
+<section class="section" id="outputs">
+  <div class="wrap">
+    <div class="section-num">08 · ARTIFACTS <span class="phase-badge">phase 1 · user run</span></div>
+    <h2 class="section-title">What ends up in <em>Outputs/</em>.</h2>
+    <p class="section-lede">Five formats, same data. The user picks the tool — the browser for rich visual inspection, Excel for hand-filtering, CSV/JSON to plug into other pipelines.</p>
+
+    <div class="output-grid mt-40">
+      <div class="output primary">
+        <div class="output-pill">PRIMARY</div>
+        <div class="output-file">REPORT.html</div>
+        <div class="output-kind">HTML5 standalone · no CDN</div>
+        <div class="output-desc">Interactive matrix with sort by category or by specific tool, filters (holistic ≥, length, pathogen_specific only), per-peptide drill-down, APEX sub-block coloured per strain, collapsible sections.</div>
+      </div>
+      <div class="output">
+        <div class="output-pill">5 sheets</div>
+        <div class="output-file">consolidated.xlsx</div>
+        <div class="output-kind">openpyxl · conditional formatting</div>
+        <div class="output-desc">Matrix · Disagreements · Extra_Metrics · Tool_Health · Run_Info. Autofilter on, freeze pane at row 1, green/yellow/grey fills per consensus.</div>
+      </div>
+      <div class="output">
+        <div class="output-pill">wide</div>
+        <div class="output-file">consolidated.csv</div>
+        <div class="output-kind">flat CSV</div>
+        <div class="output-desc">One row per peptide. Ordered by <span class="mono">structural_score desc → holistic_score desc</span>.</div>
+      </div>
+      <div class="output">
+        <div class="output-pill">nested</div>
+        <div class="output-file">consolidated.json</div>
+        <div class="output-kind">nested JSON</div>
+        <div class="output-desc">Hierarchical: peptide → predictions per tool → extra_metrics + full apex_selectivity.</div>
+      </div>
+      <div class="output">
+        <div class="output-pill">backup</div>
+        <div class="output-file">REPORT.md</div>
+        <div class="output-kind">plain Markdown</div>
+        <div class="output-desc">6 sections — header, per-peptide summary, disagreements, extra_metrics, per-tool health, footer.</div>
+      </div>
+      <div class="output">
+        <div class="output-pill">diagnostic</div>
+        <div class="output-file">tool_health_report.json</div>
+        <div class="output-kind">JSON</div>
+        <div class="output-desc">Per tool: runtime, status, n_batches_ok/total, diagnosis. Detects partial failures without aborting the run.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-grid">
+      <div class="footer-block">
+        <div class="footer-title">PBAP</div>
+        <div class="footer-sub">Peptide Bioactivity<br/>Audit Pipeline</div>
+        <div class="footer-meta mono">v1.0 · 2026-05-13</div>
+      </div>
+      <div class="footer-block">
+        <div class="footer-title">Project</div>
+        <a class="footer-link" href="https://github.com/Paredes0/pbap" target="_blank" rel="noopener noreferrer">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.56v-2.16c-3.2.7-3.87-1.36-3.87-1.36-.52-1.32-1.27-1.67-1.27-1.67-1.04-.71.08-.69.08-.69 1.15.08 1.76 1.18 1.76 1.18 1.02 1.75 2.69 1.25 3.34.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.27-5.23-5.66 0-1.25.45-2.27 1.18-3.07-.12-.29-.51-1.46.11-3.04 0 0 .97-.31 3.18 1.17.92-.26 1.91-.39 2.89-.39.98 0 1.97.13 2.89.39 2.21-1.49 3.18-1.17 3.18-1.17.63 1.58.23 2.75.12 3.04.74.8 1.18 1.82 1.18 3.07 0 4.4-2.68 5.36-5.24 5.65.41.35.78 1.05.78 2.12v3.14c0 .31.21.66.79.55C20.21 21.39 23.5 17.08 23.5 12 23.5 5.65 18.35.5 12 .5z"/></svg>
+          github.com/Paredes0/pbap
+        </a>
+        <a class="footer-link" href="https://github.com/Paredes0/pbap/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">License — PolyForm Noncommercial 1.0.0</a>
+        <a class="footer-link" href="https://github.com/Paredes0/pbap/blob/main/CITATION.cff" target="_blank" rel="noopener noreferrer">CITATION.cff</a>
+        <a class="footer-link" href="https://github.com/Paredes0/pbap/blob/main/docs/INDEX.md" target="_blank" rel="noopener noreferrer">docs/INDEX.md</a>
+      </div>
+      <div class="footer-block">
+        <div class="footer-title">Author</div>
+        <div class="footer-sub">Noé Paredes Alfonso</div>
+        <a class="footer-link" href="https://www.linkedin.com/in/noe-paredes-alfonso-395328267/" target="_blank" rel="noopener noreferrer">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.03-3.04-1.85-3.04-1.86 0-2.14 1.45-2.14 2.95v5.66H9.34V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.38-1.85 3.62 0 4.29 2.38 4.29 5.48v6.26zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zm1.78 13.02H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.72v20.56C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.72V1.72C24 .77 23.2 0 22.22 0z"/></svg>
+          LinkedIn
+        </a>
+        <a class="footer-link" href="https://github.com/Paredes0" target="_blank" rel="noopener noreferrer">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.56v-2.16c-3.2.7-3.87-1.36-3.87-1.36-.52-1.32-1.27-1.67-1.27-1.67-1.04-.71.08-.69.08-.69 1.15.08 1.76 1.18 1.76 1.18 1.02 1.75 2.69 1.25 3.34.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.27-5.23-5.66 0-1.25.45-2.27 1.18-3.07-.12-.29-.51-1.46.11-3.04 0 0 .97-.31 3.18 1.17.92-.26 1.91-.39 2.89-.39.98 0 1.97.13 2.89.39 2.21-1.49 3.18-1.17 3.18-1.17.63 1.58.23 2.75.12 3.04.74.8 1.18 1.82 1.18 3.07 0 4.4-2.68 5.36-5.24 5.65.41.35.78 1.05.78 2.12v3.14c0 .31.21.66.79.55C20.21 21.39 23.5 17.08 23.5 12 23.5 5.65 18.35.5 12 .5z"/></svg>
+          @Paredes0
+        </a>
+      </div>
+    </div>
+    <p class="footer-fineprint">This diagram illustrates the architecture documented in <span class="mono">docs/architecture.md</span>, <span class="mono">docs/orchestrator_design.md</span>, <span class="mono">docs/data.md</span>, <span class="mono">docs/pipeline_viability.md</span> and <span class="mono">docs/leakage_analysis.md</span>. The 16 evaluated tools that did not make it into the pipeline (structural_real, blocked, deferred_user) are documented with their verdict in <span class="mono">pipeline_viability.md</span>. The Gold/Silver/Bronze/Red grading shown in Section 07 is Phase 2 audit tooling only — it is not part of user runs.</p>
+  </div>
+</footer>
+</main>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="components/flow.jsx"></script>
+<script type="text/babel" src="components/tools.jsx"></script>
+<script type="text/babel" src="components/agreement.jsx"></script>
+<script type="text/babel" src="components/ranking.jsx"></script>
+<script type="text/babel" src="components/apex.jsx"></script>
+<script type="text/babel" src="components/mount.jsx"></script>
+
+<script>
+  // Wire up the theme toggle button.
+  (function() {
+    var btn = document.getElementById('theme-toggle');
+    if (!btn) return;
+    btn.addEventListener('click', function() {
+      var cur = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', cur);
+      try { localStorage.setItem('pbap-theme', cur); } catch(e) {}
+    });
+  })();
+</script>
+
+</body>
+</html>

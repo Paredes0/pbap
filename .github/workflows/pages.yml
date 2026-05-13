@@ -1,0 +1,49 @@
+# Deploy to GitHub Pages — builds the static site from ./site/
+#
+# How to enable on github.com/Paredes0/pbap:
+#   1. Push this workflow + the ./site/ folder to main
+#   2. Repo Settings -> Pages -> Build & deployment -> Source: "GitHub Actions"
+#   3. Push to main; the action publishes and prints the URL in the run summary
+#      Expected URL: https://paredes0.github.io/pbap/
+
+name: Deploy PBAP page to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "site/**"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow only one concurrent deployment, skipping queued runs in between.
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact (only the ./site directory)
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
