@@ -745,7 +745,7 @@ tools:
         score_threshold: 0.8
         prediction_type: classification
         prefer_threshold_over_raw_class: true
-        notes: 'Threshold 0.8 (subido desde 0.5 default del paper el 2026-05-01) — el modelo es optimista y produce demasiados falsos positivos con threshold 0.5 en péptidos del usuario. `prefer_threshold_over_raw_class: true` fuerza al orchestrator a re-clasificar usando score >= 0.8 en vez de aceptar la decisión binaria interna del modelo (que usa corte 0.5 hardcodeado). Decisión registrada en `docs/decisions.md` §10.'
+        notes: 'Threshold 0.8 (raised from the 0.5 paper default on 2026-05-01) — the model is optimistic and produces too many false positives at the 0.5 cutoff on user peptides. `prefer_threshold_over_raw_class: true` forces the orchestrator to re-classify using score >= 0.8 instead of accepting the model''s internal binary decision (which uses a hardcoded 0.5 cutoff). Decision recorded in `docs/decisions.md` §10.'
     standby: false
     weights_download:
       platform: huggingface
