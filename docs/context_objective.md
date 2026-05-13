@@ -31,9 +31,12 @@ external audit** of these tools in order to:
   sequences have already been seen by each model.
 - **Evaluate robustness**: determine whether predictions are consistent
   across different taxonomic groups.
-- **Establish confidence levels**: tag prediction results according to
-  their proximity to the training data (Gold / Silver / Bronze / Red
-  system).
+- **Map predictions to the applicability domain**: tag every
+  evaluation peptide by its similarity to the tool's training set
+  (Gold / Silver / Bronze / Red identity bands) and report per-grade
+  metrics separately, so the right reading lens can be picked for the
+  question being asked — benchmarking the tool vs. trusting a specific
+  prediction. See `docs/leakage_analysis.md`.
 - **Provide an independent dataset**: build a pool of positive and
   negative peptides not influenced by the biases of the original
   authors.

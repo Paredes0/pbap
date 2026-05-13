@@ -9,6 +9,19 @@ last_updated: 2026-05-13
 
 ## 2026-05
 
+- 2026-05-13 — **Applicability-domain reframing of leakage grades**.
+  Rewrote `docs/leakage_analysis.md` to introduce the Applicability
+  Domain (AD) concept from QSAR (Tropsha & Golbraikh; OECD Principle 3)
+  and present Gold / Silver / Bronze / Red as **identity bands** with
+  **two reading lenses**: benchmarking the tool vs. trusting a specific
+  prediction. The previous framing ("Gold = highest confidence") is
+  correct only for benchmarking; for practical reliability of an
+  individual prediction it is inverted (Gold = out-of-distribution).
+  Names of the bands are preserved (already embedded in code, configs,
+  filenames); only the docs interpretation changes. Files:
+  `docs/leakage_analysis.md`, `docs/glossary.md`, `docs/data.md`,
+  `docs/decisions.md` (new ADR), `docs/context_objective.md`,
+  `docs/INDEX.md`.
 - 2026-05-13 — **Docs audit and translation to English**. Removed
   `docs/contributors.md` (internal AI-swarm roster, not relevant for the
   public project). Fixed encoding on 12 files (cp1252 / latin-1 / BOM →

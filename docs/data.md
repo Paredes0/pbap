@@ -89,22 +89,28 @@ technical behavior:
 
 ---
 
-## 🔍 Leakage grades (scientific confidence)
+## 🔍 Leakage grades and the Applicability Domain
 
 > **Phase 2 feature** — applied only in the scientific audit flow
 > (`bin/audit_pipeline.sh`), not in the user inference report. See
-> `docs/leakage_analysis.md` for the methodology.
+> `docs/leakage_analysis.md` for the full methodology and two-lens
+> discussion.
 
-To avoid inflated results from sequences already known to the models,
-the pipeline classifies peptides into 4 novelty tiers:
+CD-HIT-2D classifies each evaluation peptide by its **maximum identity
+to any training sequence** of the tool under audit. The four bands are
+identity bands, not value judgments — their interpretation depends on
+whether you want to benchmark the tool or trust a specific prediction:
 
-- **🟢 Gold (high novelty)**: sequences that survive CD-HIT-2D at 40%
-  identity vs. the training set. Most trustworthy predictions.
-- **🟡 Silver (medium novelty)**: similarity between 40% and 60%.
-- **🟠 Bronze (low novelty)**: similarity between 60% and 80%.
-- **🔴 Red (leaked/known)**: similarity >80%. The model probably
-  already "knows" this sequence (or a close one), so its score is
-  biased.
+| Tag | Identity to training | For benchmarking the tool | For trusting a specific prediction |
+|---|---|---|---|
+| **🟢 Gold** | < 40% | best signal of true generalization | **low** — out-of-distribution, model is extrapolating |
+| **🟡 Silver** | 40 – 60% | clean signal, inside the AD | **high** — inside the applicability domain |
+| **🟠 Bronze** | 60 – 80% | mildly inflated, useful with caveat | **high** — interpolation from close training neighbors |
+| **🔴 Red** | ≥ 80% | uninformative, exclude from metrics | high (but trivial) — near-memorization by interpolation |
+
+Practical reliability roughly follows similarity to training (excluding
+near-duplicates): Bronze ≈ Silver are the operational sweet spot; Gold
+is for stress-testing generalization; Red is correct but trivial.
 
 ---
 

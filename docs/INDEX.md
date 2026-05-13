@@ -10,14 +10,16 @@
 >
 > **Phase 2 — Scientific audit** (`bin/audit_pipeline.sh`): analysis
 > tools implemented (positive-mining, training-set extraction, CD-HIT-2D
-> leakage analysis with Gold/Silver/Bronze/Red grading, taxonomic bias,
-> QC, global report). **Not integrated into Phase 1 output** — its
-> results are offline validation artifacts, not per-peptide labels in
-> the user report. Production integration is future work (see
-> `roadmap.md`).
+> applicability-domain grading into Gold/Silver/Bronze/Red identity
+> bands, taxonomic bias, QC, global report). **Not integrated into
+> Phase 1 output** — its results are offline validation artifacts, not
+> per-peptide labels in the user report. Production integration is
+> future work (see `roadmap.md`).
 >
-> If a tool or document describes the Gold/Silver/Bronze/Red system,
-> assume **Phase 2** unless stated otherwise.
+> If a tool or document describes the Gold/Silver/Bronze/Red bands,
+> assume **Phase 2** unless stated otherwise. The bands are *identity
+> bands*, not a single confidence ladder — see `leakage_analysis.md`
+> for the two reading lenses (benchmarking vs. trusting a prediction).
 
 This document centralizes access to all technical, methodological and
 operational documentation of the project.

@@ -12,6 +12,59 @@ last_updated: 2026-05-13
 > **Decision**: <what was decided>
 > **Consequences**: <implications, trade-offs>
 
+### 2026-05-13 — Applicability-domain framing of CD-HIT-2D leakage grades
+
+**Context**: the original documentation framed the four CD-HIT-2D
+bands (Gold / Silver / Bronze / Red) as a confidence ladder, with
+"Gold = highest confidence" and "Red = leaked, discard". That framing
+is correct only for one purpose — measuring a tool's true
+generalization capacity — and is **inverted** for the other purpose:
+estimating the reliability of a specific prediction the tool just
+made on a specific peptide. A peptide far from training (Gold) is
+out-of-distribution and *least* trustworthy for practical use; the
+operational sweet spot is Bronze/Silver, where the peptide is inside
+the model's applicability domain.
+
+This ambiguity has propagated through the docs and is being copied by
+other agents reading them.
+
+**Decision**: re-frame the leakage grades around the **Applicability
+Domain (AD)** concept from QSAR (Tropsha & Golbraikh; OECD Principle 3).
+The four bands remain *identity bands*, with two explicit reading
+lenses:
+
+| Tag | Identity | Lens A — Benchmarking | Lens B — Trusting a prediction |
+|---|---|---|---|
+| Red | ≥80% | uninformative (near-memorization by interpolation) | high but trivial |
+| Bronze | 60–80% | mildly inflated | high (in-domain) |
+| Silver | 40–60% | clean | high (in-domain) |
+| Gold | <40% | best signal of generalization | low (out-of-distribution) |
+
+The labels Gold / Silver / Bronze / Red are kept (already embedded in
+code: `classify_leakage_grades` in `audit_lib/cdhit_utils.py`, output
+filenames `<grade>_survivors_<tool>.fasta`, CSV columns,
+configurations). Only the **interpretation** changes, in the docs.
+
+**Consequences**:
+- `docs/leakage_analysis.md` rewritten as the source of truth with
+  the two-lens table and a formal AD introduction.
+- `docs/glossary.md` adds an "Applicability Domain" entry and rewrites
+  the "Leakage grades" entry to drop the value-laden "confidence"
+  ladder.
+- `docs/data.md` "Leakage grades" section reflects the two-lens
+  table.
+- `docs/context_objective.md` reframes the "establish confidence
+  levels" objective.
+- No code changes in this iteration — purely documentation /
+  conceptual framing.
+- Out-of-scope but on the horizon: future Phase-2 reporting should
+  publish per-grade metrics side by side (not a single "trust"
+  verdict), and any future weighted-ensemble layer (Option E in
+  `orchestrator_design.md` §4) should weight predictions higher when
+  the input is in Silver/Bronze and lower when it is in Gold — which
+  is the inverse of what a naive reading of "Gold = best" would
+  suggest.
+
 ### 2026-05-13 — Public release under PolyForm Noncommercial 1.0.0
 
 **Context**: the project is mature enough to be shared publicly. We want
