@@ -251,6 +251,39 @@ Folders excluded from the repository (see `.gitignore`):
 
 ---
 
+## Use of generative AI in the development of this project
+
+This project was developed with the assistance of generative AI models
+— **Claude Opus 4.7 (Anthropic)** and **Gemini 3 Pro (Google)** — used
+as collaborative tools throughout. The assistance covered four areas:
+
+- **Code drafting and review** of the orchestrator (`audit_lib/`,
+  `scripts/run_audit.py`), the public demo (`demo/`) and the
+  reproducibility infrastructure (`patches/`, `envs/`,
+  `scripts/bootstrap_*.sh`), always under the author's direction.
+- **Literature search, retrieval and synthesis**, with each cited
+  reference manually verified.
+- **Assisted drafting of technical documentation** (this README, the
+  `docs/` folder, the agent-facing `ONBOARDING.md` and `AGENTS.md`),
+  with human review and rewriting before commit.
+- **Methodological discussion** on design decisions during development.
+
+All AI-generated output was reviewed, validated and curated by the
+author. The conceptualisation of the project, the scope, the
+five-criterion viability-audit protocol, the choice of integrated
+tools, the dual-output schema, the multi-criteria ranking, the
+applicability-domain framing, the case-study application to
+*Octopus vulgaris* transcriptome-derived peptides, and the operational
+decisions on demo deployment and mitigation shield are the entire
+responsibility of the human author.
+
+Generative AI appears here as an **operational assistance tool, not as
+a co-author**; no AI model is listed in the authorship, in line with
+current editorial and academic-evaluation guidelines (e.g. Nature,
+Elsevier, ICMJE 2023–2024 disclosure policies).
+
+---
+
 ## Citation
 
 If you use this pipeline in academic work, please cite it as described

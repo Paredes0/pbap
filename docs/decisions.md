@@ -138,7 +138,7 @@ must request explicit permission.
 
 **Decision**: release under PolyForm Noncommercial 1.0.0 at
 `https://github.com/Paredes0/pbap`. Tag v0.1.0. Contact for commercial
-licensing: Noé Paredes Alfaro <noeparedesalf@gmail.com>. A minimal CI
+licensing: Noé Paredes Alfonso <noeparedesalf@gmail.com>. A minimal CI
 smoke workflow is added, with a personal-data leak check enforced in
 CI. Branch protection on `main` keeps `enforce_admins=false` so hotfix
 flow is preserved.

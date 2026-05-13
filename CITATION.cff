@@ -12,7 +12,7 @@ abstract: >-
   out of 26 tools published 2023-2025 that were systematically evaluated.
 type: software
 authors:
-  - family-names: "Paredes Alfaro"
+  - family-names: "Paredes Alfonso"
     given-names: "Noé"
     email: "noeparedesalf@gmail.com"
 repository-code: "https://github.com/Paredes0/pbap"

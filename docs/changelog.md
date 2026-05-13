@@ -9,6 +9,20 @@ last_updated: 2026-05-13
 
 ## 2026-05
 
+- 2026-05-13 — **Corrección de apellido del autor y declaración de uso
+  de IA**. (a) En CITATION.cff, LICENSE, NOTICE y docs/decisions.md el
+  apellido del autor se corrige de "Paredes Alfaro" a la forma correcta
+  "Paredes Alfonso". El nombre completo legal es Noé Paredes Alfonso;
+  el email noeparedesalf@gmail.com era correcto y no cambia. (b)
+  README.md gana una sección "Use of generative AI in the development
+  of this project" que documenta explícitamente el uso de Claude Opus
+  4.7 (Anthropic) y Gemini 3 Pro (Google) como herramientas
+  colaborativas, en cuatro ámbitos (code drafting, literatura,
+  documentación, discusión metodológica) con curación humana en todos
+  los outputs. La concepción del proyecto y todas las decisiones
+  científicas se atribuyen explícitamente al autor humano, conforme a
+  las guidelines de disclosure de IA de Nature, Elsevier y ICMJE
+  (2023-2024). La IA no se lista como coautora.
 - 2026-05-13 — **Auditoría total del repo: Tier D (depth)**. Tres
   mejoras de fondo derivadas del audit:
   (a) `docs/glossary.md` overhaul (Tier D + M3): ~16 términos nuevos
