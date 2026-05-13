@@ -57,6 +57,7 @@ _external_refs/
 
 # --- Local user settings (NEVER share between machines) --------------------
 .claude/settings.local.json
+.claude/skills/
 skills-lock.json
 .swarm/
 .agents/
@@ -86,7 +87,10 @@ firebase-adminsdk*.json
 *.orig
 
 # ============================================================================
-# Note: AGENTS.md, CLAUDE.md, GEMINI.md, docs/*, .github/*, .claude/skills/*
-# are tracked on purpose — they are the AI-agent operating manual and must
-# travel with the repository for reproducibility.
+# Note: AGENTS.md, CLAUDE.md, GEMINI.md, docs/*, and .github/* are tracked
+# on purpose — they are the AI-agent operating manual and must travel with
+# the repository for reproducibility. The `.claude/skills/` directory is
+# explicitly NOT tracked: any skill files under it are considered local
+# agent-shortcut definitions (often containing user-specific paths or
+# Spanish-language working notes) and are kept out of the public repo.
 # ============================================================================
