@@ -213,7 +213,7 @@ tools:
         positive_label: Hemolytic
         score_column: ESM Score
         score_ascending: false
-        notes: 'Modelo 3 (ESM2-t6 finetuned solo, threshold 0.58 — default del paper). Cambiado desde -m 4 (Hybrid2 ESM+MERCI) el 2026-04-30 porque MERCI motif scoring devuelve sentinel -1.0 para péptidos cortos sin matches y colapsa el Hybrid Score a 0 — falla con controles canónicos (mellitina). El paper reporta AUC ~0.85 para ESM solo en su test set independiente; el "boost" de Hybrid2 era marginal y específico del test set del paper.'
+        notes: 'Mode 3 (ESM2-t6 finetuned alone, threshold 0.58 — paper default). Switched from -m 4 (Hybrid2 ESM+MERCI) on 2026-04-30 because MERCI motif scoring returns sentinel -1.0 for short peptides with no motif matches and collapses the Hybrid Score to 0 — fails on canonical controls (melittin). The paper reports AUC ~0.85 for ESM alone on its independent test set; the Hybrid2 "boost" was marginal and specific to the paper''s test set.'
     standby: false
     weights_download:
       platform: webserver

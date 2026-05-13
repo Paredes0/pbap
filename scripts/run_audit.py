@@ -1,5 +1,5 @@
 """
-Pipeline Fase 1 — orchestrator E2E (orchestrator_design.md compliant).
+Pipeline Phase 1 — end-to-end orchestrator (orchestrator_design.md compliant).
 
 Reads a FASTA of peptides, runs N tools, and produces under <output>/:
   consolidated.csv         wide format, one row per peptide
@@ -9,21 +9,22 @@ Reads a FASTA of peptides, runs N tools, and produces under <output>/:
   REPORT.md                6-section Markdown summary
 
 Schema (docs/orchestrator_design.md §1-§3):
-  - Eje binario: class_norm in {positive, negative, None}, score in [0,1] | None.
-  - Eje extra_metrics: per-tool dict {metric_name: {value: float, unit: str}}.
-  - Coexisten; un tool puede llenar uno, otro o ambos. apex -> sólo extra_metrics (34 MIC strains).
+  - Binary axis: class_norm in {positive, negative, None}, score in [0,1] | None.
+  - extra_metrics axis: per-tool dict {metric_name: {value: float, unit: str}}.
+  - The two axes coexist; a tool may populate one, the other or both. APEX
+    fills only extra_metrics (34 MIC strains).
 
-Score sanity (binario):
-  Asumimos cada tool emite probabilidad calibrada en [0,1]. NO normalizamos
-  silenciosamente — transformaciones erróneas son peores que dejar el dato crudo.
-  Si un tool emite valores fuera de [0,1] se cuenta y se reporta en
-  tool_health_report.score_out_of_range; el valor original se preserva.
+Score sanity (binary):
+  We assume each tool emits a calibrated probability in [0,1]. We do NOT
+  normalise silently — silent transforms are worse than leaving the raw
+  value. Out-of-range scores are counted and reported in
+  tool_health_report.score_out_of_range; the original value is preserved.
 
-Agreement intra-categoría (Opción B, §4):
-  Por cada categoría con >=2 tools binarios definidos (en este run), se añade
-  columna agreement_<categoria>:
+Intra-category agreement (Option B, §4):
+  For each category with >=2 binary tools defined in this run, an
+  agreement_<category> column is added with one of:
     consensus_positive | consensus_negative | split | single_tool
-  Sin voting, sin promedio, sin weighted ensemble (Opción E diferida).
+  No voting, no averaging, no weighted ensemble (Option E deferred).
 """
 from __future__ import annotations
 
@@ -213,11 +214,12 @@ def _derive_class_norm(raw_class, score, positive_label, threshold,
                        prefer_threshold: bool = False):
     """Determine class_norm from tool output.
 
-    Default: si raw_class está presente y hay positive_label, usar raw_class.
-    Si `prefer_threshold=True` Y hay score+threshold válidos, ignora raw_class y usa
-    el threshold del YAML — útil cuando el tool emite su clasificación con threshold
-    interno fijo (ej. bertaip con corte 0.5) y el usuario quiere subir el listón
-    desde el YAML sin parchar el script del tool.
+    Default: if raw_class is present and a positive_label is configured, use
+    raw_class. If `prefer_threshold=True` AND a score+threshold are available,
+    raw_class is ignored and the YAML-declared threshold is applied instead —
+    useful when a tool emits its own class using a fixed internal threshold
+    (e.g. bertaip cutting at 0.5) and the operator wants to raise the bar
+    from YAML without patching the tool script.
     """
     if prediction_type in ("regression", "extra_only"):
         return None
@@ -532,32 +534,34 @@ def _render_report_md(
     structural = structural or {}
     now_iso = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     lines: list[str] = []
-    lines.append("# Audit Report — Pipeline Fase 1")
+    lines.append("# Audit Report — Pipeline Phase 1")
     lines.append("")
     lines.append(f"- **Input FASTA**: `{fasta_in}`")
     lines.append(f"- **N peptides**: {len(peptides)}")
-    lines.append(f"- **Tools ejecutados**: {', '.join(tools)} ({len(tools)})")
-    lines.append(f"- **Categorías cubiertas**: "
+    lines.append(f"- **Tools executed**: {', '.join(tools)} ({len(tools)})")
+    lines.append(f"- **Categories covered**: "
                  f"{', '.join(sorted({c for c in tool_categories.values() if c}))}")
-    lines.append(f"- **Runtime total**: {total_seconds}s")
-    lines.append(f"- **Fecha (UTC)**: {now_iso}")
+    lines.append(f"- **Total runtime**: {total_seconds}s")
+    lines.append(f"- **Date (UTC)**: {now_iso}")
     lines.append("")
 
-    lines.append("## Ranking jerárquico de viabilidad terapéutica")
+    lines.append("## Hierarchical therapeutic-viability ranking")
     lines.append("")
     lines.append("**Sort**: `(structural_score desc, holistic_score desc)`. ")
     lines.append("")
-    lines.append("- `structural_score` = suma por categoría según polaridad. Por categoría buena: "
-                 "POS=3, SPLIT=2, NEG=1, NONE=0. Por categoría mala: NEG=3, SPLIT=2, POS=1, NONE=0. "
-                 "Captura el **perfil estructural** sin promediar magnitudes (un péptido con 4 POS "
-                 "buenas y 2 NEG malas siempre va antes que uno con 3 POS buenas y 1 NEG mala).")
-    lines.append("- `holistic_score` = `good_mean − bad_mean + APEX_adj + POTENCY_adj`. Desempate "
-                 "cuantitativo dentro del mismo `structural_score`.")
-    lines.append("- Bonuses APEX: pathogen_specific +0.15, broad_spectrum +0.05, non_active 0, "
+    lines.append("- `structural_score` = sum per category, weighted by clinical polarity. "
+                 "For beneficial categories: POS=3, SPLIT=2, NEG=1, NONE=0. "
+                 "For adverse categories: NEG=3, SPLIT=2, POS=1, NONE=0. "
+                 "Captures the **structural profile** without averaging magnitudes (a peptide with "
+                 "4 beneficial-POS and 2 adverse-NEG always ranks before one with 3 beneficial-POS "
+                 "and 1 adverse-NEG).")
+    lines.append("- `holistic_score` = `good_mean − bad_mean + APEX_adj + POTENCY_adj`. "
+                 "Quantitative tie-breaker within the same `structural_score`.")
+    lines.append("- APEX bonuses: pathogen_specific +0.15, broad_spectrum +0.05, non_active 0, "
                  "commensal_specific −0.20.")
-    lines.append("- Bonuses POTENCY: MUY_POTENTE_AMP (min MIC ≤ 5 µM en cualquier cepa) +0.20, "
-                 "POTENTE_AMP (min MIC ≤ 10 µM) +0.10. Cuando la cepa con MIC bajo es comensal, "
-                 "queda marcada en rojo en el detalle por cepa (alerta visual).")
+    lines.append("- POTENCY bonuses: MUY_POTENTE_AMP (min MIC ≤ 5 µM on any strain) +0.20, "
+                 "POTENTE_AMP (min MIC ≤ 10 µM) +0.10. When the strain hitting the low MIC is a "
+                 "commensal, that row is flagged in red in the per-strain detail (visual alert).")
     lines.append("")
     lines.append("| # | peptide_id | structural | holistic | apex | potency | good_mean | bad_mean |")
     lines.append("|---|---|---|---|---|---|---|---|")
@@ -605,14 +609,14 @@ def _render_report_md(
         lines.append(f"| {hdr} | {len(seq)} | {npos} | {nneg} | "
                      f"{','.join(cats_with_call) or '—'} | {ndisagree} | {tag_str} |")
     lines.append("")
-    lines.append("> Detalles por categoría (consensus + mean_score) y métricas continuas: ver "
-                 "secciones siguientes.")
+    lines.append("> Per-category details (consensus + mean_score) and continuous metrics: "
+                 "see sections below.")
     lines.append("")
 
-    lines.append("## Disagreements binarios")
+    lines.append("## Binary disagreements")
     lines.append("")
     if not agreement_cats:
-        lines.append("_Ninguna categoría tiene >=2 tools en este run; no aplica._")
+        lines.append("_No category has >=2 tools in this run; not applicable._")
     else:
         any_split = False
         for hdr, _seq in peptides:
@@ -948,15 +952,16 @@ def _matrix_cell_state(hdr: str, cat: str,
 def _apex_pathogen_badge(hdr: str, matrix: dict) -> str:
     sel = (matrix.get(hdr, {}).get("apex") or {}).get("apex_selectivity") or {}
     if sel.get("selectivity_tag") == "pathogen_specific":
-        return '<span class="badge-pathogen-specific" title="APEX: activo contra patógenos, no contra comensales (selectividad terapéutica ideal)">PATHOGEN SPECIFIC</span>'
+        return '<span class="badge-pathogen-specific" title="APEX: active against pathogens but not against commensals (ideal therapeutic selectivity)">PATHOGEN SPECIFIC</span>'
     return ""
 
 
 def _apex_potency_badge(hdr: str, matrix: dict) -> str:
-    """Badge POTENTE / MUY POTENTE AMP basado en min(MIC) en cualquier cepa.
+    """POTENTE / MUY POTENTE AMP badge derived from min(MIC) across any strain.
 
-    El detail por cepa marca rojo las comensales con MIC ≤ 32, así un POTENTE conseguido
-    sólo a costa de una comensal queda visualmente penalizado al expandir detalle.
+    The per-strain detail highlights commensals with MIC <= 32 in red, so a
+    POTENTE earned only via a commensal strain is visually penalised when the
+    user expands the detail.
     """
     sel = (matrix.get(hdr, {}).get("apex") or {}).get("apex_selectivity") or {}
     tag = sel.get("potency_tag")
@@ -965,11 +970,11 @@ def _apex_potency_badge(hdr: str, matrix: dict) -> str:
     mic = sel.get("potency_min_mic_uM")
     strain = sel.get("potency_strain") or ""
     cat = sel.get("potency_strain_category") or ""
-    cat_warning = " ⚠️ vía cepa COMENSAL" if cat == "commensal" else ""
-    title = f"min(MIC) = {mic:.2f} µM en {strain} ({cat}){cat_warning}"
+    cat_warning = " ⚠️ via COMMENSAL strain" if cat == "commensal" else ""
+    title = f"min(MIC) = {mic:.2f} µM on {strain} ({cat}){cat_warning}"
     if tag == "MUY_POTENTE_AMP":
-        return f'<span class="badge-very-potent" title="{_esc(title)}">MUY POTENTE</span>'
-    return f'<span class="badge-potent" title="{_esc(title)}">POTENTE</span>'
+        return f'<span class="badge-very-potent" title="{_esc(title)}">VERY POTENT</span>'
+    return f'<span class="badge-potent" title="{_esc(title)}">POTENT</span>'
 
 
 def _holistic_css_class(value) -> str:
@@ -983,24 +988,26 @@ def _html_meta(fasta_in: Path, peptides, tools, tool_categories, total_seconds, 
     return (
         '<div class="meta">'
         f'<span><b>Input</b> <code>{_esc(fasta_in.name)}</code></span>'
-        f'<span><b>Péptidos</b> {len(peptides)}</span>'
+        f'<span><b>Peptides</b> {len(peptides)}</span>'
         f'<span><b>Tools</b> {len(tools)}</span>'
-        f'<span><b>Categorías</b> {len(cats)} ({_esc(", ".join(cats))})</span>'
+        f'<span><b>Categories</b> {len(cats)} ({_esc(", ".join(cats))})</span>'
         f'<span><b>Runtime</b> {total_seconds}s</span>'
-        f'<span><b>Fecha</b> {_esc(now_iso)}</span>'
+        f'<span><b>Date</b> {_esc(now_iso)}</span>'
         '</div>'
     )
 
 
 def _html_matrix(peptides, tool_categories, matrix, cats_in_run, cat_aggregates, holistic,
                  structural=None) -> str:
-    """Resumen ejecutivo. Tabla principal con sort/filter JS interactivo.
+    """Executive summary. Main table with interactive sort/filter JS.
 
-    Cada celda de categoría lleva data-consensus, data-mean-score y data-tool-<tid>-class /
-    data-tool-<tid>-score, leídos por JS para sort-by-tool y filtros.
+    Each category cell carries data-consensus, data-mean-score and
+    data-tool-<tid>-class / data-tool-<tid>-score, consumed by JS for
+    sort-by-tool and filters.
 
-    Sort default = (structural_score desc, holistic_score desc). El JS maneja ambos como
-    sort compuesto cuando el usuario clickea el header "structural".
+    Default sort = (structural_score desc, holistic_score desc). The JS
+    handles both as a composite sort when the user clicks the "structural"
+    header.
     """
     structural = structural or {}
     cats = list(cats_in_run) or sorted({c for c in tool_categories.values() if c})
@@ -1119,11 +1126,11 @@ def _html_disagreements(peptides, tools, tool_categories, matrix,
                 tool_cells.append(f'<b>{_esc(tid)}</b> → {_esc(cn or "—")} ({sc_str})')
             rows.append((hdr, cat, " &nbsp;|&nbsp; ".join(tool_cells)))
     if not rows:
-        return '<p><i>Ningún disagreement binario en este run.</i></p>'
-    parts = ['<p style="color:#664d03;font-size:12px">Splits entre tools de la misma categoría — '
-             'inspeccionar manualmente.</p>',
+        return '<p><i>No binary disagreement in this run.</i></p>'
+    parts = ['<p style="color:#664d03;font-size:12px">Splits between tools of the same category — '
+             'inspect manually.</p>',
              '<div class="disagree-box"><table>',
-             '<thead><tr><th>peptide_id</th><th>categoría</th><th>tools</th></tr></thead><tbody>']
+             '<thead><tr><th>peptide_id</th><th>category</th><th>tools</th></tr></thead><tbody>']
     for hdr, cat, cells in rows:
         parts.append(f'<tr><td class="pep-id">{_esc(hdr)}</td>'
                      f'<td>{_esc(cat)}</td><td>{cells}</td></tr>')
@@ -1191,12 +1198,13 @@ def _load_apex_strain_categories() -> dict[str, str]:
 
 
 def _html_apex_block(peptides, matrix) -> str:
-    """APEX block dentro de Extra metrics: tag-count summary + tabla por péptido con
-    3 medias (pathogen/commensal/total) + <details> inline con detalle por cepa.
+    """APEX block inside Extra metrics: tag-count summary + per-peptide table with
+    3 means (pathogen/commensal/total) + inline <details> with per-strain breakdown.
 
-    El detalle por cepa colorea cada fila según pathogen (verde si activa) / commensal
-    (rojo si activa, indeseable) / ambiguous (amarillo) — facilita ver de un vistazo si
-    un POTENTE_AMP se gana matando comensales.
+    The per-strain detail colour-codes each row by class — pathogen (green if
+    active) / commensal (red if active, undesired) / ambiguous (yellow) — so
+    at a glance the reader can see whether a POTENTE_AMP is earned by hitting
+    commensals.
     """
     has_apex = any((matrix[hdr].get("apex") or {}).get("apex_selectivity") for hdr, _ in peptides)
     if not has_apex:
@@ -1210,7 +1218,7 @@ def _html_apex_block(peptides, matrix) -> str:
     strain_cat_map = _load_apex_strain_categories()
 
     parts = [
-        '<h3>APEX (multi-cepa MIC, threshold 32 µM)</h3>',
+        '<h3>APEX (multi-strain MIC, threshold 32 µM)</h3>',
         '<div class="apex-summary">',
         f'<div class="apex-card" style="border-color:#b88a00;background:#fffbe6">'
         f'<div class="label">🏆 pathogen specific</div>'
@@ -1224,16 +1232,16 @@ def _html_apex_block(peptides, matrix) -> str:
         f'<div class="value">{counts["commensal_specific"]}</div></div>',
         '</div>',
         '<p style="font-size:11px;color:#6c757d;margin:6px 0 4px">'
-        'Leyenda detalle por cepa: <span class="strain-pathogen-active" style="padding:2px 6px">verde</span> '
-        '= patógena activa (deseable); '
-        '<span class="strain-commensal-active" style="padding:2px 6px">rojo</span> '
-        '= comensal activa (indeseable, daña microbioma); '
-        '<span class="strain-ambiguous-active" style="padding:2px 6px">amarillo</span> '
-        '= ambigua activa.</p>',
+        'Per-strain legend: <span class="strain-pathogen-active" style="padding:2px 6px">green</span> '
+        '= active pathogen (desired); '
+        '<span class="strain-commensal-active" style="padding:2px 6px">red</span> '
+        '= active commensal (undesired, microbiome damage); '
+        '<span class="strain-ambiguous-active" style="padding:2px 6px">yellow</span> '
+        '= active ambiguous.</p>',
         '<div class="scroll-x"><table>',
         '<thead><tr><th>peptide_id</th><th>tag</th>',
-        '<th>MIC media patógenos (µM)</th><th>MIC media comensales (µM)</th>',
-        '<th>MIC media total (µM)</th><th>detalle por cepa</th></tr></thead><tbody>',
+        '<th>mean MIC pathogens (µM)</th><th>mean MIC commensals (µM)</th>',
+        '<th>mean MIC total (µM)</th><th>per-strain detail</th></tr></thead><tbody>',
     ]
     for hdr, _ in peptides:
         rec = matrix[hdr].get("apex") or {}
@@ -1243,7 +1251,7 @@ def _html_apex_block(peptides, matrix) -> str:
             continue
         tag = sel.get("selectivity_tag") or "—"
         badges = _apex_pathogen_badge(hdr, matrix) + _apex_potency_badge(hdr, matrix)
-        # Per-strain rows (excluir las medias derivadas), coloreadas por categoría
+        # Per-strain rows (excluding the derived means), colour-coded by class
         strain_rows = []
         for k, v in sorted(extras.items()):
             if k.startswith("mean_mic_"):
@@ -1261,8 +1269,8 @@ def _html_apex_block(peptides, matrix) -> str:
             )
         n_strains = len(strain_rows)
         details_html = (
-            f'<details class="inline"><summary>{n_strains} cepas</summary>'
-            '<table><thead><tr><th>cepa</th><th>MIC</th></tr></thead><tbody>'
+            f'<details class="inline"><summary>{n_strains} strains</summary>'
+            '<table><thead><tr><th>strain</th><th>MIC</th></tr></thead><tbody>'
             + "".join(strain_rows) +
             '</tbody></table></details>'
         )
@@ -1289,15 +1297,16 @@ def _html_extras(peptides, extra_columns, matrix) -> str:
     if has_apex_extras:
         parts.append(_html_apex_block(peptides, matrix))
     if other_cols:
-        parts.append('<h3>Otras métricas continuas (sub-predicciones de tools binarios)</h3>')
+        parts.append('<h3>Other continuous metrics (sub-predictions from binary tools)</h3>')
         parts.append('<p style="font-size:11px;color:#6c757d;margin:4px 0 8px">'
-                     '<b>NO confundir con el score de categoría del Resumen ejecutivo.</b> '
-                     'Estos son outputs auxiliares que cada tool emite además de su clase + score '
-                     'binario principal. Ejemplo: perseucpp emite <code>prob_cpp</code> (probabilidad '
-                     'de ser CPP, alimenta la columna <code>cpp</code>) y por separado <code>prob_eff</code> '
-                     '(condicional: si es CPP, ¿es de alta eficiencia?), que aparece aquí como '
-                     '<code>efficiency_high_prob</code>. Son métricas distintas del score binario y '
-                     'no contribuyen a <code>mean_score</code> ni a <code>holistic_score</code>.</p>')
+                     '<b>NOT to be confused with the category score in the Executive summary.</b> '
+                     'These are auxiliary outputs that each tool emits in addition to its main '
+                     'binary class + score. Example: perseucpp emits <code>prob_cpp</code> '
+                     '(probability of being a CPP, feeding the <code>cpp</code> column) and '
+                     'separately <code>prob_eff</code> (conditional: if it is a CPP, is the uptake '
+                     'efficient?), which appears here as <code>efficiency_high_prob</code>. These '
+                     'metrics are distinct from the binary score and do NOT contribute to '
+                     '<code>mean_score</code> or <code>holistic_score</code>.</p>')
         parts.append('<div class="scroll-x"><table><thead><tr><th>peptide_id</th>')
         for tid, name, unit in other_cols:
             parts.append(f'<th>{_esc(tid)}<br><small>{_esc(name)} ({_esc(unit)})</small></th>')
@@ -1377,7 +1386,7 @@ def _render_report_html(out_path: Path, fasta_in: Path, peptides, tools,
         '<meta name="viewport" content="width=device-width,initial-scale=1">',
         _HTML_STYLE,
         '</head><body>',
-        f'<h1>Audit Report — Pipeline Fase 1</h1>',
+        f'<h1>Audit Report — Pipeline Phase 1</h1>',
         _html_meta(fasta_in, peptides, tools, tool_categories, total_seconds, now_iso),
         _section("Resumen ejecutivo (matriz interactiva)", matrix_html, open_default=True),
         _section("Disagreements", disagree_html, open_default=False),
@@ -1893,10 +1902,12 @@ def _apply_apex_selectivity(records: list[dict], classification: dict | None) ->
     Threshold (MIC ≤ T → active) configurable via classification['threshold']['active_mic_uM'].
     Ambiguous strains are excluded from the aggregate but preserved as raw extra_metric columns.
 
-    APEX class_norm permanece `None` (extra_only). Decisión 2026-05-01: APEX no entra en el
-    eje binario class_norm porque el threshold 32 µM es subjetivo y la categoría antimicrobial
-    se sostiene con `antibp3` como único proveedor binario. APEX aporta selectivity_tag (descriptor
-    biológico crítico para "pathogen specific") + 3 medias de MIC (pathogen/commensal/total).
+    APEX class_norm stays `None` (extra_only). 2026-05-01 decision: APEX does
+    NOT enter the binary class_norm axis because the 32 µM threshold is
+    subjective and the antimicrobial category is already covered by `antibp3`
+    as the sole binary provider. APEX contributes selectivity_tag (a critical
+    biological descriptor for "pathogen specific") plus 3 mean MICs
+    (pathogen / commensal / total).
     """
     if not classification:
         return
@@ -1942,9 +1953,9 @@ def _apply_apex_selectivity(records: list[dict], classification: dict | None) ->
         mean_comm = sum(comm_vals) / len(comm_vals) if comm_vals else None
         mean_total = sum(all_vals) / len(all_vals) if all_vals else None
 
-        # Potency badge — min MIC en CUALQUIER cepa clasificada (incluye comensales).
-        # El detail por cepa marca rojo las comensales con MIC ≤ 32, así que un POTENTE_AMP
-        # ganado solo por cepa comensal queda visualmente penalizado en el HTML.
+        # Potency badge — min MIC across ANY classified strain (includes commensals).
+        # The per-strain detail marks commensals with MIC <= 32 in red, so a POTENTE_AMP
+        # earned only via a commensal is visually penalised in the HTML.
         candidate_strains = []  # (mic, strain_name, category)
         for m, p in extras.items():
             if m.startswith("mean_mic_") or not isinstance(p, dict):
@@ -2009,9 +2020,9 @@ _APEX_HOLISTIC_ADJUST = {
     "commensal_specific": -0.20,
 }
 
-# Potencia AMP (independiente del selectivity_tag, basada en min MIC en CUALQUIER cepa).
-# Bonus excluyente: si MIN_MIC ≤ 5 → MUY_POTENTE (+0.20), elif ≤ 10 → POTENTE (+0.10), else 0.
-# El detail por cepa marca visualmente cuándo esa "potencia" está sobre una comensal (rojo).
+# AMP potency (independent of selectivity_tag; based on min MIC across ANY strain).
+# Exclusive bonus: MIN_MIC <= 5 → MUY_POTENTE (+0.20), elif <= 10 → POTENTE (+0.10), else 0.
+# The per-strain detail visually flags (red) whenever that "potency" hits a commensal.
 _POTENCY_THRESHOLDS_uM = {"MUY_POTENTE_AMP": 5.0, "POTENTE_AMP": 10.0}
 _POTENCY_HOLISTIC_ADJUST = {"MUY_POTENTE_AMP": 0.20, "POTENTE_AMP": 0.10}
 
@@ -2078,12 +2089,12 @@ def _compute_holistic_scores(
         holistic_score = good_mean − bad_mean + apex_adjustment + potency_adjustment
 
     - apex_adjustment ∈ {+0.15 path_specific, +0.05 broad, 0 non, −0.20 commensal}
-    - potency_adjustment ∈ {+0.20 MUY_POTENTE_AMP, +0.10 POTENTE_AMP, 0} — basado en
-      min(MIC) sobre cualquier cepa clasificada (pathogen o commensal). Es independiente
-      de selectivity_tag, así que un péptido puede acumular ambos bonuses.
+    - potency_adjustment ∈ {+0.20 MUY_POTENTE_AMP, +0.10 POTENTE_AMP, 0} — based on
+      min(MIC) across any classified strain (pathogen or commensal). Independent
+      of selectivity_tag, so a peptide can accumulate both bonuses.
 
-    Missing categories excluidas del promedio (no cuentan como 0). `n_categories_evaluated`
-    para transparencia.
+    Missing categories are excluded from the average (they do not count as 0).
+    `n_categories_evaluated` is reported for transparency.
     """
     out: dict[str, dict] = {}
     for hdr, _ in peptides:
@@ -2125,7 +2136,8 @@ def _compute_holistic_scores(
     return out
 
 
-# Per-category tier score por polaridad. Captura "nivel de bondad" estructural sin promediar.
+# Per-category tier score weighted by polarity. Captures the structural
+# "level of goodness" without averaging magnitudes.
 _TIER_GOOD = {"POS": 3, "SPLIT": 2, "NEG": 1, "NONE": 0}
 _TIER_BAD = {"NEG": 3, "SPLIT": 2, "POS": 1, "NONE": 0}
 
@@ -2137,17 +2149,18 @@ def _compute_structural_scores(
 ) -> dict[str, dict]:
     """Per peptide → {structural_score, structural_max, n_pos_good, n_neg_bad, ...}.
 
-    structural_score: suma de tier scores por categoría según polarity. Para cada categoría:
+    structural_score: sum of tier scores per category, weighted by polarity:
       - polarity=good: POS=3, SPLIT=2, NEG=1, NONE=0
       - polarity=bad : NEG=3, SPLIT=2, POS=1, NONE=0
-      - polarity=neutral: 0 (no contribuye)
+      - polarity=neutral: 0 (no contribution)
 
-    Sirve como **primer nivel** de ordenación del ranking: todos los péptidos con perfil
-    estructural mejor (más POS en good, más NEG en bad, SPLITs como intermedio) van primero,
-    independientemente de la magnitud de los scores. holistic_score es desempate dentro del
-    mismo tier.
+    Acts as the **primary** ranking dimension: peptides with a better
+    structural profile (more POS in good, more NEG in bad, SPLITs as
+    middle ground) rank first, independently of score magnitudes.
+    holistic_score is the tie-breaker within the same
+    tier.
 
-    structural_max devuelto para transparencia (= 3 × n_categorías good+bad evaluadas).
+    structural_max is returned for transparency (= 3 × n_categories good+bad evaluated).
     """
     out: dict[str, dict] = {}
     for hdr, _ in peptides:
@@ -2224,7 +2237,7 @@ def _resolve_output(explicit: Path | None, input_path: Path) -> Path:
 
 
 def main():
-    ap = argparse.ArgumentParser(description="Pipeline Fase 1 orchestrator (E2E)")
+    ap = argparse.ArgumentParser(description="Pipeline Phase 1 orchestrator (E2E)")
     ap.add_argument("--input", required=True,
                     help="FASTA: bare name (looked up in Inputs/), relative path, or absolute path")
     ap.add_argument("--output", default=None, type=Path,
@@ -2333,9 +2346,9 @@ def main():
     holistic = _compute_holistic_scores(peptides, cat_aggregates, polarity_map, matrix)
     structural = _compute_structural_scores(peptides, cat_aggregates, polarity_map)
 
-    # Ranking jerárquico:
-    #   1) structural_score desc (perfil POS/NEG/SPLIT por categoría según polaridad)
-    #   2) holistic_score desc (desempate cuantitativo dentro del mismo tier)
+    # Hierarchical ranking:
+    #   1) structural_score desc (POS/NEG/SPLIT profile per category, weighted by polarity)
+    #   2) holistic_score desc (quantitative tie-breaker within the same tier)
     peptides = sorted(
         peptides,
         key=lambda hs: (

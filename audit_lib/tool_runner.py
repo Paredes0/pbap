@@ -1,9 +1,9 @@
 """
-audit_lib.tool_runner — Fase 1 primitive.
+audit_lib.tool_runner — Phase 1 primitive.
 
 Run ONE prediction tool on a FASTA batch and classify the outcome as
 OK or PROBLEMATIC. Does NOT parse predictions, does NOT compute metrics,
-does NOT retry. Those are later stations of the Fase 1 pipeline.
+does NOT retry. Those are later stations of the Phase 1 pipeline.
 
 Env runtime flags (LD_LIBRARY_PATH, USE_TF=0) are load-bearing for some envs
 — see docs/deployment.md. Keep ENV_RUNTIME_FLAGS in sync.

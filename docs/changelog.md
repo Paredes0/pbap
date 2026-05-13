@@ -9,6 +9,42 @@ last_updated: 2026-05-13
 
 ## 2026-05
 
+- 2026-05-13 — **Memorias académicas: auditoría post-compact y
+  corrección de datos del case study Octopus vulgaris**. Tras la
+  auditoría sistemática (PubMed para 9 refs clave, cruce contra
+  `consolidated.csv` real, code-concordance vs `run_audit.py` y
+  `tool_runner.py`) se aplicaron correcciones a `docs/Memoria_*.docx`
+  y `docs/PBAP_paper_EN.docx`. Cambios principales: (a) datos del run
+  final actualizados al output canónico de fecha 2026-05-03 (AMP
+  T1448 y BAP T1511 — antes referenciaba el pre-final T2257/T2005);
+  AMP 442.92 s sobre 10 herramientas (con BertAIP, sin
+  eippred/aip_tranlac), BAP 1314.67 s (antes 706.96 s), agregado
+  29.3 min. (b) Worked example Ov_AMP_001 re-derivado del CSV real:
+  selectivity_tag = non_active (antes "pathogen_specific"), min MIC
+  40.27 µM en A. muciniphila (antes "2.7 µM en patógeno"), ACP-DPE
+  NEG (antes POS), DeepB3P POS (antes NEG), BertAIP NEG score 0.662
+  (antes 0.46), agreement_anticancer = split (antes
+  consensus_positive). Mantienen structural_score=18 y
+  holistic_score=0.5237 (sí coinciden con el CSV real). (c) ES:
+  reordenada la bibliografía para alinear numeración con EN (Mayfield
+  [1], Rubio-Herrera [2], Hölscher [3], Prypoten [4], …, Tropsha
+  [22], OECD [23], Bioconda [24]); refs [22], [23], [24] añadidas en
+  cuerpo §2.2 y §2.12 (antes huérfanas); cita "Mayfield et al. [4]"
+  corregida a "[1]". (d) EN Table 2: runtimes actualizados con
+  valores AMP/BAP reales por herramienta extraídos de
+  `tool_health_report.json`; columna `arg_style` renombrada a
+  "Invocation profile" para reflejar que `tool_runner.py:193-194`
+  solo admite 2 arg_styles (flagged/positional) y que las entradas
+  hardcoded_file/stdout/pre_command son dimensiones de
+  `output_capture` / `pre_command` colapsadas. (e) EN Discussion: la
+  afirmación "Ov_AMP_001 cae en Silver/Bronze AD" se sustituyó por
+  una nota explicando que la integración Phase-2 AD en el reporte
+  Phase-1 es deuda técnica documentada. Backups
+  `docs/*.v3_preaudit.{docx,pdf}` conservados para trazabilidad de
+  la evolución. Files: the rebuilt `Memoria_Pipeline_Bioactividad_Peptidos
+  .{docx,pdf}` and `PBAP_paper_EN.{docx,pdf}` artefacts on the maintainer's
+  local working tree, plus their corresponding python-docx builder scripts
+  (kept outside this repo, under the maintainer's local build directory).
 - 2026-05-13 — **site/components/agreement.jsx: fix bug del chip de
   consenso para `single_tool`**. La columna "Consensus" de la tabla
   "Intra-category agreement" mostraba "—" cuando el estado era
