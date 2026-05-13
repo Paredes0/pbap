@@ -567,60 +567,6 @@
   .tier-thresh { font-family: 'IBM Plex Mono'; font-size: 11px; color: var(--muted); margin-top: 4px; }
   .tier-desc { font-size: 13px; color: var(--ink-2); margin-top: 12px; line-height: 1.55; }
 
-  /* === Two-lens framing for the leakage bands === */
-  .lens-row {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
-  }
-  @media (max-width: 760px) { .lens-row { grid-template-columns: 1fr; } }
-  .lens-card {
-    background: var(--paper);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    padding: 20px 22px 22px;
-    position: relative;
-    overflow: hidden;
-  }
-  .lens-card::before {
-    content: ""; position: absolute; top: 0; left: 0; right: 0;
-    height: 3px;
-  }
-  .lens-bench::before { background: var(--good); }
-  .lens-use::before { background: var(--accent, var(--ink)); }
-  .lens-title {
-    font-family: 'IBM Plex Serif'; font-size: 17px;
-    font-weight: 500; letter-spacing: -0.01em;
-    margin-top: 4px;
-  }
-  .lens-sub {
-    font-family: 'IBM Plex Mono'; font-size: 11px;
-    color: var(--muted); margin-top: 4px;
-    letter-spacing: 0.04em;
-  }
-  .lens-list {
-    list-style: none; padding: 0; margin: 14px 0 0;
-    display: flex; flex-direction: column; gap: 8px;
-  }
-  .lens-list li {
-    font-size: 13px; color: var(--ink-2); line-height: 1.5;
-    padding-left: 0;
-  }
-  .lens-tag {
-    display: inline-block;
-    font-family: 'IBM Plex Mono'; font-size: 10.5px;
-    font-weight: 600;
-    padding: 2px 8px;
-    border-radius: 999px;
-    margin-right: 8px;
-    color: var(--ink);
-    background: var(--surface, rgba(0,0,0,0.06));
-    letter-spacing: 0.04em;
-  }
-  .lens-tag.lens-gold   { background: color-mix(in oklch, var(--gold) 28%, var(--paper)); }
-  .lens-tag.lens-silver { background: color-mix(in oklch, var(--silver) 32%, var(--paper)); }
-  .lens-tag.lens-bronze { background: color-mix(in oklch, var(--bronze) 28%, var(--paper)); }
-  .lens-tag.lens-red    { background: color-mix(in oklch, var(--red) 24%, var(--paper)); }
-
-
   /* === Phase columns === */
   .phase-card {
     background: var(--paper);
@@ -793,6 +739,88 @@
   .callout strong { color: var(--ink); font-weight: 600; }
   .callout .ml { display: block; margin-bottom: 6px; }
 
+  /* === Two-lens cards (Phase 2 / Section 07) === */
+  .lens {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 22px 24px 20px;
+    transition: border-color 0.2s ease, box-shadow 0.25s ease;
+  }
+  .lens-tag {
+    font-family: 'IBM Plex Mono'; font-size: 10.5px;
+    color: var(--muted); letter-spacing: 0.08em;
+    text-transform: uppercase; margin-bottom: 6px;
+  }
+  .lens-q {
+    font-family: 'IBM Plex Serif'; font-size: 21px;
+    font-weight: 400; color: var(--ink);
+    margin: 0 0 16px 0; letter-spacing: -0.01em;
+    text-transform: none;
+    line-height: 1.2;
+  }
+  .lens-q em { font-style: italic; color: var(--ink-2); }
+  .lens-list {
+    list-style: none; padding: 0; margin: 0;
+    display: flex; flex-direction: column;
+  }
+  .lens-list li {
+    display: grid;
+    grid-template-columns: 64px 130px 1fr;
+    gap: 12px;
+    align-items: baseline;
+    font-size: 13px; line-height: 1.5;
+    color: var(--ink-2);
+    padding: 11px 0;
+    border-top: 1px solid var(--hairline);
+  }
+  .lens-list li:first-child { border-top: none; }
+  @media (max-width: 560px) {
+    .lens-list li { grid-template-columns: 60px 1fr; gap: 6px 10px; }
+    .lens-list li .lens-desc { grid-column: 1 / -1; }
+  }
+  .lens-tier {
+    display: inline-block; padding: 2px 8px;
+    font-family: 'IBM Plex Mono'; font-size: 10px;
+    font-weight: 600; letter-spacing: 0.06em;
+    border-radius: 3px;
+    text-transform: uppercase;
+    text-align: center;
+  }
+  .lens-tier.gold   { background: color-mix(in srgb, var(--gold) 28%, var(--paper));   color: oklch(0.4 0.13 80); }
+  .lens-tier.silver { background: color-mix(in srgb, var(--silver) 28%, var(--paper)); color: var(--ink-2); }
+  .lens-tier.bronze { background: color-mix(in srgb, var(--bronze) 28%, var(--paper)); color: oklch(0.4 0.11 55); }
+  .lens-tier.red    { background: color-mix(in srgb, var(--red) 28%, var(--paper));    color: oklch(0.4 0.18 25); }
+  [data-theme="dark"] .lens-tier.gold   { color: oklch(0.9 0.14 85); }
+  [data-theme="dark"] .lens-tier.silver { color: var(--ink); }
+  [data-theme="dark"] .lens-tier.bronze { color: oklch(0.85 0.12 55); }
+  [data-theme="dark"] .lens-tier.red    { color: oklch(0.85 0.16 25); }
+  .lens-verdict {
+    font-family: 'IBM Plex Sans'; font-weight: 600;
+    font-size: 13px; letter-spacing: -0.005em;
+  }
+  .lens-verdict.good { color: var(--good); }
+  .lens-verdict.bad  { color: var(--bad); }
+  .lens-verdict.warn { color: oklch(0.55 0.14 65); }
+  [data-theme="dark"] .lens-verdict.warn { color: oklch(0.78 0.14 75); }
+  .lens-desc { color: var(--ink-2); font-size: 12.5px; }
+
+  /* Practical takeaway paragraph */
+  .takeaway {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: var(--radius);
+    padding: 16px 22px;
+    font-size: 13.5px;
+    line-height: 1.7;
+    color: var(--ink-2);
+    max-width: 100ch;
+    margin-top: 24px;
+  }
+  .takeaway strong { color: var(--ink); font-weight: 600; }
+  .takeaway .lens-tier { font-size: 9.5px; padding: 1px 6px; margin: 0 2px; vertical-align: 1px; }
+
   /* === Footer === */
   footer {
     padding: 64px 0 80px;
@@ -870,6 +898,246 @@
   .yamllike .str { color: oklch(0.4 0.15 145); }
   .yamllike .num { color: oklch(0.4 0.15 250); }
   .yamllike .cm { color: var(--muted); }
+
+  /* ============================================================
+     PROFESSIONAL ANIMATIONS
+     Additive + JS-gated (body.anim-ready) so content stays
+     visible if JS fails. Respects prefers-reduced-motion.
+     ============================================================ */
+
+  html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  /* Topbar — compact-on-scroll state */
+  .topbar {
+    transition: background-color 0.25s ease, border-color 0.25s ease,
+                padding 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 0.3s ease;
+  }
+  .topbar.scrolled {
+    padding: 8px 0;
+    box-shadow: 0 1px 0 var(--hairline), 0 6px 24px rgba(20,18,12,0.04);
+  }
+  [data-theme="dark"] .topbar.scrolled {
+    box-shadow: 0 1px 0 var(--line), 0 6px 24px rgba(0,0,0,0.45);
+  }
+
+  /* Hero entrance (orchestrated cascade) */
+  @media (prefers-reduced-motion: no-preference) {
+    body.anim-ready .topbar       { animation: pbap-topbar-down 0.55s cubic-bezier(0.16, 1, 0.3, 1) both; }
+    body.anim-ready .hero-eyebrow { animation: pbap-rise 0.8s 0.10s cubic-bezier(0.16, 1, 0.3, 1) both; }
+    body.anim-ready .hero-title   { animation: pbap-rise 1.0s 0.20s cubic-bezier(0.16, 1, 0.3, 1) both; }
+    body.anim-ready .hero-sub     { animation: pbap-rise 0.8s 0.40s cubic-bezier(0.16, 1, 0.3, 1) both; }
+    body.anim-ready .hero-stats   { animation: pbap-rise 0.7s 0.55s cubic-bezier(0.16, 1, 0.3, 1) both; }
+  }
+  @keyframes pbap-rise {
+    from { opacity: 0; transform: translateY(22px); }
+    to   { opacity: 1; transform: none; }
+  }
+  @keyframes pbap-topbar-down {
+    from { opacity: 0; transform: translateY(-14px); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  /* Reveal-on-scroll: solo (single element) + group (stagger) */
+  @media (prefers-reduced-motion: no-preference) {
+    body.anim-ready [data-reveal] {
+      opacity: 0;
+      transform: translateY(18px);
+      transition: opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1),
+                  transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+      will-change: opacity, transform;
+    }
+    body.anim-ready [data-reveal].in {
+      opacity: 1; transform: none; will-change: auto;
+    }
+    body.anim-ready [data-reveal-group] > * {
+      opacity: 0;
+      transform: translateY(14px);
+      transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+                  transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    body.anim-ready [data-reveal-group].in > * {
+      opacity: 1; transform: none;
+      transition-delay: calc(min(var(--i, 0), 10) * 35ms + max(0, var(--i, 0) - 10) * 12ms);
+    }
+  }
+
+  /* Step-detail content fade-in when active step changes */
+  @media (prefers-reduced-motion: no-preference) {
+    .step-detail h4,
+    .step-detail .desc,
+    .step-detail .kbits,
+    .step-detail .panel {
+      animation: pbap-detail-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    .step-detail .desc  { animation-delay: 0.05s; }
+    .step-detail .panel { animation-delay: 0.10s; }
+    .step-detail .kbits { animation-delay: 0.15s; }
+  }
+  @keyframes pbap-detail-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  /* Tier-dot ambient pulse */
+  @media (prefers-reduced-motion: no-preference) {
+    .tier-dot { animation: pbap-tier-pulse 3.6s ease-in-out infinite; }
+    .tier.gold   .tier-dot { animation-delay: 0s;   }
+    .tier.silver .tier-dot { animation-delay: 0.5s; }
+    .tier.bronze .tier-dot { animation-delay: 1.0s; }
+    .tier.red    .tier-dot { animation-delay: 1.5s; }
+  }
+  @keyframes pbap-tier-pulse {
+    0%, 100% { transform: scale(1);   box-shadow: 0 0 0 4px rgba(0,0,0,0.05); }
+    50%      { transform: scale(1.08); box-shadow: 0 0 0 9px rgba(0,0,0,0.07); }
+  }
+  [data-theme="dark"] .tier-dot { box-shadow: 0 0 0 4px rgba(255,255,255,0.06); }
+
+  /* Flow → arrow drift */
+  @media (prefers-reduced-motion: no-preference) {
+    .step::after { animation: pbap-arrow 2.6s ease-in-out infinite; }
+  }
+  @keyframes pbap-arrow {
+    0%, 100% { transform: translate(0, -50%);   opacity: 0.55; }
+    50%      { transform: translate(3px, -50%); opacity: 1;    }
+  }
+
+  /* Brand glyph quiet beat */
+  @media (prefers-reduced-motion: no-preference) {
+    .brand-glyph::before { animation: pbap-glyph 3.2s ease-in-out infinite; }
+  }
+  @keyframes pbap-glyph {
+    0%, 100% { transform: scale(1);   opacity: 1;    }
+    50%      { transform: scale(1.3); opacity: 0.7;  }
+  }
+
+  /* Phase-1 chip dot blink */
+  @media (prefers-reduced-motion: no-preference) {
+    .topphase .p1 .dot { animation: pbap-blink 2.4s ease-in-out infinite; }
+  }
+  @keyframes pbap-blink {
+    0%, 100% { opacity: 1;    }
+    50%      { opacity: 0.35; }
+  }
+
+  /* Pathogen badge subtle shimmer */
+  @media (prefers-reduced-motion: no-preference) {
+    .badge-pathogen {
+      background-size: 200% 100%;
+      animation: pbap-shine 5s ease-in-out infinite;
+    }
+  }
+  @keyframes pbap-shine {
+    0%, 100% { background-position: 0% 50%;   }
+    50%      { background-position: 100% 50%; }
+  }
+
+  /* ===== Hover micro-interactions ===== */
+  .theme-toggle svg { transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+  .theme-toggle:hover svg { transform: rotate(15deg); }
+  [data-theme="dark"] .theme-toggle:hover svg { transform: rotate(-15deg); }
+  .theme-toggle:active svg { transform: scale(0.85); }
+
+  .tool {
+    transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+                border-color 0.28s ease, box-shadow 0.28s ease;
+  }
+  .tool:hover {
+    transform: translateY(-3px);
+    border-color: var(--ink);
+    box-shadow: 0 10px 28px rgba(20,18,12,0.08);
+  }
+  [data-theme="dark"] .tool:hover { box-shadow: 0 10px 28px rgba(0,0,0,0.5); }
+
+  .output {
+    transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+                border-color 0.28s ease, box-shadow 0.28s ease;
+  }
+  .output:not(.primary):hover { transform: translateY(-2px); border-color: var(--ink); }
+  .output.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 36px rgba(20,18,12,0.18);
+  }
+
+  .phase-card {
+    transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+                box-shadow 0.28s ease;
+  }
+  .phase-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(20,18,12,0.08);
+  }
+  [data-theme="dark"] .phase-card:hover { box-shadow: 0 12px 32px rgba(0,0,0,0.5); }
+
+  .strain {
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+                border-color 0.2s ease;
+  }
+  .strain:hover {
+    transform: scale(1.07);
+    border-color: var(--ink);
+    z-index: 2;
+    position: relative;
+  }
+
+  .tier { transition: background-color 0.25s ease; }
+  .tier:hover { background: var(--bg); }
+
+  /* Nav link underline grow */
+  .topnav a { position: relative; padding-bottom: 2px; }
+  .topnav a::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 1px;
+    background: var(--ink);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .topnav a:hover::after { transform: scaleX(1); }
+
+  .footer-link svg { transition: opacity 0.2s ease, transform 0.2s ease; }
+  .footer-link:hover svg { transform: translateX(2px); }
+
+  /* Active step + smoother hover */
+  .step {
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+                background 0.2s ease, color 0.2s ease,
+                border-color 0.2s ease, box-shadow 0.25s ease;
+  }
+  .step.active {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 24px rgba(20,18,12,0.14);
+  }
+  [data-theme="dark"] .step.active { box-shadow: 0 10px 24px rgba(0,0,0,0.6); }
+
+  /* View Transitions API — circular wipe on theme change */
+  @media (prefers-reduced-motion: no-preference) {
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+      animation: none;
+      mix-blend-mode: normal;
+    }
+    ::view-transition-old(root) { z-index: 1; }
+    ::view-transition-new(root) {
+      z-index: 2;
+      animation: pbap-vt-clip 0.65s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+  }
+  @keyframes pbap-vt-clip {
+    from { clip-path: circle(0% at var(--vt-x, 50%) var(--vt-y, 50%));   }
+    to   { clip-path: circle(150% at var(--vt-x, 50%) var(--vt-y, 50%)); }
+  }
 </style>
 </head>
 
@@ -1119,31 +1387,33 @@
       </div>
     </div>
 
-    <!-- Two-lens framing: same bands, two readings -->
-    <div class="lens-row mt-32">
-      <div class="lens-card lens-bench">
-        <div class="lens-title">Lens A · Benchmarking the tool</div>
-        <div class="lens-sub">How good is the model at generalizing?</div>
+    <!-- Two lenses: same bands, different reading -->
+    <div class="two-col mt-40">
+      <div class="lens">
+        <div class="lens-tag">Lens A · Benchmarking the tool</div>
+        <h3 class="lens-q">How good is the model at <em>generalizing</em>?</h3>
         <ul class="lens-list">
-          <li><span class="lens-tag lens-gold">Gold</span> best signal — uncontaminated test of true generalization</li>
-          <li><span class="lens-tag lens-silver">Silver</span> clean — inside the AD, minimal leakage bias</li>
-          <li><span class="lens-tag lens-bronze">Bronze</span> mildly inflated — close-neighbor recognition leaks into the score</li>
-          <li><span class="lens-tag lens-red">Red</span> exclude — near-memorization by interpolation; any decent model wins here trivially</li>
+          <li><span class="lens-tier gold">Gold</span><span class="lens-verdict good">best signal</span><span class="lens-desc">uncontaminated test of true generalization</span></li>
+          <li><span class="lens-tier silver">Silver</span><span class="lens-verdict good">clean</span><span class="lens-desc">inside the AD, minimal leakage bias</span></li>
+          <li><span class="lens-tier bronze">Bronze</span><span class="lens-verdict warn">mildly inflated</span><span class="lens-desc">close-neighbor recognition leaks into the score</span></li>
+          <li><span class="lens-tier red">Red</span><span class="lens-verdict bad">exclude</span><span class="lens-desc">near-memorization by interpolation; any decent model wins here trivially</span></li>
         </ul>
       </div>
-      <div class="lens-card lens-use">
-        <div class="lens-title">Lens B · Trusting a specific prediction</div>
-        <div class="lens-sub">Will this tool be right on <em>this</em> peptide?</div>
+      <div class="lens">
+        <div class="lens-tag">Lens B · Trusting a specific prediction</div>
+        <h3 class="lens-q">Will this tool be right on <em>this</em> peptide?</h3>
         <ul class="lens-list">
-          <li><span class="lens-tag lens-gold">Gold</span> <strong>low</strong> — peptide is out-of-distribution; the model extrapolates</li>
-          <li><span class="lens-tag lens-silver">Silver</span> high — inside the applicability domain</li>
-          <li><span class="lens-tag lens-bronze">Bronze</span> high — interpolation from known territory</li>
-          <li><span class="lens-tag lens-red">Red</span> high but trivial — practically correct because the model has seen a near-clone</li>
+          <li><span class="lens-tier gold">Gold</span><span class="lens-verdict bad">low</span><span class="lens-desc">peptide is out-of-distribution; the model extrapolates</span></li>
+          <li><span class="lens-tier silver">Silver</span><span class="lens-verdict good">high</span><span class="lens-desc">inside the applicability domain</span></li>
+          <li><span class="lens-tier bronze">Bronze</span><span class="lens-verdict good">high</span><span class="lens-desc">interpolation from known territory</span></li>
+          <li><span class="lens-tier red">Red</span><span class="lens-verdict warn">high but trivial</span><span class="lens-desc">practically correct because the model has seen a near-clone</span></li>
         </ul>
       </div>
     </div>
 
-    <p class="muted mono mt-32" style="font-size:11.5px;">Practical takeaway: for benchmarking a tool, Gold is the cleanest signal and Red is excluded. For estimating how much to trust a specific prediction the tool just made on a specific peptide, the order is roughly reversed — Bronze and Silver are the operational sweet spot, Gold is where the model is least trustworthy. Phase-2 audit reporting therefore publishes per-band metrics <em>side by side</em> rather than a single trust verdict.</p>
+    <p class="takeaway mt-24">
+      <strong>Practical takeaway:</strong> for benchmarking a tool, <span class="lens-tier gold">Gold</span> is the cleanest signal and <span class="lens-tier red">Red</span> is excluded. For estimating how much to trust a specific prediction the tool just made on a specific peptide, the order is roughly reversed — <span class="lens-tier bronze">Bronze</span> and <span class="lens-tier silver">Silver</span> are the operational sweet spot, <span class="lens-tier gold">Gold</span> is where the model is least trustworthy. Phase-2 audit reporting therefore publishes <strong>per-band metrics side by side</strong> rather than a single trust verdict.
+    </p>
   </div>
 </section>
 
@@ -1243,15 +1513,145 @@
 <script type="text/babel" src="components/mount.jsx"></script>
 
 <script>
-  // Wire up the theme toggle button.
+  // ============================================================
+  // PBAP animations runtime
+  //   • Hero entrance + stat counters
+  //   • Reveal-on-scroll (single + staggered groups)
+  //   • Topbar compact-on-scroll
+  //   • Theme toggle with View Transitions API
+  // Gated by prefers-reduced-motion. Re-scans after React mount.
+  // ============================================================
   (function() {
+    var doc  = document.documentElement;
+    var body = document.body;
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var supportsIO = 'IntersectionObserver' in window;
+
+    if (!reduce) body.classList.add('anim-ready');
+
+    // ---- 1. Auto-decorate elements with data-reveal / data-reveal-group ----
+    var SOLO_SEL = '.section-num, .section-title, .section-lede, .callout, .formula, .yamllike, .axis, .phase-divider-rule, .phase-divider-title, .phase-divider-sub, .footer-fineprint';
+    var GROUP_SEL = '.two-col, .schema, .tier-row, .output-grid, .footer-grid, .four-col, .phase-steps, .tool-grid, .strain-grid, .flow-row, table.matrix tbody';
+
+    function autoTag() {
+      document.querySelectorAll(SOLO_SEL).forEach(function(el) {
+        if (!el.hasAttribute('data-reveal')) el.setAttribute('data-reveal', '');
+      });
+      document.querySelectorAll(GROUP_SEL).forEach(function(el) {
+        if (!el.hasAttribute('data-reveal-group')) el.setAttribute('data-reveal-group', '');
+      });
+      document.querySelectorAll('[data-reveal-group]').forEach(function(g) {
+        Array.prototype.forEach.call(g.children, function(c, i) {
+          c.style.setProperty('--i', i);
+        });
+      });
+    }
+
+    // ---- 2. IntersectionObserver for reveals ----
+    var obs = null;
+    if (supportsIO) {
+      obs = new IntersectionObserver(function(entries) {
+        entries.forEach(function(e) {
+          if (e.isIntersecting) {
+            e.target.classList.add('in');
+            obs.unobserve(e.target);
+          }
+        });
+      }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+    }
+
+    function observeAll() {
+      if (!obs) {
+        document.querySelectorAll('[data-reveal], [data-reveal-group]').forEach(function(el) {
+          el.classList.add('in');
+        });
+        return;
+      }
+      document.querySelectorAll('[data-reveal]:not(.in), [data-reveal-group]:not(.in)').forEach(function(el) {
+        obs.observe(el);
+      });
+    }
+
+    autoTag();
+    observeAll();
+    // Re-scan after Babel transpiles and React mounts dynamic components
+    setTimeout(function() { autoTag(); observeAll(); }, 700);
+    setTimeout(function() { autoTag(); observeAll(); }, 1600);
+
+    // Safety net: force-reveal anything still hidden after 3.5s
+    setTimeout(function() {
+      document.querySelectorAll('[data-reveal]:not(.in), [data-reveal-group]:not(.in)').forEach(function(el) {
+        el.classList.add('in');
+      });
+    }, 3500);
+
+    // ---- 3. Stat counters in the hero ----
+    if (!reduce && supportsIO) {
+      function animateCount(el, target) {
+        var t0 = performance.now();
+        var dur = 1400;
+        el.textContent = '0';
+        function step(now) {
+          var t = Math.min((now - t0) / dur, 1);
+          var eased = 1 - Math.pow(1 - t, 3);
+          el.textContent = Math.round(target * eased);
+          if (t < 1) requestAnimationFrame(step);
+          else el.textContent = target;
+        }
+        requestAnimationFrame(step);
+      }
+      var statObs = new IntersectionObserver(function(entries) {
+        entries.forEach(function(e) {
+          if (e.isIntersecting) {
+            var n = parseInt(e.target.textContent, 10);
+            if (!isNaN(n)) animateCount(e.target, n);
+            statObs.unobserve(e.target);
+          }
+        });
+      }, { threshold: 0.3 });
+      // Slight delay so hero entrance animation reads first
+      setTimeout(function() {
+        document.querySelectorAll('.stat-num').forEach(function(el) {
+          statObs.observe(el);
+        });
+      }, 450);
+    }
+
+    // ---- 4. Topbar scrolled state ----
+    var topbar = document.querySelector('.topbar');
+    if (topbar) {
+      var ticking = false;
+      window.addEventListener('scroll', function() {
+        if (!ticking) {
+          requestAnimationFrame(function() {
+            if (window.scrollY > 40) topbar.classList.add('scrolled');
+            else topbar.classList.remove('scrolled');
+            ticking = false;
+          });
+          ticking = true;
+        }
+      }, { passive: true });
+    }
+
+    // ---- 5. Theme toggle with View Transitions API (circular wipe) ----
     var btn = document.getElementById('theme-toggle');
-    if (!btn) return;
-    btn.addEventListener('click', function() {
-      var cur = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-      document.documentElement.setAttribute('data-theme', cur);
-      try { localStorage.setItem('pbap-theme', cur); } catch(e) {}
-    });
+    if (btn) {
+      btn.addEventListener('click', function() {
+        var cur = doc.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        function apply() {
+          doc.setAttribute('data-theme', cur);
+          try { localStorage.setItem('pbap-theme', cur); } catch(e) {}
+        }
+        if (document.startViewTransition && !reduce) {
+          var r = btn.getBoundingClientRect();
+          doc.style.setProperty('--vt-x', (r.left + r.width / 2) + 'px');
+          doc.style.setProperty('--vt-y', (r.top + r.height / 2) + 'px');
+          document.startViewTransition(apply);
+        } else {
+          apply();
+        }
+      });
+    }
   })();
 </script>
 

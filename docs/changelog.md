@@ -9,6 +9,11 @@ last_updated: 2026-05-13
 
 ## 2026-05
 
+- 2026-05-13 — **Landing page redesign pass**: refreshed
+  `site/index.html` (+478 lines of CSS/UX polish). Preserves the
+  Applicability Domain framing in Section 07 (two-lens block,
+  identity-band tier cards, takeaway paragraph). Components and Pages
+  workflow unchanged.
 - 2026-05-13 — **Docs-sync infrastructure** to keep `docs/` aligned
   with code. Three additions:
   (a) `ONBOARDING.md` at the root — single canonical entry point for any
