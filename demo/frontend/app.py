@@ -78,8 +78,11 @@ def health_panel() -> str:
     lim = h.get("limits", {})
     q = h.get("queue", {})
     r = h.get("rate", {})
+    min_len = lim.get('min_peptide_len', 8)
+    max_len = lim.get('max_peptide_len', 50)
     return (
         f"**Limits** · {lim.get('max_peptides_per_job')} peptides/submission · "
+        f"length **{min_len}–{max_len} aa** · "
         f"{lim.get('jobs_per_ip_per_hour')} jobs/hour/IP · "
         f"{lim.get('daily_global_cap')} jobs/day global\n\n"
         f"**Queue** · {q.get('pending', 0)} pending · "
@@ -276,8 +279,15 @@ def build_ui() -> gr.Blocks:
                    theme=gr.themes.Soft()) as ui:
         gr.Markdown(
             "# PBAP — Peptide Bioactivity Audit Pipeline\n"
-            "*Free, non-commercial demo. Paste up to 50 peptides and get a "
-            "consolidated multi-tool report.*\n\n"
+            "*Free, non-commercial demo. Paste up to **50 peptides of "
+            "8–50 aa each** and get a consolidated multi-tool report.*\n\n"
+            "> ⚠️ **Peptide length matters.** The 10 underlying tools were "
+            "trained on peptides roughly in the 8–50 aa range. Submissions "
+            "outside this window (very short hormone fragments, full-length "
+            "protein sequences, etc.) will be rejected by the backend "
+            "validator because their predictions would be out-of-distribution "
+            "and unreliable. Only the standard 20 amino acids "
+            "(ACDEFGHIKLMNPQRSTVWY) are accepted.\n\n"
             f"📦 Source: [github.com/Paredes0/pbap](https://github.com/Paredes0/pbap) · "
             f"📖 Design: [paredes0.github.io/pbap](https://paredes0.github.io/pbap/) · "
             f"✉️ Contact: {CONTACT_EMAIL}"
@@ -286,7 +296,7 @@ def build_ui() -> gr.Blocks:
         with gr.Row():
             with gr.Column(scale=2):
                 input_box = gr.Textbox(
-                    label="Input — paste FASTA or one peptide per line",
+                    label="Input — paste FASTA or one peptide per line (8–50 aa, standard amino acids only)",
                     lines=10,
                     placeholder=EXAMPLE_INPUT,
                     value="",

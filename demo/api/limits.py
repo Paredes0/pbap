@@ -9,11 +9,23 @@ Configuration is loaded from environment variables (see `.env.example`)
 so the operator can dial limits without touching code:
 
     MAX_PEPTIDES_PER_JOB     default 50
-    MIN_PEPTIDE_LEN          default 5
-    MAX_PEPTIDE_LEN          default 100
+    MIN_PEPTIDE_LEN          default 8   (lower bound of the 10 tools'
+                                          training distributions)
+    MAX_PEPTIDE_LEN          default 50  (upper bound idem)
     JOBS_PER_IP_PER_HOUR     default 3
     DAILY_GLOBAL_JOB_CAP     default 200
     ALLOWED_TOOLS            comma-separated, default = all 10 active
+
+Note on the length window: the 10 integrated tools were trained on
+peptides spanning roughly 5–100 aa across the pool, but their useful
+range — where predictions are reliable rather than extrapolation —
+narrows to 8–50 aa once the training-distribution percentiles of all
+10 tools are intersected. Submitting peptides outside this window will
+pass the syntactic check but is likely to produce uninformative or
+unstable predictions; the public demo enforces 8–50 by default to
+protect the user from this failure mode. An operator running the CLI
+locally can widen the range (or disable the check entirely) via the
+env vars above.
 
 All counters are in-memory. Restarting the backend resets them. For a
 single-host demo that is acceptable; if abuse becomes an issue, swap
@@ -57,8 +69,8 @@ def _env_tools(name: str, default: tuple[str, ...]) -> tuple[str, ...]:
 @dataclass
 class Limits:
     max_peptides_per_job: int = field(default_factory=lambda: _env_int("MAX_PEPTIDES_PER_JOB", 50))
-    min_peptide_len: int = field(default_factory=lambda: _env_int("MIN_PEPTIDE_LEN", 5))
-    max_peptide_len: int = field(default_factory=lambda: _env_int("MAX_PEPTIDE_LEN", 100))
+    min_peptide_len: int = field(default_factory=lambda: _env_int("MIN_PEPTIDE_LEN", 8))
+    max_peptide_len: int = field(default_factory=lambda: _env_int("MAX_PEPTIDE_LEN", 50))
     jobs_per_ip_per_hour: int = field(default_factory=lambda: _env_int("JOBS_PER_IP_PER_HOUR", 3))
     daily_global_cap: int = field(default_factory=lambda: _env_int("DAILY_GLOBAL_JOB_CAP", 200))
     allowed_tools: tuple[str, ...] = field(default_factory=lambda: _env_tools("ALLOWED_TOOLS", DEFAULT_TOOLS))
@@ -114,8 +126,11 @@ def parse_input_to_fasta(text: str) -> str:
             raise ValidationError(f"Sequence #{idx} ({hdr!r}) is empty.")
         if not (LIMITS.min_peptide_len <= len(seq_u) <= LIMITS.max_peptide_len):
             raise ValidationError(
-                f"Sequence #{idx} ({hdr!r}) has length {len(seq_u)}. "
-                f"Allowed range: {LIMITS.min_peptide_len}–{LIMITS.max_peptide_len}."
+                f"Sequence #{idx} ({hdr!r}) has length {len(seq_u)} aa. "
+                f"Allowed range: {LIMITS.min_peptide_len}–{LIMITS.max_peptide_len} aa "
+                f"(intersection of the training-distribution windows of the "
+                f"10 active tools; submissions outside this range tend to "
+                f"yield unreliable or extrapolated predictions)."
             )
         bad = sorted(set(seq_u) - STANDARD_AA)
         if bad:

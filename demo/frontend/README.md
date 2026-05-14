@@ -131,8 +131,11 @@ Pulled live from `/health` on each refresh. Defaults:
 - 50 peptides per submission.
 - 3 jobs per IP per hour.
 - 200 jobs per day, total.
-- Sequences must be 5–100 residues of standard amino acids
-  (ACDEFGHIKLMNPQRSTVWY).
+- Sequences must be 8–50 residues of standard amino acids
+  (ACDEFGHIKLMNPQRSTVWY). The window corresponds to the intersection
+  of the 10 active tools' training-distribution ranges; submissions
+  outside it would produce out-of-distribution predictions and are
+  rejected upstream by the backend validator.
 - Per-job timeout: 600 s.
 
 These are operator-tunable on the backend (`demo/api/.env`).
