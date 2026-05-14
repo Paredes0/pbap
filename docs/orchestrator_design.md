@@ -91,7 +91,7 @@ These dimensions live under `run_command` and are **always generic**
 | `hardcoded_output_name` | string (required if `output_capture=hardcoded_file`) | name of the cwd-bound file (e.g. `predictions_hemopi2.csv`, `Predicted_MICs.csv`, `Results.csv`) |
 | `pre_command` | shell string | Runs in cwd before the script. Substitutes `${INPUT}` → absolute fasta. Use when the script hardcodes `./input.txt` or similar. APEX example: `awk '/^>/{next}{print}' ${INPUT} > test_seqs.txt` |
 | `cwd_subdir` | subpath relative to `Tool_Repos/<tool>` | Use when the entry point lives in a subfolder and does bare-name imports of sibling modules (e.g. `bert_ampep60/predict/predict.py` imports `model_def`). |
-| `extra_args` | list of strings | Extra args appended at the end of the command. Use to activate guards (e.g. `aip_tranlac` with `["--predict"]`). |
+| `extra_args` | list of strings | Extra args appended at the end of the command. Use to pin model variants or required flags (e.g. `toxinpred3` with `["-m", "2"]` to select the model variant, `hemopi2` with `["-m", "3", "-wd", "."]`). |
 
 **Rule**: if a new tool requires something that doesn't fit the
 existing dimensions, first verify whether a new generic dimension
@@ -146,7 +146,7 @@ planned tools integrated. Do NOT execute earlier.
 When activated, sub-tasks:
 - Collect PDFs/preprints of each integrated tool (toxinpred3,
   antibp3, hemopi2, hemodl, deepb3p, deepbp, apex, perseucpp,
-  acp_dpe, aip_tranlac + future ones). Source: user provides, or web
+  acp_dpe, bertaip + future ones). Source: user provides, or web
   scraping with explicit consent.
 - Per paper, extract a table with: training dataset, evaluation
   dataset, reported metrics (precision/recall/MCC/AUC), split sizes,
@@ -431,11 +431,14 @@ Threshold T configurable in `config/apex_strain_classification.yaml`
 ### Strain classification
 
 `config/apex_strain_classification.yaml` maps the 34 strains to 3
-lists: `pathogenic` (14), `commensal` (18), `ambiguous` (2). The
-`ambiguous` ones are exported as individual columns but **do NOT
-count** towards the aggregate (neither `apex__pathogenic_active` nor
-`apex__commensal_active`). To reclassify an ambiguous strain, move
-its entry to one of the two previous lists.
+lists: `pathogenic` (15), `commensal` (19), `ambiguous` (0 after the
+2026-04-30 reclassification — `E. coli ATCC11775` moved to commensal
+and `C. spiroforme ATCC29900` moved to pathogenic by maintainer
+decision). `ambiguous` entries, if added back, are exported as
+individual columns but **do NOT count** towards the aggregate
+(neither `apex__pathogenic_active` nor `apex__commensal_active`).
+To reclassify an ambiguous strain, move its entry to one of the two
+previous lists.
 
 ### APEX and class_norm (reverted 2026-05-01)
 

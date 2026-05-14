@@ -37,7 +37,7 @@ Tool-execution engine using `micromamba run`.
 
 | Symbol | Type | Signature / Description |
 |---|---|---|
-| `ToolResult` | `class` | Wraps the execution result: `tool_id`, `output_path`, `exit_code`, `runtime`, `diagnosis`. |
+| `ToolResult` | `class` | Wraps the execution result: `tool_id`, `status` ("OK" / "PROBLEMATIC"), `predictions_path`, `diagnosis`, `stderr_tail`, `runtime_seconds`. |
 | `run_tool` | `def` | `(tool_id, peptides_fasta, output_dir, pipeline_config_path=DEFAULT_CONFIG_PATH, timeout_seconds=None)` — runs a predictor in its dedicated environment. Handles timeouts and log capture. |
 
 ---
@@ -61,7 +61,7 @@ Biological utilities for sequence validation and normalization.
 | Function | Signature | Description |
 |---|---|---|
 | `validate_sequence` | `(seq, min_length=5, max_length=100)` | Checks that the sequence contains only standard amino acids and fits the length range. |
-| `classify_habitat` | `(organism_name, lineage_str, fallback="unknown")` | Heuristic mapping from taxonomic lineage to habitat categories (soil, marine, etc.). |
+| `classify_habitat` | `(organism_name, lineage_str, fallback="desconocido")` | Heuristic mapping from taxonomic lineage to habitat categories (`marino`, `terrestre`, `planta`, `hongo`, `microorganismo`). |
 | `get_length_bin` | `(length, bins=None)` | Assigns a sequence to a length bin. |
 | `remove_subfragments` | `(df, seq_col="Sequence", id_col="ID")` | Removes sequences that are exact substrings of others in the same set. |
 | `find_column` | `(df)` | Heuristic to detect the sequence column in a DataFrame with heterogeneous names. |

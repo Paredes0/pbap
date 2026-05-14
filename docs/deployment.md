@@ -61,13 +61,13 @@ environment-based isolation strategy.
 | `toxinpred3` | Toxicity | Active | Local execution in env `ml`. |
 | `hemodl` | Hemolytic | Active | Model based on ESM-2 + ProtT5. |
 | `hemopi2` | Hemolytic | Active | Mode `-m 3` (ESM2 only). |
-| `bert_ampep60` | Antimicrobial | Active | Multi-target regression (E. coli, S. aureus). |
+| `bert_ampep60` | Antimicrobial | Standby (DEFERRED_USER) | Multi-target regression (E. coli, S. aureus). Weights on institutional MPU SharePoint behind a login wall — `onedrivedownloader` receives an HTML page instead of the `.pkl`. Re-activate once weights are hosted at a programmatically reachable URL. |
 | `apex` | Antimicrobial | Active | 34 strains. Local execution in env `qsar`. |
 | `antibp3` | Antimicrobial | Active | sklearn models + blastp. Linux only. |
 | `deepbp` | Anticancer | Active | Based on ESM-2 (Meta). |
 | `acp_dpe` | Anticancer | Active | CNN/GRU ensemble (patched). |
 | `bertaip` | Anti-inflammatory | Active | Replaces aip_tranlac. BERT-based. |
-| `antifungipept` | Antifungal | Active | Runs in `ml_legacy_py38`. |
+| `antifungipept` | Antifungal | Standby (DEFERRED_USER) | Model pkls (`cmodel.pkl`, `rmodel_C_a.pkl`) shipped as git-lfs pointer files, not hydrated. Requires `git lfs pull` on the upstream clone; `ml_legacy_py38` env not redistributed in `envs/`. |
 | `deepb3p` | BBB | Active | Python 3.7 + TF 1.14 (legacy). |
 | `perseucpp` | CPP | Active | 2-stage classification (CPP + Efficiency). |
 | `plm4alg` | Allergenicity | Standby | Jupyter/Colab-based. Requires refactor. |

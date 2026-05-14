@@ -9,6 +9,33 @@ last_updated: 2026-05-13
 
 ## 2026-05
 
+- 2026-05-14 — **docs: cleanup post-aip_tranlac→bertaip y
+  post-reclasificación APEX**. Auditoría docs-vs-código identificó
+  drifts heredados de las decisiones de 2026-04-30 / 2026-05-01 que
+  nunca se propagaron a las páginas de referencia. Fixes aplicados:
+  (a) `docs/api.md`: firma real de `ToolResult` (status,
+  predictions_path, stderr_tail, runtime_seconds) y default
+  `classify_habitat(fallback="desconocido")`. (b) `docs/deployment.md`
+  §3: `bert_ampep60` y `antifungipept` movidas de Active a Standby
+  (DEFERRED_USER) — ambas bloqueadas por descarga de pesos (MPU
+  SharePoint login wall / git-lfs pointers no hidratados); el conteo
+  de Active queda en 10, coherente con `DEFAULT_TOOLS` de
+  `run_audit.py` y con §4.1. (c) `docs/orchestrator_design.md` §8:
+  conteo APEX `pathogenic`/`commensal`/`ambiguous` 14/18/2 → 15/19/0
+  (reclasificación de C. spiroforme y E. coli ATCC11775 del
+  2026-04-30 ya estaba en `apex_strain_classification.yaml`, no en
+  la doc). (d) `docs/orchestrator_design.md` §3, §4: refs muertas a
+  `aip_tranlac` reemplazadas por `bertaip` (§4) o por un ejemplo
+  vigente — `toxinpred3` `["-m", "2"]` (§3). (e) `wrappers/README.md`:
+  tabla de `arg_style` corregida — sólo `flagged`/`positional` en
+  Phase 1; `wrapper` documentado como Phase-2-only (Phase 1 lo
+  rechaza con `NotImplementedError` en `tool_runner.py:193-194`);
+  `output_capture` y `pre_command` reconocidas como dimensiones
+  independientes en lugar de arg_styles. No hay cambios de código
+  ni de runtime — sólo alineación de docs con el estado actual.
+  Files: `docs/api.md`, `docs/deployment.md`,
+  `docs/orchestrator_design.md`, `wrappers/README.md`,
+  `docs/changelog.md`.
 - 2026-05-13 — **Memorias académicas: auditoría post-compact y
   corrección de datos del case study Octopus vulgaris**. Tras la
   auditoría sistemática (PubMed para 9 refs clave, cruce contra

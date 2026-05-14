@@ -13,21 +13,37 @@ expected environment.
 
 ## When to add a wrapper instead of a patch
 
-The runner supports four generic ways of invoking a tool, declared in
+Phase 1's runner (`audit_lib/tool_runner.py`) accepts two
+`arg_style` values, declared under `run_command` in
 `config/pipeline_config.yaml`:
 
 | `arg_style:` | Use when… | Example |
 |---|---|---|
 | `flagged` (default) | The tool has `--input FILE --output FILE` flags | `toxinpred3`, `hemodl` |
-| `positional` | The tool takes the FASTA as a positional arg | `deepb3p` |
-| `script` + `pre_command` + `output_capture` | Tool writes to a hardcoded filename; runner handles I/O | `apex` (writes `Predicted_MICs.csv`), `hemopi2` |
-| **`wrapper`** | Tool has **no usable CLI at all** — hardcoded paths inside the script, requires runtime patching, multiple output files to merge, etc. | `bert_ampep60` |
+| `positional` | The tool takes the FASTA as a positional arg | `deepb3p`, `apex` |
+
+Tools that write to a hardcoded output filename (`hemopi2` →
+`predictions_hemopi2.csv`) or need input preprocessing (`apex` →
+`awk` from FASTA into `test_seqs.txt`) are handled by the
+**independent** `output_capture: hardcoded_file` and `pre_command`
+dimensions — they are NOT additional `arg_style` modes. See
+[`../docs/orchestrator_design.md`](../docs/orchestrator_design.md) §3
+for the full list of generic dimensions.
+
+**`arg_style: wrapper` is Phase 2 only.**
+`scripts/run_tool_prediction.py` accepts it as a route to a
+`wrappers/<tool>_cli.py` adapter, but Phase 1's `tool_runner.py`
+raises `NotImplementedError` on it. Use it only when (a) the tool
+is exclusively driven through `bin/audit_pipeline.sh` and (b)
+neither a `patches/<tool>.patch` nor the existing generic
+dimensions can make its I/O tractable.
 
 Rule of thumb: if a small text **patch** to the upstream script
 makes its CLI tractable, ship a `patches/<tool>.patch` instead and
 use `arg_style: positional` / `flagged`. Only fall back to a
 `wrappers/` script when the upstream's I/O surface is fundamentally
-incompatible with the runner's three other modes.
+incompatible with the runner's two arg-style modes plus the
+independent dimensions above.
 
 A wrapper is **our own code** (the PBAP maintainer's, under
 PolyForm Noncommercial 1.0.0). It must **never** redistribute the
